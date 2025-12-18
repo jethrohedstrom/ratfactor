@@ -166,31 +166,36 @@
         }
 
         /* Leaderboard - WSL style */
+        .leaderboard-table {
+            width: 100%;
+        }
+
         .leaderboard-header {
             display: flex;
-            padding: 10px 0;
+            padding: 8px 12px;
             border-bottom: 2px solid var(--accent-yellow);
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             font-size: 0.65rem;
             color: var(--text-muted);
             letter-spacing: 1px;
             text-transform: uppercase;
+            font-weight: 700;
         }
 
-        .leaderboard-header-rank { width: 50px; }
+        .leaderboard-header-rank { width: 45px; text-align: center; }
         .leaderboard-header-name { flex: 1; }
-        .leaderboard-header-pts { width: 70px; text-align: right; }
+        .leaderboard-header-pts { width: 60px; text-align: center; }
 
         .leaderboard-item {
             display: flex;
             align-items: center;
-            padding: 12px 0;
+            padding: 14px 12px;
             border-bottom: 1px solid var(--border-subtle);
             transition: background 0.2s ease;
         }
 
         .leaderboard-item:hover {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .leaderboard-item:last-child {
@@ -199,28 +204,29 @@
 
         .leaderboard-rank {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
-            width: 50px;
+            font-size: 1.8rem;
+            width: 45px;
+            text-align: center;
             color: var(--text-muted);
         }
 
-        .leaderboard-item:nth-child(2) .leaderboard-rank { color: #ffd700; }
-        .leaderboard-item:nth-child(3) .leaderboard-rank { color: #c0c0c0; }
-        .leaderboard-item:nth-child(4) .leaderboard-rank { color: #cd7f32; }
+        .leaderboard-item.rank-1 .leaderboard-rank { color: #ffd700; }
+        .leaderboard-item.rank-2 .leaderboard-rank { color: #c0c0c0; }
+        .leaderboard-item.rank-3 .leaderboard-rank { color: #cd7f32; }
 
         .leaderboard-name {
             flex: 1;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         .leaderboard-score {
-            width: 70px;
-            text-align: right;
+            width: 60px;
+            text-align: center;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: var(--accent-yellow);
         }
 
@@ -1018,18 +1024,20 @@
             }
 
             container.innerHTML = `
-                <div class="leaderboard-header">
-                    <div class="leaderboard-header-rank">Rank</div>
-                    <div class="leaderboard-header-name">Name</div>
-                    <div class="leaderboard-header-pts">Points</div>
-                </div>
-                ${sorted.map(([name, pts], i) => `
-                    <div class="leaderboard-item">
-                        <div class="leaderboard-rank">${i + 1}</div>
-                        <div class="leaderboard-name">${name}</div>
-                        <div class="leaderboard-score">${pts}</div>
+                <div class="leaderboard-table">
+                    <div class="leaderboard-header">
+                        <div class="leaderboard-header-rank">Rank</div>
+                        <div class="leaderboard-header-name">Name</div>
+                        <div class="leaderboard-header-pts">Points</div>
                     </div>
-                `).join('')}
+                    ${sorted.map(([name, pts], i) => `
+                        <div class="leaderboard-item rank-${i + 1}">
+                            <div class="leaderboard-rank">${i + 1}</div>
+                            <div class="leaderboard-name">${name}</div>
+                            <div class="leaderboard-score">${pts}</div>
+                        </div>
+                    `).join('')}
+                </div>
             `;
         }
 

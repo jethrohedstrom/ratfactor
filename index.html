@@ -967,9 +967,9 @@
                 return;
             }
 
-            // Calculate placements (1st, 2nd, 3rd) for each player
-            const placements = {};
-            PLAYERS.forEach(p => placements[p] = { first: 0, second: 0, third: 0, played: 0 });
+            // Calculate points: 1st = 3pts, 2nd = 1pt, 3rd = 0pts
+            const points = {};
+            PLAYERS.forEach(p => points[p] = 0);
 
             canadianMatches.forEach(match => {
                 const players = [
@@ -978,22 +978,15 @@
                     { name: match.player3, score: match.score_player3 || 0 }
                 ].filter(p => p.name);
 
-                // Sort by score descending
                 players.sort((a, b) => b.score - a.score);
 
-                if (players[0]) { placements[players[0].name].first++; placements[players[0].name].played++; }
-                if (players[1]) { placements[players[1].name].second++; placements[players[1].name].played++; }
-                if (players[2]) { placements[players[2].name].third++; placements[players[2].name].played++; }
+                if (players[0]) points[players[0].name] += 3;
+                if (players[1]) points[players[1].name] += 1;
             });
 
-            // Sort by wins (first place finishes), then by second places as tiebreaker
-            const sorted = Object.entries(placements)
-                .filter(([_, stats]) => stats.played > 0)
-                .sort((a, b) => {
-                    if (b[1].first !== a[1].first) return b[1].first - a[1].first;
-                    if (b[1].second !== a[1].second) return b[1].second - a[1].second;
-                    return b[1].third - a[1].third;
-                });
+            const sorted = Object.entries(points)
+                .filter(([_, pts]) => pts > 0)
+                .sort((a, b) => b[1] - a[1]);
 
             if (sorted.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No matches recorded yet</div>';
@@ -1002,11 +995,11 @@
 
             const rankClasses = ['gold', 'silver', 'bronze', ''];
 
-            container.innerHTML = sorted.map(([name, stats], i) => `
+            container.innerHTML = sorted.map(([name, pts], i) => `
                 <div class="leaderboard-item">
                     <div class="leaderboard-rank ${rankClasses[i] || ''}">${i + 1}</div>
                     <div class="leaderboard-name">${name}</div>
-                    <div class="leaderboard-score">${stats.first} <span>wins</span></div>
+                    <div class="leaderboard-score">${pts} <span>pts</span></div>
                 </div>
             `).join('');
         }

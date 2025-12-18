@@ -475,6 +475,19 @@
         }
 
         /* Head to head */
+        .h2h-year-section {
+            margin-bottom: 30px;
+        }
+
+        .h2h-year-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
         .h2h-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1303,6 +1316,19 @@
                 return;
             }
 
+            // Group matches by year
+            const matchesByYear = {};
+            singlesMatches.forEach(match => {
+                const year = new Date(match.created_at).getFullYear();
+                if (!matchesByYear[year]) {
+                    matchesByYear[year] = [];
+                }
+                matchesByYear[year].push(match);
+            });
+
+            // Sort years descending (newest first)
+            const years = Object.keys(matchesByYear).sort((a, b) => b - a);
+
             // Generate all unique player combinations
             const matchups = [];
             for (let i = 0; i < PLAYERS.length; i++) {
@@ -1311,12 +1337,30 @@
                 }
             }
 
-            const matchupHTML = matchups.map(([p1, p2]) => {
-                const h2hMatches = singlesMatches.filter(m =>
-                    (m.player1 === p1 && m.player2 === p2) || (m.player1 === p2 && m.player2 === p1)
-                );
+            const yearSections = years.map(year => {
+                const yearMatches = matchesByYear[year];
 
-                if (h2hMatches.length === 0) {
+                const matchupHTML = matchups.map(([p1, p2]) => {
+                    const h2hMatches = yearMatches.filter(m =>
+                        (m.player1 === p1 && m.player2 === p2) || (m.player1 === p2 && m.player2 === p1)
+                    );
+
+                    if (h2hMatches.length === 0) {
+                        return `
+                            <div class="h2h-matchup">
+                                <div class="h2h-players">
+                                    <span class="h2h-player">${p1}</span>
+                                    <span class="h2h-vs">VS</span>
+                                    <span class="h2h-player">${p2}</span>
+                                </div>
+                                <div class="h2h-empty">No matches</div>
+                            </div>
+                        `;
+                    }
+
+                    const p1Wins = h2hMatches.filter(m => m.winner1 === p1).length;
+                    const p2Wins = h2hMatches.length - p1Wins;
+
                     return `
                         <div class="h2h-matchup">
                             <div class="h2h-players">
@@ -1324,32 +1368,25 @@
                                 <span class="h2h-vs">VS</span>
                                 <span class="h2h-player">${p2}</span>
                             </div>
-                            <div class="h2h-empty">No matches yet</div>
+                            <div class="h2h-score">
+                                <span class="h2h-score-number">${p1Wins}</span>
+                                <span class="h2h-score-separator">-</span>
+                                <span class="h2h-score-number">${p2Wins}</span>
+                            </div>
+                            <div class="h2h-matches">${h2hMatches.length} ${h2hMatches.length === 1 ? 'match' : 'matches'}</div>
                         </div>
                     `;
-                }
-
-                const p1Wins = h2hMatches.filter(m => m.winner1 === p1).length;
-                const p2Wins = h2hMatches.length - p1Wins;
+                }).join('');
 
                 return `
-                    <div class="h2h-matchup">
-                        <div class="h2h-players">
-                            <span class="h2h-player">${p1}</span>
-                            <span class="h2h-vs">VS</span>
-                            <span class="h2h-player">${p2}</span>
-                        </div>
-                        <div class="h2h-score">
-                            <span class="h2h-score-number">${p1Wins}</span>
-                            <span class="h2h-score-separator">-</span>
-                            <span class="h2h-score-number">${p2Wins}</span>
-                        </div>
-                        <div class="h2h-matches">${h2hMatches.length} ${h2hMatches.length === 1 ? 'match' : 'matches'} played</div>
+                    <div class="h2h-year-section">
+                        <div class="h2h-year-title">${year}</div>
+                        <div class="h2h-grid">${matchupHTML}</div>
                     </div>
                 `;
             }).join('');
 
-            container.innerHTML = `<div class="h2h-grid">${matchupHTML}</div>`;
+            container.innerHTML = yearSections;
         }
 
         // Toast notification

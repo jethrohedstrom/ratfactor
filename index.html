@@ -475,38 +475,75 @@
         }
 
         /* Head to head */
-        .h2h-selector {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
+        .h2h-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
         }
 
-        .h2h-selector select {
-            flex: 1;
+        .h2h-matchup {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .h2h-matchup:hover {
+            border-color: var(--accent-yellow);
+            transform: translateY(-2px);
+        }
+
+        .h2h-players {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .h2h-player {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
         }
 
         .h2h-vs {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             color: var(--accent-pink);
         }
 
-        .h2h-result {
-            text-align: center;
-            padding: 30px;
+        .h2h-score {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
         }
 
-        .h2h-score {
+        .h2h-score-number {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 4rem;
+            font-size: 2.5rem;
             color: var(--accent-yellow);
         }
 
-        .h2h-label {
-            font-size: 0.75rem;
+        .h2h-score-separator {
+            font-size: 1.5rem;
             color: var(--text-muted);
-            letter-spacing: 2px;
+        }
+
+        .h2h-matches {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .h2h-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
 
         /* Insights */
@@ -702,26 +739,9 @@
         <section id="h2h" class="section">
             <div class="card">
                 <h2 class="card-title">⚔️ Head to Head</h2>
-                
-                <div class="h2h-selector">
-                    <select id="h2hPlayer1" class="form-select">
-                        <option value="">Player 1</option>
-                        <option value="Rick">Rick</option>
-                        <option value="Ed">Ed</option>
-                        <option value="Tom">Tom</option>
-                        <option value="Jethro">Jethro</option>
-                    </select>
-                    <span class="h2h-vs">VS</span>
-                    <select id="h2hPlayer2" class="form-select">
-                        <option value="">Player 2</option>
-                        <option value="Rick">Rick</option>
-                        <option value="Ed">Ed</option>
-                        <option value="Tom">Tom</option>
-                        <option value="Jethro">Jethro</option>
-                    </select>
+                <div id="h2hGrid">
+                    <div class="loading"><div class="spinner"></div></div>
                 </div>
-
-                <div id="h2hResult"></div>
             </div>
         </section>
     </div>
@@ -743,7 +763,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initNavigation();
             initMatchTypeSelector();
-            initH2HSelectors();
             loadMatches();
         });
 
@@ -1045,6 +1064,7 @@
                 renderLeaderboard();
                 renderHistory();
                 renderInsights();
+                renderH2H();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -1273,54 +1293,63 @@
             `).join('');
         }
 
-        // H2H selectors
-        function initH2HSelectors() {
-            ['h2hPlayer1', 'h2hPlayer2'].forEach(id => {
-                document.getElementById(id).addEventListener('change', updateH2H);
-            });
-        }
-
-        function updateH2H() {
-            const p1 = document.getElementById('h2hPlayer1').value;
-            const p2 = document.getElementById('h2hPlayer2').value;
-            const container = document.getElementById('h2hResult');
-
-            if (!p1 || !p2 || p1 === p2) {
-                container.innerHTML = '<div class="empty-state">Select two different players</div>';
-                return;
-            }
-
-            const singlesMatches = matches.filter(m => 
-                m.match_type === 'singles' &&
-                ((m.player1 === p1 && m.player2 === p2) || (m.player1 === p2 && m.player2 === p1))
-            );
+        // H2H comprehensive view
+        function renderH2H() {
+            const container = document.getElementById('h2hGrid');
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
 
             if (singlesMatches.length === 0) {
-                container.innerHTML = `<div class="empty-state">No singles matches between ${p1} and ${p2}</div>`;
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No singles matches recorded yet</div>';
                 return;
             }
 
-            const p1Wins = singlesMatches.filter(m => m.winner1 === p1).length;
-            const p2Wins = singlesMatches.length - p1Wins;
+            // Generate all unique player combinations
+            const matchups = [];
+            for (let i = 0; i < PLAYERS.length; i++) {
+                for (let j = i + 1; j < PLAYERS.length; j++) {
+                    matchups.push([PLAYERS[i], PLAYERS[j]]);
+                }
+            }
 
-            container.innerHTML = `
-                <div class="h2h-result">
-                    <div class="h2h-label">${p1}</div>
-                    <div class="h2h-score">${p1Wins} - ${p2Wins}</div>
-                    <div class="h2h-label">${p2}</div>
-                </div>
-                <div style="margin-top: 20px;">
-                    <div class="form-label">Recent matches</div>
-                    ${singlesMatches.slice(0, 5).map(m => {
-                        const date = new Date(m.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
-                        return `<div class="match-item">
-                            <span class="${m.winner1 === p1 ? 'match-winner' : ''}">${p1}</span> vs 
-                            <span class="${m.winner1 === p2 ? 'match-winner' : ''}">${p2}</span>
-                            <span class="match-date">${date}</span>
-                        </div>`;
-                    }).join('')}
-                </div>
-            `;
+            const matchupHTML = matchups.map(([p1, p2]) => {
+                const h2hMatches = singlesMatches.filter(m =>
+                    (m.player1 === p1 && m.player2 === p2) || (m.player1 === p2 && m.player2 === p1)
+                );
+
+                if (h2hMatches.length === 0) {
+                    return `
+                        <div class="h2h-matchup">
+                            <div class="h2h-players">
+                                <span class="h2h-player">${p1}</span>
+                                <span class="h2h-vs">VS</span>
+                                <span class="h2h-player">${p2}</span>
+                            </div>
+                            <div class="h2h-empty">No matches yet</div>
+                        </div>
+                    `;
+                }
+
+                const p1Wins = h2hMatches.filter(m => m.winner1 === p1).length;
+                const p2Wins = h2hMatches.length - p1Wins;
+
+                return `
+                    <div class="h2h-matchup">
+                        <div class="h2h-players">
+                            <span class="h2h-player">${p1}</span>
+                            <span class="h2h-vs">VS</span>
+                            <span class="h2h-player">${p2}</span>
+                        </div>
+                        <div class="h2h-score">
+                            <span class="h2h-score-number">${p1Wins}</span>
+                            <span class="h2h-score-separator">-</span>
+                            <span class="h2h-score-number">${p2Wins}</span>
+                        </div>
+                        <div class="h2h-matches">${h2hMatches.length} ${h2hMatches.length === 1 ? 'match' : 'matches'} played</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="h2h-grid">${matchupHTML}</div>`;
         }
 
         // Toast notification

@@ -82,17 +82,50 @@
             50% { transform: scale(1.02); }
         }
 
-        .header .rat {
-            font-size: 2rem;
-            margin: 5px 0;
-        }
-
         .header .subtitle {
             font-size: 0.7rem;
             color: var(--text-muted);
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-top: 5px;
+        }
+
+        .header .rat {
+            font-size: 2rem;
+            margin: 10px 0 0;
+            display: inline-block;
+            animation: ratScurry 2s ease-in-out;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes ratScurry {
+            0% {
+                transform: translateX(-100vw) scaleX(-1);
+            }
+            45% {
+                transform: translateX(20px) scaleX(-1);
+            }
+            50% {
+                transform: translateX(20px) scaleX(-1) rotate(0deg);
+            }
+            55% {
+                transform: translateX(20px) scaleX(1) rotate(180deg);
+            }
+            60% {
+                transform: translateX(15px) scaleX(1);
+            }
+            70% {
+                transform: translateX(-10px) scaleX(1);
+            }
+            80% {
+                transform: translateX(5px) scaleX(1);
+            }
+            90% {
+                transform: translateX(-2px) scaleX(1);
+            }
+            100% {
+                transform: translateX(0) scaleX(1);
+            }
         }
 
         /* Navigation tabs */
@@ -577,8 +610,8 @@
     <div class="app-container">
         <header class="header">
             <h1>RAT FACTOR</h1>
-            <div class="rat">🐀</div>
             <p class="subtitle">Tennis Tracker for the Chummery</p>
+            <div class="rat">🐀</div>
         </header>
 
         <nav class="nav-tabs">

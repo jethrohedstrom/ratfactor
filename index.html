@@ -165,12 +165,32 @@
             gap: 10px;
         }
 
-        /* Leaderboard */
+        /* Leaderboard - WSL style */
+        .leaderboard-header {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 2px solid var(--accent-yellow);
+            margin-bottom: 5px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .leaderboard-header-rank { width: 50px; }
+        .leaderboard-header-name { flex: 1; }
+        .leaderboard-header-pts { width: 70px; text-align: right; }
+
         .leaderboard-item {
             display: flex;
             align-items: center;
-            padding: 15px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border-subtle);
+            transition: background 0.2s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .leaderboard-item:last-child {
@@ -179,31 +199,29 @@
 
         .leaderboard-rank {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
+            font-size: 1.5rem;
             width: 50px;
             color: var(--text-muted);
         }
 
-        .leaderboard-rank.gold { color: #ffd700; }
-        .leaderboard-rank.silver { color: #c0c0c0; }
-        .leaderboard-rank.bronze { color: #cd7f32; }
+        .leaderboard-item:nth-child(2) .leaderboard-rank { color: #ffd700; }
+        .leaderboard-item:nth-child(3) .leaderboard-rank { color: #c0c0c0; }
+        .leaderboard-item:nth-child(4) .leaderboard-rank { color: #cd7f32; }
 
         .leaderboard-name {
             flex: 1;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .leaderboard-score {
+            width: 70px;
+            text-align: right;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: var(--accent-yellow);
-        }
-
-        .leaderboard-score span {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-family: 'Space Mono', monospace;
         }
 
         /* Form elements */
@@ -567,7 +585,7 @@
         <!-- HOME SECTION -->
         <section id="home" class="section active">
             <div class="card">
-                <h2 class="card-title">🏆 Canadian Doubles Leaderboard</h2>
+                <h2 class="card-title">🏆 Rat Factor</h2>
                 <div id="leaderboard" class="loading">
                     <div class="spinner"></div>
                 </div>
@@ -999,15 +1017,20 @@
                 return;
             }
 
-            const rankClasses = ['gold', 'silver', 'bronze', ''];
-
-            container.innerHTML = sorted.map(([name, pts], i) => `
-                <div class="leaderboard-item">
-                    <div class="leaderboard-rank ${rankClasses[i] || ''}">${i + 1}</div>
-                    <div class="leaderboard-name">${name}</div>
-                    <div class="leaderboard-score">${pts} <span>pts</span></div>
+            container.innerHTML = `
+                <div class="leaderboard-header">
+                    <div class="leaderboard-header-rank">Rank</div>
+                    <div class="leaderboard-header-name">Name</div>
+                    <div class="leaderboard-header-pts">Points</div>
                 </div>
-            `).join('');
+                ${sorted.map(([name, pts], i) => `
+                    <div class="leaderboard-item">
+                        <div class="leaderboard-rank">${i + 1}</div>
+                        <div class="leaderboard-name">${name}</div>
+                        <div class="leaderboard-score">${pts}</div>
+                    </div>
+                `).join('')}
+            `;
         }
 
         // Render history

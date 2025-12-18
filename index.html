@@ -1079,13 +1079,7 @@
             });
 
             const sorted = Object.entries(points)
-                .filter(([_, pts]) => pts > 0)
                 .sort((a, b) => b[1] - a[1]);
-
-            if (sorted.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No matches recorded yet</div>';
-                return;
-            }
 
             container.innerHTML = `
                 <div class="leaderboard-table">

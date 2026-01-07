@@ -657,39 +657,81 @@
         }
 
         /* Insights */
+        #insights {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .insight-item {
-            padding: 15px;
-            background: rgba(0, 255, 136, 0.08);
-            border-left: 3px solid var(--accent-green);
-            margin-bottom: 10px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.85rem;
-            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px 18px;
+            background: var(--bg-dark);
+            border-left: 4px solid var(--accent-green);
+            border-radius: 0 10px 10px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .insight-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .insight-emoji {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            width: 28px;
+            text-align: center;
+        }
+
+        .insight-text {
+            flex: 1;
+            color: var(--text-light);
+        }
+
+        .insight-text strong {
+            color: var(--accent-green);
+            font-weight: 700;
         }
 
         .insight-item.streak {
             border-left-color: var(--accent-pink);
-            background: rgba(255, 107, 157, 0.08);
+        }
+
+        .insight-item.streak .insight-text strong {
+            color: var(--accent-pink);
         }
 
         .insight-item.doubles {
             border-left-color: var(--accent-yellow);
-            background: rgba(240, 225, 48, 0.08);
+        }
+
+        .insight-item.doubles .insight-text strong {
+            color: var(--accent-yellow);
         }
 
         .insight-item.dominance {
             border-left-color: #9b59b6;
-            background: rgba(155, 89, 182, 0.08);
+        }
+
+        .insight-item.dominance .insight-text strong {
+            color: #9b59b6;
         }
 
         .insight-item.cold {
             border-left-color: #3498db;
-            background: rgba(52, 152, 219, 0.08);
+        }
+
+        .insight-item.cold .insight-text strong {
+            color: #3498db;
         }
 
         .insight-item.stat {
             border-left-color: var(--accent-green);
-            background: rgba(0, 255, 136, 0.05);
         }
 
         /* Empty state */
@@ -1790,9 +1832,35 @@
             // Sort by priority and take top insights
             insights.sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-            container.innerHTML = insights.slice(0, 6).map(insight => `
-                <div class="insight-item ${insight.type}">${insight.text}</div>
-            `).join('');
+            // Helper to format insight text with highlighted player names
+            function formatInsight(text) {
+                // Extract emoji from start
+                const emojiMatch = text.match(/^(\p{Emoji})\s*/u);
+                const emoji = emojiMatch ? emojiMatch[1] : '📊';
+                const textWithoutEmoji = emojiMatch ? text.slice(emojiMatch[0].length) : text;
+
+                // Highlight player names
+                let formatted = textWithoutEmoji;
+                PLAYERS.forEach(player => {
+                    formatted = formatted.replace(new RegExp(`\\b${player}\\b`, 'g'), `<strong>${player}</strong>`);
+                });
+
+                // Also highlight team pairs like "Ed & Tom"
+                formatted = formatted.replace(/(\w+)\s*&amp;\s*(\w+)/g, '<strong>$1 & $2</strong>');
+                formatted = formatted.replace(/(\w+)\s*&\s*(\w+)/g, '<strong>$1 & $2</strong>');
+
+                return { emoji, text: formatted };
+            }
+
+            container.innerHTML = insights.slice(0, 6).map(insight => {
+                const { emoji, text } = formatInsight(insight.text);
+                return `
+                    <div class="insight-item ${insight.type}">
+                        <span class="insight-emoji">${emoji}</span>
+                        <span class="insight-text">${text}</span>
+                    </div>
+                `;
+            }).join('');
         }
 
         // H2H comprehensive view

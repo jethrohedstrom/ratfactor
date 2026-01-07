@@ -469,11 +469,17 @@
             font-weight: 700;
         }
 
-        .match-score {
+        .match-vs {
+            color: var(--text-muted);
+            padding: 0 8px;
+        }
+
+        .match-sets {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--accent-yellow);
-            padding: 0 10px;
+            margin-top: 5px;
+            letter-spacing: 1px;
         }
 
         .match-date {
@@ -693,31 +699,81 @@
             border-color: var(--accent-yellow);
         }
 
-        /* Doubles score input */
-        .doubles-score-grid {
+        /* Tennis set inputs */
+        #setsContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .set-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
+            gap: 8px;
+            background: var(--bg-dark);
+            padding: 10px 12px;
+            border-radius: 8px;
         }
 
-        .doubles-score-input {
-            text-align: center;
-            flex: 1;
-        }
-
-        .doubles-score-input label {
-            display: block;
-            font-size: 0.7rem;
+        .set-label {
+            font-size: 0.75rem;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            min-width: 45px;
         }
 
-        .doubles-score-separator {
+        .set-score-input {
+            width: 50px;
+            padding: 8px;
+            background: transparent;
+            border: 2px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--accent-yellow);
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 2rem;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .set-score-input:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+        }
+
+        .set-separator {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
             color: var(--text-muted);
-            padding-top: 20px;
+        }
+
+        .set-remove-btn {
+            background: none;
+            border: none;
+            color: var(--accent-pink);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
+        .set-remove-btn:hover {
+            color: #ff4777;
+        }
+
+        .btn-add-set {
+            background: transparent;
+            border: 2px dashed var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add-set:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
         }
     </style>
 </head>
@@ -887,18 +943,17 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Score</label>
-                        <div class="doubles-score-grid">
-                            <div class="doubles-score-input">
-                                <label>Team 1</label>
-                                <input type="number" id="doublesScoreTeam1" class="score-input" min="0" placeholder="0">
-                            </div>
-                            <div class="doubles-score-separator">-</div>
-                            <div class="doubles-score-input">
-                                <label>Team 2</label>
-                                <input type="number" id="doublesScoreTeam2" class="score-input" min="0" placeholder="0">
+                        <label class="form-label">Sets</label>
+                        <div id="setsContainer">
+                            <div class="set-row" data-set="1">
+                                <span class="set-label">Set 1</span>
+                                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0">
+                                <span class="set-separator">-</span>
+                                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0">
+                                <button class="set-remove-btn" onclick="removeSet(this)" style="visibility: hidden;">×</button>
                             </div>
                         </div>
+                        <button class="btn-add-set" onclick="addSet()">+ Add Set</button>
                     </div>
                     <button class="btn-submit" onclick="submitDoubles()">LOG MATCH</button>
                 `;
@@ -951,7 +1006,7 @@
             const btn = e.target;
             const team = btn.dataset.team;
             const player = btn.dataset.player;
-            
+
             // Check if player is already on the other team
             const otherTeam = team === '1' ? '2' : '1';
             const otherTeamBtn = document.querySelector(`.player-toggle[data-team="${otherTeam}"][data-player="${player}"].selected`);
@@ -966,6 +1021,54 @@
             if (teamSelected.length > 2) {
                 teamSelected[0].classList.remove('selected');
             }
+        }
+
+        function addSet() {
+            const container = document.getElementById('setsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            const newSetNum = setRows.length + 1;
+
+            if (newSetNum > 5) {
+                showToast('Maximum 5 sets allowed', true);
+                return;
+            }
+
+            const newRow = document.createElement('div');
+            newRow.className = 'set-row';
+            newRow.dataset.set = newSetNum;
+            newRow.innerHTML = `
+                <span class="set-label">Set ${newSetNum}</span>
+                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0">
+                <span class="set-separator">-</span>
+                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0">
+                <button class="set-remove-btn" onclick="removeSet(this)">×</button>
+            `;
+            container.appendChild(newRow);
+            updateSetRemoveButtons();
+        }
+
+        function removeSet(btn) {
+            const row = btn.closest('.set-row');
+            row.remove();
+
+            // Renumber remaining sets
+            const container = document.getElementById('setsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            setRows.forEach((row, index) => {
+                row.dataset.set = index + 1;
+                row.querySelector('.set-label').textContent = `Set ${index + 1}`;
+            });
+            updateSetRemoveButtons();
+        }
+
+        function updateSetRemoveButtons() {
+            const container = document.getElementById('setsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            setRows.forEach((row, index) => {
+                const removeBtn = row.querySelector('.set-remove-btn');
+                // Hide remove button if only one set remains
+                removeBtn.style.visibility = setRows.length === 1 ? 'hidden' : 'visible';
+            });
         }
 
         function handleCanadianPlayerToggle(e) {
@@ -1024,25 +1127,39 @@
         async function submitDoubles() {
             const team1 = Array.from(document.querySelectorAll('.player-toggle[data-team="1"].selected')).map(b => b.dataset.player);
             const team2 = Array.from(document.querySelectorAll('.player-toggle[data-team="2"].selected')).map(b => b.dataset.player);
-            const scoreTeam1 = parseInt(document.getElementById('doublesScoreTeam1').value);
-            const scoreTeam2 = parseInt(document.getElementById('doublesScoreTeam2').value);
 
             if (team1.length !== 2 || team2.length !== 2) {
                 showToast('Please select 2 players per team', true);
                 return;
             }
 
-            if (isNaN(scoreTeam1) || isNaN(scoreTeam2)) {
-                showToast('Please enter scores for both teams', true);
+            // Collect set scores
+            const setRows = document.querySelectorAll('.set-row');
+            const sets = [];
+            let team1SetsWon = 0;
+            let team2SetsWon = 0;
+
+            for (const row of setRows) {
+                const team1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value);
+                const team2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value);
+
+                if (isNaN(team1Score) || isNaN(team2Score)) {
+                    showToast('Please enter scores for all sets', true);
+                    return;
+                }
+
+                sets.push({ team1: team1Score, team2: team2Score });
+
+                if (team1Score > team2Score) team1SetsWon++;
+                else if (team2Score > team1Score) team2SetsWon++;
+            }
+
+            if (team1SetsWon === team2SetsWon) {
+                showToast('Match cannot be tied - add another set', true);
                 return;
             }
 
-            if (scoreTeam1 === scoreTeam2) {
-                showToast('Scores cannot be tied', true);
-                return;
-            }
-
-            const winners = scoreTeam1 > scoreTeam2 ? team1 : team2;
+            const winners = team1SetsWon > team2SetsWon ? team1 : team2;
 
             const match = {
                 match_type: 'doubles',
@@ -1052,8 +1169,7 @@
                 player4: team2[1],
                 winner1: winners[0],
                 winner2: winners[1],
-                score_team1: scoreTeam1,
-                score_team2: scoreTeam2
+                sets: JSON.stringify(sets)
             };
 
             await saveMatch(match);
@@ -1218,16 +1334,27 @@
                     const team1 = `${match.player1} & ${match.player2}`;
                     const team2 = `${match.player3} & ${match.player4}`;
                     const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
-                    const hasScores = match.score_team1 !== null && match.score_team2 !== null;
-                    const scoreDisplay = hasScores ? `${match.score_team1} - ${match.score_team2}` : '';
+
+                    // Parse sets if available
+                    let setsDisplay = '';
+                    if (match.sets) {
+                        try {
+                            const sets = JSON.parse(match.sets);
+                            setsDisplay = sets.map(s => `${s.team1}-${s.team2}`).join(' · ');
+                        } catch (e) {
+                            setsDisplay = '';
+                        }
+                    }
+
                     return `
                         <div class="match-item">
-                            <div class="match-type">Doubles${hasScores ? '' : ''}</div>
+                            <div class="match-type">Doubles</div>
                             <div class="match-players">
                                 <span class="${team1Won ? 'match-winner' : ''}">${team1}</span>
-                                ${hasScores ? `<span class="match-score">${scoreDisplay}</span>` : ' vs '}
+                                <span class="match-vs">vs</span>
                                 <span class="${!team1Won ? 'match-winner' : ''}">${team2}</span>
                             </div>
+                            ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
                             <div class="match-date">${date}</div>
                         </div>
                     `;

@@ -469,17 +469,29 @@
             font-weight: 700;
         }
 
-        .match-vs {
+        .match-result {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .match-def {
             color: var(--text-muted);
+            font-size: 0.75rem;
+            font-style: italic;
             padding: 0 8px;
+        }
+
+        .match-loser {
+            color: var(--text-muted);
         }
 
         .match-sets {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--accent-yellow);
-            margin-top: 5px;
-            letter-spacing: 1px;
+            margin-top: 4px;
+            letter-spacing: 2px;
         }
 
         .match-date {
@@ -1334,13 +1346,19 @@
                     const team1 = `${match.player1} & ${match.player2}`;
                     const team2 = `${match.player3} & ${match.player4}`;
                     const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                    const winner = team1Won ? team1 : team2;
+                    const loser = team1Won ? team2 : team1;
 
-                    // Parse sets if available
+                    // Parse sets if available (show from winner's perspective)
                     let setsDisplay = '';
                     if (match.sets) {
                         try {
                             const sets = JSON.parse(match.sets);
-                            setsDisplay = sets.map(s => `${s.team1}-${s.team2}`).join(' · ');
+                            setsDisplay = sets.map(s => {
+                                const winnerScore = team1Won ? s.team1 : s.team2;
+                                const loserScore = team1Won ? s.team2 : s.team1;
+                                return `${winnerScore}-${loserScore}`;
+                            }).join(' ');
                         } catch (e) {
                             setsDisplay = '';
                         }
@@ -1349,10 +1367,10 @@
                     return `
                         <div class="match-item">
                             <div class="match-type">Doubles</div>
-                            <div class="match-players">
-                                <span class="${team1Won ? 'match-winner' : ''}">${team1}</span>
-                                <span class="match-vs">vs</span>
-                                <span class="${!team1Won ? 'match-winner' : ''}">${team2}</span>
+                            <div class="match-result">
+                                <span class="match-winner">${winner}</span>
+                                <span class="match-def">def.</span>
+                                <span class="match-loser">${loser}</span>
                             </div>
                             ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
                             <div class="match-date">${date}</div>

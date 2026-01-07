@@ -469,6 +469,13 @@
             font-weight: 700;
         }
 
+        .match-score {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-yellow);
+            padding: 0 10px;
+        }
+
         .match-date {
             font-size: 0.7rem;
             color: var(--text-muted);
@@ -685,6 +692,33 @@
             outline: none;
             border-color: var(--accent-yellow);
         }
+
+        /* Doubles score input */
+        .doubles-score-grid {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .doubles-score-input {
+            text-align: center;
+            flex: 1;
+        }
+
+        .doubles-score-input label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .doubles-score-separator {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--text-muted);
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -853,12 +887,18 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Winning Team</label>
-                        <select id="doublesWinner" class="form-select">
-                            <option value="">Select winning team...</option>
-                            <option value="1">Team 1</option>
-                            <option value="2">Team 2</option>
-                        </select>
+                        <label class="form-label">Score</label>
+                        <div class="doubles-score-grid">
+                            <div class="doubles-score-input">
+                                <label>Team 1</label>
+                                <input type="number" id="doublesScoreTeam1" class="score-input" min="0" placeholder="0">
+                            </div>
+                            <div class="doubles-score-separator">-</div>
+                            <div class="doubles-score-input">
+                                <label>Team 2</label>
+                                <input type="number" id="doublesScoreTeam2" class="score-input" min="0" placeholder="0">
+                            </div>
+                        </div>
                     </div>
                     <button class="btn-submit" onclick="submitDoubles()">LOG MATCH</button>
                 `;
@@ -984,14 +1024,25 @@
         async function submitDoubles() {
             const team1 = Array.from(document.querySelectorAll('.player-toggle[data-team="1"].selected')).map(b => b.dataset.player);
             const team2 = Array.from(document.querySelectorAll('.player-toggle[data-team="2"].selected')).map(b => b.dataset.player);
-            const winningTeam = document.getElementById('doublesWinner').value;
+            const scoreTeam1 = parseInt(document.getElementById('doublesScoreTeam1').value);
+            const scoreTeam2 = parseInt(document.getElementById('doublesScoreTeam2').value);
 
-            if (team1.length !== 2 || team2.length !== 2 || !winningTeam) {
-                showToast('Please select 2 players per team and a winner', true);
+            if (team1.length !== 2 || team2.length !== 2) {
+                showToast('Please select 2 players per team', true);
                 return;
             }
 
-            const winners = winningTeam === '1' ? team1 : team2;
+            if (isNaN(scoreTeam1) || isNaN(scoreTeam2)) {
+                showToast('Please enter scores for both teams', true);
+                return;
+            }
+
+            if (scoreTeam1 === scoreTeam2) {
+                showToast('Scores cannot be tied', true);
+                return;
+            }
+
+            const winners = scoreTeam1 > scoreTeam2 ? team1 : team2;
 
             const match = {
                 match_type: 'doubles',
@@ -1000,7 +1051,9 @@
                 player3: team2[0],
                 player4: team2[1],
                 winner1: winners[0],
-                winner2: winners[1]
+                winner2: winners[1],
+                score_team1: scoreTeam1,
+                score_team2: scoreTeam2
             };
 
             await saveMatch(match);
@@ -1165,12 +1218,14 @@
                     const team1 = `${match.player1} & ${match.player2}`;
                     const team2 = `${match.player3} & ${match.player4}`;
                     const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                    const hasScores = match.score_team1 !== null && match.score_team2 !== null;
+                    const scoreDisplay = hasScores ? `${match.score_team1} - ${match.score_team2}` : '';
                     return `
                         <div class="match-item">
-                            <div class="match-type">Doubles</div>
+                            <div class="match-type">Doubles${hasScores ? '' : ''}</div>
                             <div class="match-players">
                                 <span class="${team1Won ? 'match-winner' : ''}">${team1}</span>
-                                vs
+                                ${hasScores ? `<span class="match-score">${scoreDisplay}</span>` : ' vs '}
                                 <span class="${!team1Won ? 'match-winner' : ''}">${team2}</span>
                             </div>
                             <div class="match-date">${date}</div>

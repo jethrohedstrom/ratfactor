@@ -443,20 +443,39 @@
 
         /* Match history */
         .match-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-dark);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--accent-green);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .match-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
         }
 
         .match-item:last-child {
-            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
         .match-type {
             font-size: 0.65rem;
-            color: var(--accent-pink);
-            letter-spacing: 2px;
+            color: var(--bg-dark);
+            background: var(--accent-pink);
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
         }
 
         .match-players {
@@ -470,16 +489,16 @@
         }
 
         .match-result {
-            font-size: 0.95rem;
-            margin-bottom: 5px;
-            line-height: 1.4;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
         }
 
         .match-def {
             color: var(--text-muted);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-style: italic;
-            padding: 0 8px;
+            padding: 0 6px;
         }
 
         .match-loser {
@@ -488,15 +507,68 @@
 
         .match-sets {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: var(--accent-yellow);
-            margin-top: 4px;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
         }
 
         .match-date {
             font-size: 0.7rem;
             color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Rat Factor match display */
+        .match-item-ratfactor {
+            border-left-color: var(--accent-yellow);
+        }
+
+        .ratfactor-scores {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ratfactor-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .ratfactor-player.first {
+            background: rgba(240, 225, 48, 0.15);
+        }
+
+        .ratfactor-rank {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            width: 30px;
+        }
+
+        .ratfactor-player.first .ratfactor-rank {
+            color: var(--accent-yellow);
+        }
+
+        .ratfactor-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .ratfactor-player.first .ratfactor-name {
+            color: var(--accent-green);
+        }
+
+        .ratfactor-score {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--accent-yellow);
+            min-width: 25px;
+            text-align: right;
         }
 
         /* Head to head */
@@ -1331,15 +1403,19 @@
                 });
 
                 if (match.match_type === 'singles') {
+                    const winner = match.winner1;
+                    const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
                     return `
                         <div class="match-item">
-                            <div class="match-type">Singles</div>
-                            <div class="match-players">
-                                <span class="${match.winner1 === match.player1 ? 'match-winner' : ''}">${match.player1}</span>
-                                vs
-                                <span class="${match.winner1 === match.player2 ? 'match-winner' : ''}">${match.player2}</span>
+                            <div class="match-header">
+                                <div class="match-type">Singles</div>
+                                <div class="match-date">${date}</div>
                             </div>
-                            <div class="match-date">${date}</div>
+                            <div class="match-result">
+                                <span class="match-winner">${winner}</span>
+                                <span class="match-def">def.</span>
+                                <span class="match-loser">${loser}</span>
+                            </div>
                         </div>
                     `;
                 } else if (match.match_type === 'doubles') {
@@ -1366,26 +1442,49 @@
 
                     return `
                         <div class="match-item">
-                            <div class="match-type">Doubles</div>
+                            <div class="match-header">
+                                <div class="match-type">Doubles</div>
+                                <div class="match-date">${date}</div>
+                            </div>
                             <div class="match-result">
                                 <span class="match-winner">${winner}</span>
                                 <span class="match-def">def.</span>
                                 <span class="match-loser">${loser}</span>
                             </div>
                             ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
-                            <div class="match-date">${date}</div>
                         </div>
                     `;
                 } else if (match.match_type === 'canadian') {
+                    // Sort players by score to show ranking
+                    const players = [
+                        { name: match.player1, score: match.score_player1 },
+                        { name: match.player2, score: match.score_player2 },
+                        { name: match.player3, score: match.score_player3 }
+                    ].sort((a, b) => b.score - a.score);
+
                     return `
-                        <div class="match-item">
-                            <div class="match-type">Rat Factor (to ${match.target_score})</div>
-                            <div class="match-players">
-                                ${match.player1}: ${match.score_player1} · 
-                                ${match.player2}: ${match.score_player2} · 
-                                ${match.player3}: ${match.score_player3}
+                        <div class="match-item match-item-ratfactor">
+                            <div class="match-header">
+                                <div class="match-type">Rat Factor</div>
+                                <div class="match-date">${date}</div>
                             </div>
-                            <div class="match-date">${date}</div>
+                            <div class="ratfactor-scores">
+                                <div class="ratfactor-player first">
+                                    <span class="ratfactor-rank">1st</span>
+                                    <span class="ratfactor-name">${players[0].name}</span>
+                                    <span class="ratfactor-score">${players[0].score}</span>
+                                </div>
+                                <div class="ratfactor-player second">
+                                    <span class="ratfactor-rank">2nd</span>
+                                    <span class="ratfactor-name">${players[1].name}</span>
+                                    <span class="ratfactor-score">${players[1].score}</span>
+                                </div>
+                                <div class="ratfactor-player third">
+                                    <span class="ratfactor-rank">3rd</span>
+                                    <span class="ratfactor-name">${players[2].name}</span>
+                                    <span class="ratfactor-score">${players[2].score}</span>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }

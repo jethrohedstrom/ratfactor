@@ -1121,16 +1121,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             overflow: hidden;
-            animation: fighterIdle 3s ease-in-out infinite;
-        }
-
-        .fighter-card:nth-child(2) { animation-delay: 0.5s; }
-        .fighter-card:nth-child(3) { animation-delay: 1s; }
-        .fighter-card:nth-child(4) { animation-delay: 1.5s; }
-
-        @keyframes fighterIdle {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-3px) scale(1.01); }
         }
 
         .fighter-card::before {
@@ -1146,13 +1136,38 @@
         }
 
         .fighter-card:hover {
-            border-color: var(--accent-pink);
             transform: translateY(-5px) scale(1.03);
-            box-shadow:
-                0 10px 40px rgba(255, 107, 157, 0.3),
-                0 0 60px rgba(255, 107, 157, 0.2),
-                inset 0 0 30px rgba(255, 107, 157, 0.1);
             animation: none;
+        }
+
+        /* Player-specific hover glows */
+        .fighter-card[data-player="Rick"]:hover {
+            border-color: #ff4444;
+            box-shadow:
+                0 10px 40px rgba(255, 68, 68, 0.4),
+                0 0 60px rgba(255, 68, 68, 0.3),
+                inset 0 0 30px rgba(255, 68, 68, 0.1);
+        }
+        .fighter-card[data-player="Ed"]:hover {
+            border-color: #44ff44;
+            box-shadow:
+                0 10px 40px rgba(68, 255, 68, 0.4),
+                0 0 60px rgba(68, 255, 68, 0.3),
+                inset 0 0 30px rgba(68, 255, 68, 0.1);
+        }
+        .fighter-card[data-player="Tom"]:hover {
+            border-color: #4444ff;
+            box-shadow:
+                0 10px 40px rgba(68, 68, 255, 0.4),
+                0 0 60px rgba(68, 68, 255, 0.3),
+                inset 0 0 30px rgba(68, 68, 255, 0.1);
+        }
+        .fighter-card[data-player="Jethro"]:hover {
+            border-color: #ffff44;
+            box-shadow:
+                0 10px 40px rgba(255, 255, 68, 0.4),
+                0 0 60px rgba(255, 255, 68, 0.3),
+                inset 0 0 30px rgba(255, 255, 68, 0.1);
         }
 
         .fighter-card:hover::before {
@@ -1161,7 +1176,7 @@
 
         .fighter-portrait {
             width: 100%;
-            aspect-ratio: 1;
+            aspect-ratio: 3/4;
             background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
             border-radius: 8px;
             margin-bottom: 12px;
@@ -1171,22 +1186,70 @@
             font-size: 3rem;
             position: relative;
             overflow: hidden;
+            filter: contrast(1.1) saturate(1.2);
+            transition: filter 0.3s ease;
         }
 
+        /* Fighter image styling */
+        .fighter-img {
+            height: 160%;
+            width: auto;
+            object-fit: contain;
+            object-position: top center;
+            position: relative;
+            z-index: 1;
+            margin-top: 80%;
+            animation: fighterWobble 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+        }
+
+        .fighter-card:nth-child(2) .fighter-img { animation-delay: 0.4s; }
+        .fighter-card:nth-child(3) .fighter-img { animation-delay: 0.8s; }
+        .fighter-card:nth-child(4) .fighter-img { animation-delay: 1.2s; }
+
+        @keyframes fighterWobble {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(3px) rotate(0.5deg); }
+        }
+
+        /* Bottom vignette */
         .fighter-portrait::after {
             content: '';
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 40%;
-            background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
+            height: 100%;
+            background:
+                linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 40%),
+                radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .fighter-card:hover .fighter-portrait {
+            filter: contrast(1.2) saturate(1.4) brightness(1.1);
+            transform: scale(1.02);
         }
 
         /* Player-specific colors */
         .fighter-card[data-player="Rick"] .fighter-portrait {
-            background: linear-gradient(135deg, #3d1a1a 0%, #1a1a2e 100%);
+            background:
+                radial-gradient(ellipse at 50% 80%, rgba(255, 100, 0, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, rgba(255, 50, 0, 0.3) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 70%, rgba(255, 150, 0, 0.3) 0%, transparent 40%),
+                linear-gradient(180deg, #1a0a0a 0%, #2d1010 50%, #4a1a0a 100%);
             border-bottom: 3px solid #ff4444;
+            animation: rickBackground 3s ease-in-out infinite;
+        }
+
+        @keyframes rickBackground {
+            0%, 100% {
+                background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+            50% {
+                background-position: 0% 5%, 5% -5%, -5% -5%, 0% 0%;
+            }
         }
         .fighter-card[data-player="Ed"] .fighter-portrait {
             background: linear-gradient(135deg, #1a3d1a 0%, #1a1a2e 100%);
@@ -1360,7 +1423,9 @@
             </div>
             <div class="fighter-grid">
                 <div class="fighter-card" data-player="Rick">
-                    <div class="fighter-portrait">🎾</div>
+                    <div class="fighter-portrait">
+                        <img src="rick BG.png" alt="Rick" class="fighter-img">
+                    </div>
                     <div class="fighter-name">Rick</div>
                     <div class="fighter-stats">
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="rick-wins">-</span></span>

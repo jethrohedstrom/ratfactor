@@ -2110,7 +2110,7 @@
             };
 
             // Calculate points per event for each player
-            // Points: 1st = 3pts, 2nd = 2pts, 3rd = 0pts
+            // Points: 1st = 3pts, 2nd = 1pt, 3rd = 0pts
             const playerEventResults = {};
             PLAYERS.forEach(p => playerEventResults[p] = []);
 
@@ -2123,8 +2123,8 @@
 
                 players.sort((a, b) => b.score - a.score);
 
-                // Award points: 1st = 3, 2nd = 2, 3rd = 0
-                const pointsMap = { 0: 3, 1: 2, 2: 0 };
+                // Award points: 1st = 3, 2nd = 1, 3rd = 0
+                const pointsMap = { 0: 3, 1: 1, 2: 0 };
 
                 // Initialize all players as not playing this event
                 PLAYERS.forEach(p => {

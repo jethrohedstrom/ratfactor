@@ -31,7 +31,7 @@ The app uses a single `matches` table in Supabase with these key fields:
 - `created_at`: timestamp
 
 ### Rat Factor Championship Rules
-- **Scoring per match**: 1st place = 3 points, 2nd place = 2 points, 3rd place = 0 points
+- **Scoring per match**: 1st place = 3 points, 2nd place = 1 point, 3rd place = 0 points
 - Only **best 10 results** count toward year-end championship
 - Players can play **unlimited** Rat Factor matches throughout the year
 - Championship leaderboard shows each player's top 10 scores combined

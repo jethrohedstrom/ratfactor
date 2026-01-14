@@ -2181,7 +2181,10 @@
             }).join('');
 
             // Build player rows
-            const playerRows = standings.map((player, rank) => {
+            const playerRows = standings.map((player, index) => {
+                // Calculate rank - players with same points share the same rank
+                const rank = standings.findIndex(p => p.points === player.points) + 1;
+
                 const photo = playerPhotos[player.name];
                 const avatarContent = photo
                     ? `<img src="${photo}" alt="${player.name}">`
@@ -2201,8 +2204,8 @@
                 }).join('');
 
                 return `
-                    <div class="leaderboard-item rank-${rank + 1}${rank === 0 ? ' leader' : ''}">
-                        <div class="leaderboard-rank">${rank + 1}</div>
+                    <div class="leaderboard-item rank-${rank}${rank === 1 ? ' leader' : ''}">
+                        <div class="leaderboard-rank">${rank}</div>
                         <div class="leaderboard-player">
                             <div class="leaderboard-avatar">${avatarContent}</div>
                             <div class="leaderboard-name">${player.name}</div>

@@ -920,19 +920,16 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            padding: 4px 8px;
-            font-size: 0.8rem;
+            padding: 8px 12px;
+            font-size: 1rem;
             opacity: 0.5;
             transition: opacity 0.2s;
+            position: relative;
+            z-index: 10;
         }
         .match-edit-btn:hover {
             opacity: 1;
             color: var(--accent-yellow);
-        }
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .match-header-left {
             display: flex;
@@ -1684,6 +1681,18 @@
             initNavigation();
             initMatchTypeSelector();
             loadMatches();
+
+            // Global click handler for edit buttons (event delegation)
+            document.addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.match-edit-btn');
+                if (editBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const matchId = editBtn.dataset.matchId;
+                    const location = editBtn.dataset.location || '';
+                    openEditModal(matchId, location);
+                }
+            });
         });
 
         // Navigation
@@ -2233,7 +2242,7 @@
                     minute: '2-digit'
                 });
 
-                const editBtn = `<button class="match-edit-btn" onclick="openEditModal(${match.id}, '${(match.location || '').replace(/'/g, "\\'")}')">✏️</button>`;
+                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-location="${(match.location || '').replace(/"/g, '&quot;')}">✏️</button>`;
 
                 if (match.match_type === 'singles') {
                     const winner = match.winner1;
@@ -2333,6 +2342,7 @@
                     `;
                 }
             }).join('');
+
         }
 
         // Render insights
@@ -2756,17 +2766,20 @@
             const matchId = document.getElementById('editMatchId').value;
             const location = document.getElementById('editLocation').value.trim() || null;
 
+            // Convert to number if it's a numeric ID
+            const idValue = isNaN(matchId) ? matchId : parseInt(matchId);
+
             try {
                 const { error } = await db
                     .from('matches')
                     .update({ location: location })
-                    .eq('id', matchId);
+                    .eq('id', idValue);
 
                 if (error) throw error;
 
                 showToast('Match updated!');
                 closeEditModal();
-                loadMatches(); // Refresh data
+                await loadMatches();
             } catch (err) {
                 console.error('Error updating match:', err);
                 showToast('Error updating match', true);

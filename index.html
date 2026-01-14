@@ -2319,8 +2319,11 @@
                 if (m.player3) matchCounts[m.player3]++;
                 if (m.player4) matchCounts[m.player4]++;
             });
-            const mostActive = Object.entries(matchCounts).sort((a, b) => b[1] - a[1])[0];
-            if (mostActive[1] >= 3) {
+            const sortedByMatches = Object.entries(matchCounts).sort((a, b) => b[1] - a[1]);
+            const mostActive = sortedByMatches[0];
+            const secondMostActive = sortedByMatches[1];
+            // Only show if there's a clear leader (no tie for first)
+            if (mostActive[1] >= 3 && mostActive[1] > secondMostActive[1]) {
                 insights.push({
                     type: 'stat',
                     priority: 2,

@@ -2410,6 +2410,74 @@
                 });
             }
 
+            // ========== DOUBLES CHEMISTRY ==========
+            // Track each player's win rate with each partner
+            if (doublesMatches.length >= 3) {
+                const playerPartnerStats = {};
+                PLAYERS.forEach(p => playerPartnerStats[p] = {});
+
+                doublesMatches.forEach(match => {
+                    const team1 = [match.player1, match.player2];
+                    const team2 = [match.player3, match.player4];
+                    const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+
+                    // Track stats for team 1 players
+                    team1.forEach(player => {
+                        const partner = team1.find(p => p !== player);
+                        if (!playerPartnerStats[player][partner]) {
+                            playerPartnerStats[player][partner] = { wins: 0, losses: 0 };
+                        }
+                        if (team1Won) {
+                            playerPartnerStats[player][partner].wins++;
+                        } else {
+                            playerPartnerStats[player][partner].losses++;
+                        }
+                    });
+
+                    // Track stats for team 2 players
+                    team2.forEach(player => {
+                        const partner = team2.find(p => p !== player);
+                        if (!playerPartnerStats[player][partner]) {
+                            playerPartnerStats[player][partner] = { wins: 0, losses: 0 };
+                        }
+                        if (!team1Won) {
+                            playerPartnerStats[player][partner].wins++;
+                        } else {
+                            playerPartnerStats[player][partner].losses++;
+                        }
+                    });
+                });
+
+                // Find best chemistry (player with highest win rate with a specific partner, min 2 matches)
+                let bestChemistry = null;
+                PLAYERS.forEach(player => {
+                    Object.entries(playerPartnerStats[player]).forEach(([partner, stats]) => {
+                        const total = stats.wins + stats.losses;
+                        if (total >= 2) {
+                            const winRate = stats.wins / total;
+                            if (!bestChemistry || winRate > bestChemistry.winRate ||
+                                (winRate === bestChemistry.winRate && stats.wins > bestChemistry.wins)) {
+                                bestChemistry = {
+                                    player,
+                                    partner,
+                                    wins: stats.wins,
+                                    losses: stats.losses,
+                                    winRate
+                                };
+                            }
+                        }
+                    });
+                });
+
+                if (bestChemistry && bestChemistry.winRate >= 0.6 && bestChemistry.wins >= 2) {
+                    insights.push({
+                        type: 'doubles',
+                        priority: 6,
+                        text: `🤝 ${bestChemistry.player} & ${bestChemistry.partner} have great chemistry: ${bestChemistry.wins}-${bestChemistry.losses} together`
+                    });
+                }
+            }
+
             // ========== SINGLES STREAKS ==========
 
             // Calculate current winning/losing streaks for each player
@@ -2572,6 +2640,33 @@
                         }
                     }
                 });
+
+                // Clutch player - wins close Rat Factor games (winner within 2 points of 2nd place)
+                const clutchWins = {};
+                PLAYERS.forEach(p => clutchWins[p] = 0);
+
+                canadianMatches.forEach(match => {
+                    const players = [
+                        { name: match.player1, score: match.score_player1 },
+                        { name: match.player2, score: match.score_player2 },
+                        { name: match.player3, score: match.score_player3 }
+                    ].sort((a, b) => b.score - a.score);
+
+                    // Close game = 1st and 2nd place within 2 points
+                    const margin = players[0].score - players[1].score;
+                    if (margin <= 2 && players[0].name) {
+                        clutchWins[players[0].name]++;
+                    }
+                });
+
+                const clutchLeader = Object.entries(clutchWins).sort((a, b) => b[1] - a[1])[0];
+                if (clutchLeader[1] >= 2) {
+                    insights.push({
+                        type: 'streak',
+                        priority: 7,
+                        text: `🎯 ${clutchLeader[0]} is clutch! ${clutchLeader[1]} wins in close Rat Factor games`
+                    });
+                }
             }
 
             // ========== OVERALL STATS ==========

@@ -233,17 +233,18 @@
         #leaderboard {
             display: flex;
             flex-direction: column;
+            overflow-x: auto;
         }
 
         .leaderboard-table {
             width: 100%;
+            min-width: fit-content;
         }
 
         .leaderboard-header {
-            display: grid;
-            grid-template-columns: 40px 1fr 55px 55px;
+            display: flex;
             align-items: center;
-            padding: 10px 15px;
+            padding: 10px 0;
             border-bottom: 2px solid var(--accent-yellow);
             font-size: 0.65rem;
             color: var(--text-muted);
@@ -252,16 +253,48 @@
             font-weight: 700;
         }
 
-        .leaderboard-header-rank { text-align: center; }
-        .leaderboard-header-name { padding-left: 5px; }
-        .leaderboard-header-events { text-align: center; }
-        .leaderboard-header-pts { text-align: center; }
+        .leaderboard-header-rank {
+            width: 50px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .leaderboard-header-name {
+            width: 140px;
+            padding-left: 5px;
+            flex-shrink: 0;
+        }
+        .leaderboard-header-event {
+            width: 45px;
+            text-align: center;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .leaderboard-header-event .event-icon {
+            font-size: 0.7rem;
+        }
+        .leaderboard-header-event .event-location {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+            max-width: 45px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .leaderboard-header-pts {
+            width: 55px;
+            text-align: center;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
 
         .leaderboard-item {
-            display: grid;
-            grid-template-columns: 40px 1fr 55px 55px;
+            display: flex;
             align-items: center;
-            padding: 16px 15px;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border-subtle);
             transition: all 0.2s ease;
         }
@@ -275,47 +308,109 @@
         }
 
         .leaderboard-rank {
+            width: 50px;
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.6rem;
             text-align: center;
             color: var(--text-muted);
             line-height: 1;
+            flex-shrink: 0;
         }
 
         .leaderboard-item.rank-1 .leaderboard-rank { color: #ffd700; }
         .leaderboard-item.rank-2 .leaderboard-rank { color: #c0c0c0; }
         .leaderboard-item.rank-3 .leaderboard-rank { color: #cd7f32; }
 
-        .leaderboard-name {
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding-left: 5px;
+        .leaderboard-player {
+            width: 140px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 2px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .leaderboard-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .leaderboard-events {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .leaderboard-event-score {
+            width: 45px;
             text-align: center;
-            font-size: 0.85rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-event-score.not-counting {
+            text-decoration: line-through;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .leaderboard-event-score.first-place {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        .leaderboard-event-score.second-place {
+            color: #c0c0c0;
+        }
+
+        .leaderboard-event-score.third-place {
             color: var(--text-muted);
         }
 
-        .leaderboard-score {
+        .leaderboard-event-score.no-play {
+            color: var(--text-muted);
+            opacity: 0.3;
+        }
+
+        .leaderboard-total {
+            width: 55px;
             text-align: center;
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.6rem;
             color: var(--accent-yellow);
             line-height: 1;
+            flex-shrink: 0;
+            margin-left: auto;
         }
 
         /* Leader row highlight */
         .leaderboard-item.leader {
             background: linear-gradient(90deg, rgba(240, 225, 48, 0.12) 0%, rgba(240, 225, 48, 0.03) 100%);
             border-left: 3px solid var(--accent-yellow);
-            padding-left: 12px;
         }
 
         .leaderboard-item.leader .leaderboard-name {
@@ -1593,6 +1688,10 @@
                                 <option value="7">First to 7</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">Location (optional)</label>
+                            <input type="text" id="canadianLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
+                        </div>
                     </div>
                     <button class="btn-submit" onclick="submitCanadian()">LOG MATCH</button>
                 `;
@@ -1809,6 +1908,7 @@
             }
 
             const target = parseInt(document.getElementById('canadianTarget').value);
+            const location = document.getElementById('canadianLocation').value.trim() || null;
 
             const match = {
                 match_type: 'canadian',
@@ -1818,7 +1918,8 @@
                 score_player1: scores[selected[0]],
                 score_player2: scores[selected[1]],
                 score_player3: scores[selected[2]],
-                target_score: target
+                target_score: target,
+                location: location
             };
 
             await saveMatch(match);
@@ -1864,26 +1965,34 @@
             }
         }
 
-        // Render leaderboard - Championship format with best 10 results
+        // Render leaderboard - WSL Championship style with event columns
         function renderLeaderboard() {
             const container = document.getElementById('leaderboard');
             const currentYear = new Date().getFullYear();
             const canadianMatches = matches.filter(m =>
                 m.match_type === 'canadian' &&
                 new Date(m.created_at).getFullYear() === currentYear
-            );
+            ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Sort chronologically
 
             if (canadianMatches.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet this year</div>';
                 return;
             }
 
-            // Calculate points: 1st = 3pts, 2nd = 2pts, 3rd = 0pts
-            // Track all results for each player
-            const playerResults = {};
-            PLAYERS.forEach(p => playerResults[p] = []);
+            // Player photos (only Rick has one for now)
+            const playerPhotos = {
+                'Rick': 'rick.png',
+                'Ed': null,
+                'Tom': null,
+                'Jethro': null
+            };
 
-            canadianMatches.forEach(match => {
+            // Calculate points per event for each player
+            // Points: 1st = 3pts, 2nd = 2pts, 3rd = 0pts
+            const playerEventResults = {};
+            PLAYERS.forEach(p => playerEventResults[p] = []);
+
+            canadianMatches.forEach((match, eventIndex) => {
                 const players = [
                     { name: match.player1, score: match.score_player1 || 0 },
                     { name: match.player2, score: match.score_player2 || 0 },
@@ -1894,69 +2003,103 @@
 
                 // Award points: 1st = 3, 2nd = 2, 3rd = 0
                 const pointsMap = { 0: 3, 1: 2, 2: 0 };
+
+                // Initialize all players as not playing this event
+                PLAYERS.forEach(p => {
+                    playerEventResults[p][eventIndex] = { points: null, position: null };
+                });
+
                 players.forEach((player, position) => {
-                    if (player.name && playerResults[player.name]) {
-                        playerResults[player.name].push({
+                    if (player.name && playerEventResults[player.name]) {
+                        playerEventResults[player.name][eventIndex] = {
                             points: pointsMap[position],
-                            position: position + 1,
-                            date: match.created_at
-                        });
+                            position: position + 1
+                        };
                     }
                 });
             });
 
             // Calculate championship standings (best 10 results)
             const standings = PLAYERS.map(name => {
-                const results = playerResults[name];
-                // Sort by points descending to get best results first
-                const sortedResults = [...results].sort((a, b) => b.points - a.points);
-                const best10 = sortedResults.slice(0, 10);
-                const totalPoints = best10.reduce((sum, r) => sum + r.points, 0);
+                const allResults = playerEventResults[name];
+                const playedResults = allResults
+                    .map((r, idx) => ({ ...r, eventIndex: idx }))
+                    .filter(r => r.points !== null);
 
-                // Count placements in best 10
-                const wins = best10.filter(r => r.position === 1).length;
-                const seconds = best10.filter(r => r.position === 2).length;
-                const thirds = best10.filter(r => r.position === 3).length;
+                // Sort by points descending to find best 10
+                const sortedByPoints = [...playedResults].sort((a, b) => b.points - a.points);
+                const best10Indices = new Set(sortedByPoints.slice(0, 10).map(r => r.eventIndex));
+
+                const totalPoints = sortedByPoints.slice(0, 10).reduce((sum, r) => sum + r.points, 0);
+                const wins = sortedByPoints.slice(0, 10).filter(r => r.position === 1).length;
 
                 return {
                     name,
                     points: totalPoints,
-                    events: results.length,
-                    counting: best10.length,
+                    events: playedResults.length,
                     wins,
-                    seconds,
-                    thirds,
-                    maxPoints: 30 // Max possible = 10 wins × 3 pts
+                    best10Indices,
+                    eventResults: allResults
                 };
             }).sort((a, b) => {
-                // Sort by points, then by wins as tiebreaker
                 if (b.points !== a.points) return b.points - a.points;
                 return b.wins - a.wins;
             });
 
-            const leader = standings[0];
+            // Build header with event columns
+            const eventHeaders = canadianMatches.map((match, i) => {
+                const location = match.location ? `<span class="event-location">${match.location}</span>` : '';
+                return `
+                    <div class="leaderboard-header-event">
+                        <span class="event-icon">🐀</span>
+                        <span>${i + 1}</span>
+                        ${location}
+                    </div>
+                `;
+            }).join('');
+
+            // Build player rows
+            const playerRows = standings.map((player, rank) => {
+                const photo = playerPhotos[player.name];
+                const avatarContent = photo
+                    ? `<img src="${photo}" alt="${player.name}">`
+                    : player.name.charAt(0);
+
+                const eventScores = player.eventResults.map((result, eventIndex) => {
+                    if (result.points === null) {
+                        return `<div class="leaderboard-event-score no-play">-</div>`;
+                    }
+
+                    const isCounting = player.best10Indices.has(eventIndex);
+                    const positionClass = result.position === 1 ? 'first-place' :
+                                         result.position === 2 ? 'second-place' : 'third-place';
+                    const countingClass = isCounting ? '' : 'not-counting';
+
+                    return `<div class="leaderboard-event-score ${positionClass} ${countingClass}">${result.points}</div>`;
+                }).join('');
+
+                return `
+                    <div class="leaderboard-item rank-${rank + 1}${rank === 0 ? ' leader' : ''}">
+                        <div class="leaderboard-rank">${rank + 1}</div>
+                        <div class="leaderboard-player">
+                            <div class="leaderboard-avatar">${avatarContent}</div>
+                            <div class="leaderboard-name">${player.name}</div>
+                        </div>
+                        <div class="leaderboard-events">${eventScores}</div>
+                        <div class="leaderboard-total">${player.points}</div>
+                    </div>
+                `;
+            }).join('');
 
             container.innerHTML = `
                 <div class="leaderboard-table">
                     <div class="leaderboard-header">
                         <div class="leaderboard-header-rank">#</div>
-                        <div class="leaderboard-header-name">Player</div>
-                        <div class="leaderboard-header-events">Played</div>
+                        <div class="leaderboard-header-name">Name</div>
+                        ${eventHeaders}
                         <div class="leaderboard-header-pts">Pts</div>
                     </div>
-                    ${standings.map((player, i) => {
-                        const gap = i > 0 ? player.points - leader.points : 0;
-                        const gapDisplay = gap < 0 ? `<span class="points-gap">${gap}</span>` : '';
-
-                        return `
-                            <div class="leaderboard-item rank-${i + 1}${i === 0 ? ' leader' : ''}">
-                                <div class="leaderboard-rank">${i + 1}</div>
-                                <div class="leaderboard-name">${player.name}${gapDisplay}</div>
-                                <div class="leaderboard-events">${player.events}</div>
-                                <div class="leaderboard-score">${player.points}</div>
-                            </div>
-                        `;
-                    }).join('')}
+                    ${playerRows}
                 </div>
                 <div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>
             `;

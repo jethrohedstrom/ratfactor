@@ -914,6 +914,101 @@
             background: var(--accent-pink);
         }
 
+        /* Edit button */
+        .match-edit-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        .match-edit-btn:hover {
+            opacity: 1;
+            color: var(--accent-yellow);
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .match-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .match-location {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* Edit Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        .modal-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-yellow);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn-cancel {
+            background: var(--border-subtle);
+            color: var(--text-primary);
+        }
+        .modal-btn-save {
+            background: var(--accent-yellow);
+            color: var(--bg-dark);
+        }
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
         /* Loading spinner */
         .loading {
             display: flex;
@@ -1557,6 +1652,22 @@
 
     <div id="toast" class="toast"></div>
 
+    <!-- Edit Match Modal -->
+    <div id="editModal" class="modal-overlay" onclick="closeEditModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-title">Edit Match</div>
+            <input type="hidden" id="editMatchId">
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="editLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" onclick="saveMatchEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Supabase setup
         const SUPABASE_URL = 'https://osbbviimzoqaeyneogtp.supabase.co';
@@ -2122,14 +2233,19 @@
                     minute: '2-digit'
                 });
 
+                const editBtn = `<button class="match-edit-btn" onclick="openEditModal(${match.id}, '${(match.location || '').replace(/'/g, "\\'")}')">✏️</button>`;
+
                 if (match.match_type === 'singles') {
                     const winner = match.winner1;
                     const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
                     return `
                         <div class="match-item">
                             <div class="match-header">
-                                <div class="match-type">Singles</div>
-                                <div class="match-date">${date}</div>
+                                <div class="match-header-left">
+                                    <div class="match-type">Singles</div>
+                                    <div class="match-date">${date}</div>
+                                </div>
+                                ${editBtn}
                             </div>
                             <div class="match-result">
                                 <span class="match-winner">${winner}</span>
@@ -2163,8 +2279,11 @@
                     return `
                         <div class="match-item">
                             <div class="match-header">
-                                <div class="match-type">Doubles</div>
-                                <div class="match-date">${date}</div>
+                                <div class="match-header-left">
+                                    <div class="match-type">Doubles</div>
+                                    <div class="match-date">${date}</div>
+                                </div>
+                                ${editBtn}
                             </div>
                             <div class="match-result">
                                 <span class="match-winner">${winner}</span>
@@ -2182,12 +2301,17 @@
                         { name: match.player3, score: match.score_player3 }
                     ].sort((a, b) => b.score - a.score);
 
+                    const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `
                         <div class="match-item match-item-ratfactor">
                             <div class="match-header">
-                                <div class="match-type">Rat Factor</div>
-                                <div class="match-date">${date}</div>
+                                <div class="match-header-left">
+                                    <div class="match-type">Rat Factor</div>
+                                    <div class="match-date">${date}</div>
+                                </div>
+                                ${editBtn}
                             </div>
+                            ${locationDisplay}
                             <div class="ratfactor-scores">
                                 <div class="ratfactor-player first">
                                     <span class="ratfactor-rank">1st</span>
@@ -2614,6 +2738,39 @@
             toast.className = 'toast' + (isError ? ' error' : '');
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Edit Match Modal Functions
+        function openEditModal(matchId, currentLocation) {
+            document.getElementById('editMatchId').value = matchId;
+            document.getElementById('editLocation').value = currentLocation || '';
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        async function saveMatchEdit() {
+            const matchId = document.getElementById('editMatchId').value;
+            const location = document.getElementById('editLocation').value.trim() || null;
+
+            try {
+                const { error } = await db
+                    .from('matches')
+                    .update({ location: location })
+                    .eq('id', matchId);
+
+                if (error) throw error;
+
+                showToast('Match updated!');
+                closeEditModal();
+                loadMatches(); // Refresh data
+            } catch (err) {
+                console.error('Error updating match:', err);
+                showToast('Error updating match', true);
+            }
         }
 
         // Fighter Select Functions

@@ -2249,6 +2249,7 @@
                 if (match.match_type === 'singles') {
                     const winner = match.winner1;
                     const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
+                    const singlesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `
                         <div class="match-item">
                             <div class="match-header">
@@ -2258,6 +2259,7 @@
                                 </div>
                                 ${editBtn}
                             </div>
+                            ${singlesLocationDisplay}
                             <div class="match-result">
                                 <span class="match-winner">${winner}</span>
                                 <span class="match-def">def.</span>
@@ -2287,6 +2289,7 @@
                         }
                     }
 
+                    const doublesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `
                         <div class="match-item">
                             <div class="match-header">
@@ -2296,6 +2299,7 @@
                                 </div>
                                 ${editBtn}
                             </div>
+                            ${doublesLocationDisplay}
                             <div class="match-result">
                                 <span class="match-winner">${winner}</span>
                                 <span class="match-def">def.</span>

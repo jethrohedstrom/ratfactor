@@ -1610,6 +1610,17 @@
             border-bottom: 2px solid var(--accent-pink);
         }
 
+        .fighter-card-back-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: top center;
+            border: 3px solid var(--accent-pink);
+            margin-bottom: 8px;
+            box-shadow: 0 0 20px rgba(255, 68, 170, 0.4);
+        }
+
         .fighter-card-back-name {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.5rem;
@@ -1902,6 +1913,7 @@
                 <div class="fighter-card-front"></div>
                 <div class="fighter-card-back">
                     <div class="fighter-card-back-header">
+                        <img id="enlargedFighterImg" class="fighter-card-back-img" src="" alt="">
                         <div class="fighter-card-back-name" id="enlargedFighterName"></div>
                         <div class="fighter-card-back-title" id="enlargedFighterTitle"></div>
                     </div>
@@ -3252,6 +3264,7 @@
         const fighterData = {
             Rick: {
                 title: 'THE ANGLER',
+                image: 'rick images/angler.png',
                 strengths: [
                     'The angel of angles',
                     'Can be tender and gentle at the net'
@@ -3262,6 +3275,7 @@
             },
             Ed: {
                 title: 'KINTAMANI',
+                image: 'ed images/gein.png',
                 strengths: [
                     'Runs like a wounded bull',
                     'Heavy topspin western FH grip'
@@ -3272,6 +3286,7 @@
             },
             Tom: {
                 title: 'DR. DEATH',
+                image: 'tom images/drdeath.png',
                 strengths: [
                     'First serve in points won >90%',
                     'Versatile all court player'
@@ -3283,6 +3298,7 @@
             },
             Jethro: {
                 title: 'DIESEL',
+                image: 'jethro images/diesel.png',
                 strengths: [
                     'Can run consistent missionary until sunset'
                 ],
@@ -3297,6 +3313,8 @@
             if (!data) return;
 
             // Populate the overlay
+            document.getElementById('enlargedFighterImg').src = data.image;
+            document.getElementById('enlargedFighterImg').alt = player;
             document.getElementById('enlargedFighterName').textContent = player.toUpperCase();
             document.getElementById('enlargedFighterTitle').textContent = data.title;
 

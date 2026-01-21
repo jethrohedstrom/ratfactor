@@ -1706,8 +1706,12 @@
         .fighter-card-enlarged .fighter-card-inner {
             width: 100%;
             height: 100%;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
+            transform: rotateY(0deg);
+        }
+
+        .fighter-card-enlarged .fighter-card-inner.flipped {
             transform: rotateY(180deg);
         }
 
@@ -1729,6 +1733,34 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+        }
+
+        .fighter-card-front-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: top center;
+            border: 4px solid var(--accent-pink);
+            box-shadow: 0 0 40px rgba(255, 68, 170, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .fighter-card-front-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: white;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255, 68, 170, 0.5);
+        }
+
+        .fighter-card-front-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--accent-pink);
+            letter-spacing: 2px;
+            margin-top: 5px;
         }
 
         .fighter-card-enlarged .fighter-card-back {
@@ -2073,8 +2105,12 @@
     <div id="fighterCardOverlay" class="fighter-card-overlay" onclick="closeFighterCard(event)">
         <button class="fighter-card-close" onclick="closeFighterCard(event)">&times;</button>
         <div class="fighter-card-enlarged">
-            <div class="fighter-card-inner">
-                <div class="fighter-card-front"></div>
+            <div class="fighter-card-inner" id="fighterCardInner">
+                <div class="fighter-card-front">
+                    <img id="enlargedFighterImgFront" class="fighter-card-front-img" src="" alt="">
+                    <div class="fighter-card-front-name" id="enlargedFighterNameFront"></div>
+                    <div class="fighter-card-front-title" id="enlargedFighterTitleFront"></div>
+                </div>
                 <div class="fighter-card-back">
                     <div class="fighter-card-back-header">
                         <img id="enlargedFighterImg" class="fighter-card-back-img" src="" alt="">
@@ -3489,7 +3525,18 @@
             const data = fighterData[player];
             if (!data) return;
 
-            // Populate the overlay
+            const cardInner = document.getElementById('fighterCardInner');
+
+            // Reset flip state
+            cardInner.classList.remove('flipped');
+
+            // Populate the front of the card
+            document.getElementById('enlargedFighterImgFront').src = data.image;
+            document.getElementById('enlargedFighterImgFront').alt = player;
+            document.getElementById('enlargedFighterNameFront').textContent = player.toUpperCase();
+            document.getElementById('enlargedFighterTitleFront').textContent = data.title;
+
+            // Populate the back of the card
             document.getElementById('enlargedFighterImg').src = data.image;
             document.getElementById('enlargedFighterImg').alt = player;
             document.getElementById('enlargedFighterName').textContent = player.toUpperCase();
@@ -3519,6 +3566,11 @@
             const overlay = document.getElementById('fighterCardOverlay');
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
+
+            // Flip card after a short delay
+            setTimeout(() => {
+                cardInner.classList.add('flipped');
+            }, 300);
         }
 
         function closeFighterCard(e) {

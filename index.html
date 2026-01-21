@@ -1560,6 +1560,203 @@
             margin: 20px 0;
             opacity: 0.5;
         }
+
+        /* Flip card styles */
+        .fighter-card {
+            perspective: 1000px;
+        }
+
+        .fighter-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .fighter-card.flipped .fighter-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .fighter-card-front,
+        .fighter-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .fighter-card-front {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .fighter-card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .fighter-card-back-header {
+            text-align: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-pink);
+        }
+
+        .fighter-card-back-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: white;
+            letter-spacing: 2px;
+        }
+
+        .fighter-card-back-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fighter-traits {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 0.75rem;
+        }
+
+        .fighter-trait-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .fighter-trait-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fighter-trait-label.strength {
+            color: var(--accent-green);
+        }
+
+        .fighter-trait-label.weakness {
+            color: var(--accent-pink);
+        }
+
+        .fighter-trait-list {
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .fighter-trait-item {
+            margin-bottom: 4px;
+        }
+
+        /* Enlarged/modal state */
+        .fighter-card-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .fighter-card-overlay.active {
+            display: flex;
+        }
+
+        .fighter-card-enlarged {
+            width: 90vw;
+            max-width: 350px;
+            height: 80vh;
+            max-height: 500px;
+            perspective: 1000px;
+        }
+
+        .fighter-card-enlarged .fighter-card-inner {
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            transform: rotateY(180deg);
+        }
+
+        .fighter-card-enlarged .fighter-card-front,
+        .fighter-card-enlarged .fighter-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 16px;
+            border: 3px solid var(--accent-pink);
+            box-shadow: 0 0 40px rgba(255, 68, 170, 0.4);
+        }
+
+        .fighter-card-enlarged .fighter-card-front {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fighter-card-enlarged .fighter-card-back {
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .fighter-card-enlarged .fighter-card-back-name {
+            font-size: 2rem;
+        }
+
+        .fighter-card-enlarged .fighter-traits {
+            font-size: 0.9rem;
+        }
+
+        .fighter-card-enlarged .fighter-trait-label {
+            font-size: 1.1rem;
+        }
+
+        .fighter-card-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--text-muted);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+
+        .fighter-card-close:hover {
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+        }
     </style>
 </head>
 <body>
@@ -1691,6 +1888,36 @@
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="jethro-wins">-</span></span>
                         <span class="fighter-stat">L: <span class="fighter-stat-value" id="jethro-losses">-</span></span>
                         <span class="fighter-stat">RF: <span class="fighter-stat-value" id="jethro-rf">-</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fighter Card Enlarged Overlay -->
+    <div id="fighterCardOverlay" class="fighter-card-overlay" onclick="closeFighterCard(event)">
+        <button class="fighter-card-close" onclick="closeFighterCard(event)">&times;</button>
+        <div class="fighter-card-enlarged">
+            <div class="fighter-card-inner">
+                <div class="fighter-card-front"></div>
+                <div class="fighter-card-back">
+                    <div class="fighter-card-back-header">
+                        <div class="fighter-card-back-name" id="enlargedFighterName"></div>
+                        <div class="fighter-card-back-title" id="enlargedFighterTitle"></div>
+                    </div>
+                    <div class="fighter-traits">
+                        <div class="fighter-trait-section">
+                            <div class="fighter-trait-label strength">💪 STRENGTHS</div>
+                            <div class="fighter-trait-list" id="enlargedFighterStrengths"></div>
+                        </div>
+                        <div class="fighter-trait-section">
+                            <div class="fighter-trait-label weakness">⚡ WEAKNESSES</div>
+                            <div class="fighter-trait-list" id="enlargedFighterWeaknesses"></div>
+                        </div>
+                        <div class="fighter-trait-section">
+                            <div class="fighter-trait-label" style="color: var(--accent-yellow);">📊 STATS</div>
+                            <div class="fighter-trait-list" id="enlargedFighterStats"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3007,8 +3234,167 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeFighterSelect();
+                closeFighterCard(e);
             }
         });
+
+        // Fighter card data
+        const fighterData = {
+            Rick: {
+                title: 'THE ANGLER',
+                strengths: [
+                    'The angel of angles',
+                    'Can be tender and gentle at the net'
+                ],
+                weaknesses: [
+                    'Prone to clinical grade SHS'
+                ]
+            },
+            Ed: {
+                title: 'KINTAMANI',
+                strengths: [
+                    'Runs like a wounded bull',
+                    'Heavy topspin western FH grip'
+                ],
+                weaknesses: []
+            },
+            Tom: {
+                title: 'DR. DEATH',
+                strengths: [
+                    'First serve in points won >90%',
+                    'Versatile all court player'
+                ],
+                weaknesses: [
+                    'Horny for the ESPN highlights reel',
+                    'Can be volatile'
+                ]
+            },
+            Jethro: {
+                title: 'DIESEL',
+                strengths: [
+                    'Can run consistent missionary until sunset'
+                ],
+                weaknesses: [
+                    'Slow speed in all domains'
+                ]
+            }
+        };
+
+        // Add click handlers to fighter cards
+        document.querySelectorAll('.fighter-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const player = card.dataset.player;
+                openFighterCard(player);
+            });
+        });
+
+        function openFighterCard(player) {
+            const data = fighterData[player];
+            if (!data) return;
+
+            // Populate the overlay
+            document.getElementById('enlargedFighterName').textContent = player.toUpperCase();
+            document.getElementById('enlargedFighterTitle').textContent = data.title;
+
+            // Strengths
+            const strengthsHtml = data.strengths.map(s =>
+                `<div class="fighter-trait-item">• ${s}</div>`
+            ).join('') || '<div class="fighter-trait-item">• None listed</div>';
+            document.getElementById('enlargedFighterStrengths').innerHTML = strengthsHtml;
+
+            // Weaknesses
+            const weaknessesHtml = data.weaknesses.map(w =>
+                `<div class="fighter-trait-item">• ${w}</div>`
+            ).join('') || '<div class="fighter-trait-item">• None listed</div>';
+            document.getElementById('enlargedFighterWeaknesses').innerHTML = weaknessesHtml;
+
+            // Calculate auto stats
+            const statsHtml = calculateFighterStats(player);
+            document.getElementById('enlargedFighterStats').innerHTML = statsHtml;
+
+            // Show overlay
+            const overlay = document.getElementById('fighterCardOverlay');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFighterCard(e) {
+            if (e) e.stopPropagation();
+            const overlay = document.getElementById('fighterCardOverlay');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function calculateFighterStats(player) {
+            const stats = [];
+
+            // Singles record
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+            const singlesWins = singlesMatches.filter(m => m.winner1 === player).length;
+            const singlesLosses = singlesMatches.filter(m =>
+                (m.player1 === player || m.player2 === player) && m.winner1 !== player
+            ).length;
+            if (singlesWins + singlesLosses > 0) {
+                const winPct = Math.round((singlesWins / (singlesWins + singlesLosses)) * 100);
+                stats.push(`Singles: ${singlesWins}W-${singlesLosses}L (${winPct}%)`);
+            }
+
+            // RF Championship score
+            const currentYear = new Date().getFullYear();
+            const canadianMatches = matches.filter(m =>
+                m.match_type === 'canadian' &&
+                new Date(m.created_at).getFullYear() === currentYear
+            );
+
+            let rfWins = 0;
+            let rfPlayed = 0;
+            canadianMatches.forEach(match => {
+                const players = [
+                    { name: match.player1, score: match.score_player1 },
+                    { name: match.player2, score: match.score_player2 },
+                    { name: match.player3, score: match.score_player3 }
+                ].sort((a, b) => b.score - a.score);
+
+                const position = players.findIndex(p => p.name === player);
+                if (position !== -1) {
+                    rfPlayed++;
+                    if (position === 0) rfWins++;
+                }
+            });
+
+            if (rfPlayed > 0) {
+                stats.push(`RF Matches: ${rfPlayed} played, ${rfWins} wins`);
+            }
+
+            // Best opponent (who they beat most)
+            const winsAgainst = {};
+            singlesMatches.forEach(m => {
+                if (m.winner1 === player) {
+                    const opponent = m.player1 === player ? m.player2 : m.player1;
+                    winsAgainst[opponent] = (winsAgainst[opponent] || 0) + 1;
+                }
+            });
+            const bestOpponent = Object.entries(winsAgainst).sort((a, b) => b[1] - a[1])[0];
+            if (bestOpponent && bestOpponent[1] >= 2) {
+                stats.push(`Best vs: ${bestOpponent[0]} (${bestOpponent[1]} wins)`);
+            }
+
+            // Worst opponent (who beats them most)
+            const lossesAgainst = {};
+            singlesMatches.forEach(m => {
+                if ((m.player1 === player || m.player2 === player) && m.winner1 !== player) {
+                    lossesAgainst[m.winner1] = (lossesAgainst[m.winner1] || 0) + 1;
+                }
+            });
+            const worstOpponent = Object.entries(lossesAgainst).sort((a, b) => b[1] - a[1])[0];
+            if (worstOpponent && worstOpponent[1] >= 2) {
+                stats.push(`Struggles vs: ${worstOpponent[0]} (${worstOpponent[1]} losses)`);
+            }
+
+            return stats.map(s => `<div class="fighter-trait-item">• ${s}</div>`).join('')
+                || '<div class="fighter-trait-item">• No stats yet</div>';
+        }
     </script>
 </body>
 </html>

@@ -1657,6 +1657,7 @@
                     <div class="fighter-stats">
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="rick-wins">-</span></span>
                         <span class="fighter-stat">L: <span class="fighter-stat-value" id="rick-losses">-</span></span>
+                        <span class="fighter-stat">RF: <span class="fighter-stat-value" id="rick-rf">-</span></span>
                     </div>
                 </div>
                 <div class="fighter-card" data-player="Ed">
@@ -1667,6 +1668,7 @@
                     <div class="fighter-stats">
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="ed-wins">-</span></span>
                         <span class="fighter-stat">L: <span class="fighter-stat-value" id="ed-losses">-</span></span>
+                        <span class="fighter-stat">RF: <span class="fighter-stat-value" id="ed-rf">-</span></span>
                     </div>
                 </div>
                 <div class="fighter-card" data-player="Tom">
@@ -1677,6 +1679,7 @@
                     <div class="fighter-stats">
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="tom-wins">-</span></span>
                         <span class="fighter-stat">L: <span class="fighter-stat-value" id="tom-losses">-</span></span>
+                        <span class="fighter-stat">RF: <span class="fighter-stat-value" id="tom-rf">-</span></span>
                     </div>
                 </div>
                 <div class="fighter-card" data-player="Jethro">
@@ -1687,6 +1690,7 @@
                     <div class="fighter-stats">
                         <span class="fighter-stat">W: <span class="fighter-stat-value" id="jethro-wins">-</span></span>
                         <span class="fighter-stat">L: <span class="fighter-stat-value" id="jethro-losses">-</span></span>
+                        <span class="fighter-stat">RF: <span class="fighter-stat-value" id="jethro-rf">-</span></span>
                     </div>
                 </div>
             </div>
@@ -2951,6 +2955,37 @@
         function updateFighterStats() {
             const singlesMatches = matches.filter(m => m.match_type === 'singles');
 
+            // Get 2026 Rat Factor matches for RF score
+            const currentYear = new Date().getFullYear();
+            const canadianMatches = matches.filter(m =>
+                m.match_type === 'canadian' &&
+                new Date(m.created_at).getFullYear() === currentYear
+            );
+
+            // Calculate RF championship scores (best 10 results)
+            const rfScores = {};
+            const pointsMap = { 0: 3, 1: 1, 2: 0 };
+
+            PLAYERS.forEach(player => {
+                const playerResults = [];
+                canadianMatches.forEach(match => {
+                    const players = [
+                        { name: match.player1, score: match.score_player1 },
+                        { name: match.player2, score: match.score_player2 },
+                        { name: match.player3, score: match.score_player3 }
+                    ].sort((a, b) => b.score - a.score);
+
+                    const position = players.findIndex(p => p.name === player);
+                    if (position !== -1) {
+                        playerResults.push(pointsMap[position]);
+                    }
+                });
+
+                // Sort descending and take best 10
+                playerResults.sort((a, b) => b - a);
+                rfScores[player] = playerResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
+            });
+
             PLAYERS.forEach(player => {
                 const wins = singlesMatches.filter(m => m.winner1 === player).length;
                 const losses = singlesMatches.filter(m =>
@@ -2960,9 +2995,11 @@
                 const playerLower = player.toLowerCase();
                 const winsEl = document.getElementById(`${playerLower}-wins`);
                 const lossesEl = document.getElementById(`${playerLower}-losses`);
+                const rfEl = document.getElementById(`${playerLower}-rf`);
 
                 if (winsEl) winsEl.textContent = wins;
                 if (lossesEl) lossesEl.textContent = losses;
+                if (rfEl) rfEl.textContent = rfScores[player];
             });
         }
 

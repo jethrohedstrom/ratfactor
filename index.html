@@ -1970,6 +1970,15 @@
                     openEditModal(matchId, location);
                 }
             });
+
+            // Add click handlers to fighter cards for stats view
+            document.querySelectorAll('.fighter-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const player = card.dataset.player;
+                    openFighterCard(player);
+                });
+            });
         });
 
         // Navigation
@@ -3281,15 +3290,6 @@
                 ]
             }
         };
-
-        // Add click handlers to fighter cards
-        document.querySelectorAll('.fighter-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const player = card.dataset.player;
-                openFighterCard(player);
-            });
-        });
 
         function openFighterCard(player) {
             const data = fighterData[player];

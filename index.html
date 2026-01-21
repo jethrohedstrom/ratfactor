@@ -1768,6 +1768,170 @@
             border-color: var(--accent-pink);
             color: var(--accent-pink);
         }
+
+        /* External Matches Button */
+        .external-matches-btn {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--accent-pink) 0%, #ff6b9d 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 68, 170, 0.3);
+        }
+
+        .external-matches-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 68, 170, 0.4);
+        }
+
+        /* External Matches Modal */
+        .external-matches-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 4000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .external-matches-overlay.active {
+            display: block;
+        }
+
+        .external-matches-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .external-matches-close {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--text-muted);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 4001;
+        }
+
+        .external-matches-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--accent-pink);
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .external-matches-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .external-opponent-summary {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 10px 15px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .external-opponent-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .external-opponent-record {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+        }
+
+        .external-opponent-record.negative {
+            color: var(--accent-pink);
+        }
+
+        .external-matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .external-match-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 15px;
+        }
+
+        .external-match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .external-match-opponent {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .external-match-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .external-match-score {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .external-match-result {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .external-match-result.win {
+            background: rgba(68, 255, 68, 0.2);
+            color: var(--accent-green);
+        }
+
+        .external-match-result.loss {
+            background: rgba(255, 68, 170, 0.2);
+            color: var(--accent-pink);
+        }
+
+        .external-match-type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -1930,9 +2094,22 @@
                             <div class="fighter-trait-label" style="color: var(--accent-yellow);">📊 STATS</div>
                             <div class="fighter-trait-list" id="enlargedFighterStats"></div>
                         </div>
+                        <div id="externalMatchesBtn" class="external-matches-btn" style="display: none;" onclick="openExternalMatches(event)">
+                            🎾 External Matches
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- External Matches Modal -->
+    <div id="externalMatchesModal" class="external-matches-overlay" onclick="closeExternalMatches(event)">
+        <div class="external-matches-content" onclick="event.stopPropagation()">
+            <button class="external-matches-close" onclick="closeExternalMatches(event)">&times;</button>
+            <h2 class="external-matches-title">External Matches</h2>
+            <div class="external-matches-summary" id="externalMatchesSummary"></div>
+            <div class="external-matches-list" id="externalMatchesList"></div>
         </div>
     </div>
 
@@ -3334,6 +3511,10 @@
             const statsHtml = calculateFighterStats(player);
             document.getElementById('enlargedFighterStats').innerHTML = statsHtml;
 
+            // Show external matches button only for Jethro
+            const externalBtn = document.getElementById('externalMatchesBtn');
+            externalBtn.style.display = player === 'Jethro' ? 'block' : 'none';
+
             // Show overlay
             const overlay = document.getElementById('fighterCardOverlay');
             overlay.classList.add('active');
@@ -3422,6 +3603,80 @@
 
             return stats.map(s => `<div class="fighter-trait-item">• ${s}</div>`).join('')
                 || '<div class="fighter-trait-item">• No stats yet</div>';
+        }
+
+        // External matches data (Jethro vs non-Rat Factor players)
+        // matchType options: 'full' (regulation sets), 'tiebreaks' (tiebreaks only), 'halfcourt' (half court)
+        const externalMatches = [
+            // Placeholder data - replace with real data
+            { opponent: 'Sample Player', date: '2026-01-15', score: '6-4, 6-2', won: true, matchType: 'full' },
+            { opponent: 'Sample Player', date: '2026-01-10', score: '4-6, 7-5, 6-3', won: true, matchType: 'full' },
+            { opponent: 'Another Player', date: '2026-01-05', score: '7-6(5), 3-6, 4-6', won: false, matchType: 'full' },
+            { opponent: 'Another Player', date: '2025-12-20', score: '7-4, 7-5', won: true, matchType: 'tiebreaks' },
+        ];
+
+        function openExternalMatches(e) {
+            e.stopPropagation();
+
+            // Calculate summary per opponent
+            const opponents = {};
+            externalMatches.forEach(m => {
+                if (!opponents[m.opponent]) {
+                    opponents[m.opponent] = { wins: 0, losses: 0 };
+                }
+                if (m.won) {
+                    opponents[m.opponent].wins++;
+                } else {
+                    opponents[m.opponent].losses++;
+                }
+            });
+
+            // Render summary
+            const summaryHtml = Object.entries(opponents).map(([name, record]) => {
+                const isNegative = record.losses > record.wins;
+                return `
+                    <div class="external-opponent-summary">
+                        <div class="external-opponent-name">${name}</div>
+                        <div class="external-opponent-record ${isNegative ? 'negative' : ''}">${record.wins}W - ${record.losses}L</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('externalMatchesSummary').innerHTML = summaryHtml;
+
+            // Render match list (sorted by date, newest first)
+            const sortedMatches = [...externalMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const matchesHtml = sortedMatches.map(m => {
+                const dateStr = new Date(m.date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+                const typeLabels = {
+                    'full': '',
+                    'tiebreaks': 'Tiebreaks only',
+                    'halfcourt': 'Half court'
+                };
+                const typeLabel = typeLabels[m.matchType] || '';
+                return `
+                    <div class="external-match-item">
+                        <div class="external-match-header">
+                            <span class="external-match-opponent">vs ${m.opponent}</span>
+                            <span class="external-match-date">${dateStr}</span>
+                        </div>
+                        <div class="external-match-score">
+                            ${m.score}
+                            <span class="external-match-result ${m.won ? 'win' : 'loss'}">${m.won ? 'W' : 'L'}</span>
+                        </div>
+                        ${typeLabel ? `<div class="external-match-type">${typeLabel}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('externalMatchesList').innerHTML = matchesHtml;
+
+            // Show modal
+            document.getElementById('externalMatchesModal').classList.add('active');
+        }
+
+        function closeExternalMatches(e) {
+            if (e.target === e.currentTarget || e.target.classList.contains('external-matches-close')) {
+                document.getElementById('externalMatchesModal').classList.remove('active');
+            }
         }
     </script>
 </body>

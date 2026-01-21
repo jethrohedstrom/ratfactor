@@ -1971,13 +1971,14 @@
                 }
             });
 
-            // Add click handlers to fighter cards for stats view
-            document.querySelectorAll('.fighter-card').forEach(card => {
-                card.addEventListener('click', (e) => {
+            // Add click handler for fighter cards using event delegation
+            document.addEventListener('click', (e) => {
+                const fighterCard = e.target.closest('.fighter-card');
+                if (fighterCard && fighterCard.dataset.player) {
+                    e.preventDefault();
                     e.stopPropagation();
-                    const player = card.dataset.player;
-                    openFighterCard(player);
-                });
+                    openFighterCard(fighterCard.dataset.player);
+                }
             });
         });
 

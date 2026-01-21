@@ -3361,15 +3361,18 @@
                 stats.push(`Singles: ${singlesWins}W-${singlesLosses}L (${winPct}%)`);
             }
 
-            // RF Championship score
+            // RF Championship score (best 10 results)
             const currentYear = new Date().getFullYear();
             const canadianMatches = matches.filter(m =>
                 m.match_type === 'canadian' &&
                 new Date(m.created_at).getFullYear() === currentYear
             );
 
+            const pointsMap = { 0: 3, 1: 1, 2: 0 };
             let rfWins = 0;
             let rfPlayed = 0;
+            const rfResults = [];
+
             canadianMatches.forEach(match => {
                 const players = [
                     { name: match.player1, score: match.score_player1 },
@@ -3381,11 +3384,15 @@
                 if (position !== -1) {
                     rfPlayed++;
                     if (position === 0) rfWins++;
+                    rfResults.push(pointsMap[position]);
                 }
             });
 
             if (rfPlayed > 0) {
-                stats.push(`RF Matches: ${rfPlayed} played, ${rfWins} wins`);
+                // Calculate best 10 score
+                rfResults.sort((a, b) => b - a);
+                const rfScore = rfResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
+                stats.push(`RF Score: ${rfScore} pts (${rfPlayed} played, ${rfWins} wins)`);
             }
 
             // Best opponent (who they beat most)

@@ -2337,7 +2337,9 @@
                                 <input type="number" class="set-score-input" data-player="2" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
                                 <div class="tiebreak-group">
                                     <span class="tiebreak-label">(</span>
-                                    <input type="number" class="tiebreak-input" min="0" placeholder="0">
+                                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0" style="width:35px;">
+                                    <span class="tiebreak-label">-</span>
+                                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0" style="width:35px;">
                                     <span class="tiebreak-label">)</span>
                                 </div>
                                 <button class="set-remove-btn" onclick="removeSinglesSet(this)" style="visibility: hidden;">×</button>
@@ -2467,7 +2469,9 @@
                 <input type="number" class="set-score-input" data-player="2" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
                 <div class="tiebreak-group">
                     <span class="tiebreak-label">(</span>
-                    <input type="number" class="tiebreak-input" min="0" placeholder="0">
+                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0" style="width:35px;">
+                    <span class="tiebreak-label">-</span>
+                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0" style="width:35px;">
                     <span class="tiebreak-label">)</span>
                 </div>
                 <button class="set-remove-btn" onclick="removeSinglesSet(this)">×</button>
@@ -2506,8 +2510,8 @@
             const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value) || 0;
             const tiebreakGroup = row.querySelector('.tiebreak-group');
 
-            // Show tiebreak input if score is 7-6 or 6-7
-            if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+            // Show tiebreak input if score is 6-6, 7-6, or 6-7
+            if ((p1Score === 6 && p2Score === 6) || (p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
                 tiebreakGroup.classList.add('visible');
             } else {
                 tiebreakGroup.classList.remove('visible');
@@ -2613,8 +2617,8 @@
             let p2SetsWon = 0;
 
             for (const row of setRows) {
-                const p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
-                const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
+                let p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
+                let p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
 
                 if (isNaN(p1Score) || isNaN(p2Score)) {
                     showToast('Please enter scores for all sets', true);
@@ -2623,12 +2627,30 @@
 
                 const setData = { p1: p1Score, p2: p2Score };
 
-                // Check for tiebreak (7-6 or 6-7)
-                if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
-                    const tiebreakInput = row.querySelector('.tiebreak-input');
-                    const tiebreakScore = parseInt(tiebreakInput.value);
-                    if (!isNaN(tiebreakScore) && tiebreakScore >= 0) {
-                        setData.tiebreak = tiebreakScore;
+                // Check for tiebreak (6-6, 7-6, or 6-7)
+                if ((p1Score === 6 && p2Score === 6) || (p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+                    const tb1Input = row.querySelector('.tiebreak-input[data-tb="1"]');
+                    const tb2Input = row.querySelector('.tiebreak-input[data-tb="2"]');
+                    const tb1Score = parseInt(tb1Input.value);
+                    const tb2Score = parseInt(tb2Input.value);
+
+                    if (!isNaN(tb1Score) && !isNaN(tb2Score) && (tb1Score > 0 || tb2Score > 0)) {
+                        // Store both tiebreak scores
+                        setData.tb1 = tb1Score;
+                        setData.tb2 = tb2Score;
+                        // Also store loser's score for backward compatibility
+                        setData.tiebreak = Math.min(tb1Score, tb2Score);
+
+                        // If 6-6, auto-convert to 7-6 based on tiebreak winner
+                        if (p1Score === 6 && p2Score === 6) {
+                            if (tb1Score > tb2Score) {
+                                setData.p1 = 7;
+                                p1Score = 7;
+                            } else {
+                                setData.p2 = 7;
+                                p2Score = 7;
+                            }
+                        }
                     }
                 }
 
@@ -2964,9 +2986,17 @@
                                 const winnerScore = winnerIsP1 ? s.p1 : s.p2;
                                 const loserScore = winnerIsP1 ? s.p2 : s.p1;
                                 let scoreStr = `${winnerScore}-${loserScore}`;
-                                // Add tiebreak score if present
-                                if (s.tiebreak !== undefined) {
-                                    scoreStr += `(${s.tiebreak})`;
+                                // Add tiebreak score if present - show both scores (e.g., "7-6 (7-1)")
+                                if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                    // Use stored tiebreak scores, show from winner's perspective
+                                    const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
+                                    const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                                    scoreStr += ` (${winnerTB}-${loserTB})`;
+                                } else if (s.tiebreak !== undefined) {
+                                    // Backward compatibility: calculate winner's tiebreak
+                                    const loserTB = s.tiebreak;
+                                    const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
+                                    scoreStr += ` (${winnerTB}-${loserTB})`;
                                 }
                                 return scoreStr;
                             }).join(' ');
@@ -3609,7 +3639,9 @@
 
                 // Render sets
                 setsContainer.innerHTML = sets.map((set, index) => {
-                    const isTiebreak = (set.p1 === 7 && set.p2 === 6) || (set.p1 === 6 && set.p2 === 7);
+                    const isTiebreak = (set.p1 === 7 && set.p2 === 6) || (set.p1 === 6 && set.p2 === 7) || (set.p1 === 6 && set.p2 === 6);
+                    const tb1Val = set.tb1 !== undefined ? set.tb1 : '';
+                    const tb2Val = set.tb2 !== undefined ? set.tb2 : '';
                     return `
                         <div class="set-row" data-set="${index + 1}">
                             <span class="set-label">Set ${index + 1}</span>
@@ -3618,7 +3650,9 @@
                             <input type="number" class="set-score-input" data-player="2" min="0" value="${set.p2 || ''}" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
                             <div class="tiebreak-group ${isTiebreak ? 'visible' : ''}">
                                 <span class="tiebreak-label">(</span>
-                                <input type="number" class="tiebreak-input" min="0" value="${set.tiebreak !== undefined ? set.tiebreak : ''}" placeholder="0">
+                                <input type="number" class="tiebreak-input" data-tb="1" min="0" value="${tb1Val}" placeholder="0" style="width:35px;">
+                                <span class="tiebreak-label">-</span>
+                                <input type="number" class="tiebreak-input" data-tb="2" min="0" value="${tb2Val}" placeholder="0" style="width:35px;">
                                 <span class="tiebreak-label">)</span>
                             </div>
                             <button class="set-remove-btn" onclick="removeEditSinglesSet(this)" style="visibility: ${sets.length === 1 ? 'hidden' : 'visible'};">×</button>
@@ -3653,7 +3687,9 @@
                 <input type="number" class="set-score-input" data-player="2" min="0" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
                 <div class="tiebreak-group">
                     <span class="tiebreak-label">(</span>
-                    <input type="number" class="tiebreak-input" min="0" placeholder="0">
+                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0" style="width:35px;">
+                    <span class="tiebreak-label">-</span>
+                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0" style="width:35px;">
                     <span class="tiebreak-label">)</span>
                 </div>
                 <button class="set-remove-btn" onclick="removeEditSinglesSet(this)">×</button>
@@ -3690,7 +3726,8 @@
             const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value) || 0;
             const tiebreakGroup = row.querySelector('.tiebreak-group');
 
-            if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+            // Show tiebreak input if score is 6-6, 7-6, or 6-7
+            if ((p1Score === 6 && p2Score === 6) || (p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
                 tiebreakGroup.classList.add('visible');
             } else {
                 tiebreakGroup.classList.remove('visible');
@@ -3721,8 +3758,8 @@
                 let p2SetsWon = 0;
 
                 for (const row of setRows) {
-                    const p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
-                    const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
+                    let p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
+                    let p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
 
                     if (isNaN(p1Score) || isNaN(p2Score)) {
                         showToast('Please enter scores for all sets', true);
@@ -3731,11 +3768,28 @@
 
                     const setData = { p1: p1Score, p2: p2Score };
 
-                    if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
-                        const tiebreakInput = row.querySelector('.tiebreak-input');
-                        const tiebreakScore = parseInt(tiebreakInput.value);
-                        if (!isNaN(tiebreakScore) && tiebreakScore >= 0) {
-                            setData.tiebreak = tiebreakScore;
+                    // Check for tiebreak (6-6, 7-6, or 6-7)
+                    if ((p1Score === 6 && p2Score === 6) || (p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+                        const tb1Input = row.querySelector('.tiebreak-input[data-tb="1"]');
+                        const tb2Input = row.querySelector('.tiebreak-input[data-tb="2"]');
+                        const tb1Score = parseInt(tb1Input.value);
+                        const tb2Score = parseInt(tb2Input.value);
+
+                        if (!isNaN(tb1Score) && !isNaN(tb2Score) && (tb1Score > 0 || tb2Score > 0)) {
+                            setData.tb1 = tb1Score;
+                            setData.tb2 = tb2Score;
+                            setData.tiebreak = Math.min(tb1Score, tb2Score);
+
+                            // If 6-6, auto-convert to 7-6 based on tiebreak winner
+                            if (p1Score === 6 && p2Score === 6) {
+                                if (tb1Score > tb2Score) {
+                                    setData.p1 = 7;
+                                    p1Score = 7;
+                                } else {
+                                    setData.p2 = 7;
+                                    p2Score = 7;
+                                }
+                            }
                         }
                     }
 

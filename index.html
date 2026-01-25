@@ -3741,9 +3741,13 @@
         }
 
         async function saveMatchEdit() {
+            console.log('saveMatchEdit called');
             const matchId = document.getElementById('editMatchId').value;
             const matchType = document.getElementById('editMatchType').value;
             const location = document.getElementById('editLocation').value.trim() || null;
+
+            console.log('Match info:', { matchId, matchType, location });
+            console.log('Edit players:', editMatchPlayers);
 
             // Convert to number if it's a numeric ID
             const idValue = isNaN(matchId) ? matchId : parseInt(matchId);
@@ -3753,6 +3757,7 @@
             // Handle singles sets
             if (matchType === 'singles') {
                 const setRows = document.querySelectorAll('#editSinglesSetsContainer .set-row');
+                console.log('Found set rows:', setRows.length);
                 const sets = [];
                 let p1SetsWon = 0;
                 let p2SetsWon = 0;
@@ -3760,8 +3765,10 @@
                 for (const row of setRows) {
                     let p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
                     let p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
+                    console.log('Set scores:', { p1Score, p2Score });
 
                     if (isNaN(p1Score) || isNaN(p2Score)) {
+                        console.log('Invalid scores - returning');
                         showToast('Please enter scores for all sets', true);
                         return;
                     }
@@ -3794,12 +3801,16 @@
                     }
 
                     sets.push(setData);
+                    console.log('Set data added:', setData);
 
                     if (p1Score > p2Score) p1SetsWon++;
                     else if (p2Score > p1Score) p2SetsWon++;
                 }
 
+                console.log('Sets won:', { p1SetsWon, p2SetsWon });
+
                 if (p1SetsWon === p2SetsWon) {
+                    console.log('Match tied - returning');
                     showToast('Match cannot be tied - add another set', true);
                     return;
                 }
@@ -3807,6 +3818,7 @@
                 const winner = p1SetsWon > p2SetsWon ? editMatchPlayers.player1 : editMatchPlayers.player2;
                 updateData.sets = JSON.stringify(sets);
                 updateData.winner1 = winner;
+                console.log('Winner determined:', winner);
             }
 
             try {

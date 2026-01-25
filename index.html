@@ -3810,10 +3810,15 @@
             }
 
             try {
-                const { error } = await db
+                console.log('Saving match update:', { id: idValue, updateData });
+
+                const { data, error } = await db
                     .from('matches')
                     .update(updateData)
-                    .eq('id', idValue);
+                    .eq('id', idValue)
+                    .select();
+
+                console.log('Update result:', { data, error });
 
                 if (error) throw error;
 
@@ -3822,7 +3827,7 @@
                 await loadMatches();
             } catch (err) {
                 console.error('Error updating match:', err);
-                showToast('Error updating match', true);
+                showToast('Error updating match: ' + err.message, true);
             }
         }
 

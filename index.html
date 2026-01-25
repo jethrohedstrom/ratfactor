@@ -796,6 +796,38 @@
             font-size: 0.85rem;
         }
 
+        .h2h-match-list {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .h2h-match-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .h2h-match-winner {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .h2h-match-scores {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            color: var(--accent-yellow);
+            letter-spacing: 1px;
+        }
+
+        .h2h-match-date {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+
         /* Insights */
         #insights {
             display: flex;
@@ -3570,6 +3602,47 @@
                     const p1Wins = h2hMatches.filter(m => m.winner1 === p1).length;
                     const p2Wins = h2hMatches.length - p1Wins;
 
+                    // Generate match details with scores
+                    const matchDetails = h2hMatches
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .map(match => {
+                            const winner = match.winner1;
+                            const winnerIsP1 = match.winner1 === match.player1;
+
+                            // Parse set scores
+                            let scoresDisplay = '';
+                            if (match.sets) {
+                                try {
+                                    const sets = JSON.parse(match.sets);
+                                    scoresDisplay = sets.map(s => {
+                                        const winnerScore = winnerIsP1 ? s.p1 : s.p2;
+                                        const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                                        let scoreStr = `${winnerScore}-${loserScore}`;
+                                        if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                            const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
+                                            const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                                            scoreStr += `(${winnerTB}-${loserTB})`;
+                                        } else if (s.tiebreak !== undefined) {
+                                            const loserTB = s.tiebreak;
+                                            const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
+                                            scoreStr += `(${winnerTB}-${loserTB})`;
+                                        }
+                                        return scoreStr;
+                                    }).join(' ');
+                                } catch (e) {}
+                            }
+
+                            const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+
+                            return `
+                                <div class="h2h-match-detail">
+                                    <span class="h2h-match-winner">${winner}</span>
+                                    <span class="h2h-match-scores">${scoresDisplay || '-'}</span>
+                                    <span class="h2h-match-date">${matchDate}</span>
+                                </div>
+                            `;
+                        }).join('');
+
                     return `
                         <div class="h2h-matchup">
                             <div class="h2h-players">
@@ -3583,6 +3656,7 @@
                                 <span class="h2h-score-number">${p2Wins}</span>
                             </div>
                             <div class="h2h-matches">${h2hMatches.length} ${h2hMatches.length === 1 ? 'match' : 'matches'}</div>
+                            <div class="h2h-match-list">${matchDetails}</div>
                         </div>
                     `;
                 }).join('');

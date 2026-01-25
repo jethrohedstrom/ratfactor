@@ -1159,6 +1159,48 @@
             color: var(--accent-green);
         }
 
+        /* Tiebreak input */
+        .tiebreak-group {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            margin-left: 8px;
+        }
+
+        .tiebreak-group.visible {
+            display: flex;
+        }
+
+        .tiebreak-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .tiebreak-input {
+            width: 40px;
+            padding: 6px;
+            background: transparent;
+            border: 2px solid var(--accent-pink);
+            border-radius: 6px;
+            color: var(--accent-pink);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .tiebreak-input:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+        }
+
+        /* Singles sets container */
+        #singlesSetsContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         /* Fighter Select Button */
         .btn-fighter-select {
             width: 100%;
@@ -2269,18 +2311,25 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Winner</label>
-                        <select id="singlesWinner" class="form-select">
-                            <option value="">Select winner...</option>
-                        </select>
+                        <label class="form-label">Sets</label>
+                        <div id="singlesSetsContainer">
+                            <div class="set-row" data-set="1">
+                                <span class="set-label">Set 1</span>
+                                <input type="number" class="set-score-input" data-player="1" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
+                                <span class="set-separator">-</span>
+                                <input type="number" class="set-score-input" data-player="2" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
+                                <div class="tiebreak-group">
+                                    <span class="tiebreak-label">(</span>
+                                    <input type="number" class="tiebreak-input" min="0" placeholder="0">
+                                    <span class="tiebreak-label">)</span>
+                                </div>
+                                <button class="set-remove-btn" onclick="removeSinglesSet(this)" style="visibility: hidden;">×</button>
+                            </div>
+                        </div>
+                        <button class="btn-add-set" onclick="addSinglesSet()">+ Add Set</button>
                     </div>
                     <button class="btn-submit" onclick="submitSingles()">LOG MATCH</button>
                 `;
-
-                // Update winner dropdown when players change
-                ['singlesP1', 'singlesP2'].forEach(id => {
-                    document.getElementById(id).addEventListener('change', updateSinglesWinnerOptions);
-                });
             } else if (type === 'doubles') {
                 container.innerHTML = `
                     <div class="team-section">
@@ -2380,6 +2429,76 @@
             }
         }
 
+        // Singles set management functions
+        function addSinglesSet() {
+            const container = document.getElementById('singlesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            const newSetNum = setRows.length + 1;
+
+            if (newSetNum > 5) {
+                showToast('Maximum 5 sets allowed', true);
+                return;
+            }
+
+            const newRow = document.createElement('div');
+            newRow.className = 'set-row';
+            newRow.dataset.set = newSetNum;
+            newRow.innerHTML = `
+                <span class="set-label">Set ${newSetNum}</span>
+                <input type="number" class="set-score-input" data-player="1" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
+                <span class="set-separator">-</span>
+                <input type="number" class="set-score-input" data-player="2" min="0" placeholder="0" onchange="checkSinglesTiebreak(this)">
+                <div class="tiebreak-group">
+                    <span class="tiebreak-label">(</span>
+                    <input type="number" class="tiebreak-input" min="0" placeholder="0">
+                    <span class="tiebreak-label">)</span>
+                </div>
+                <button class="set-remove-btn" onclick="removeSinglesSet(this)">×</button>
+            `;
+            container.appendChild(newRow);
+            updateSinglesSetRemoveButtons();
+        }
+
+        function removeSinglesSet(btn) {
+            const row = btn.closest('.set-row');
+            row.remove();
+
+            // Renumber remaining sets
+            const container = document.getElementById('singlesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            setRows.forEach((row, index) => {
+                row.dataset.set = index + 1;
+                row.querySelector('.set-label').textContent = `Set ${index + 1}`;
+            });
+            updateSinglesSetRemoveButtons();
+        }
+
+        function updateSinglesSetRemoveButtons() {
+            const container = document.getElementById('singlesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            setRows.forEach((row, index) => {
+                const removeBtn = row.querySelector('.set-remove-btn');
+                // Hide remove button if only one set remains
+                removeBtn.style.visibility = setRows.length === 1 ? 'hidden' : 'visible';
+            });
+        }
+
+        function checkSinglesTiebreak(input) {
+            const row = input.closest('.set-row');
+            const p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value) || 0;
+            const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value) || 0;
+            const tiebreakGroup = row.querySelector('.tiebreak-group');
+
+            // Show tiebreak input if score is 7-6 or 6-7
+            if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+                tiebreakGroup.classList.add('visible');
+            } else {
+                tiebreakGroup.classList.remove('visible');
+                // Clear tiebreak value if not visible
+                tiebreakGroup.querySelector('.tiebreak-input').value = '';
+            }
+        }
+
         function addSet() {
             const container = document.getElementById('setsContainer');
             const setRows = container.querySelectorAll('.set-row');
@@ -2464,18 +2583,57 @@
         async function submitSingles() {
             const p1 = document.getElementById('singlesP1').value;
             const p2 = document.getElementById('singlesP2').value;
-            const winner = document.getElementById('singlesWinner').value;
 
-            if (!p1 || !p2 || !winner || p1 === p2) {
-                showToast('Please fill all fields correctly', true);
+            if (!p1 || !p2 || p1 === p2) {
+                showToast('Please select two different players', true);
                 return;
             }
+
+            // Collect set scores
+            const setRows = document.querySelectorAll('#singlesSetsContainer .set-row');
+            const sets = [];
+            let p1SetsWon = 0;
+            let p2SetsWon = 0;
+
+            for (const row of setRows) {
+                const p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value);
+                const p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
+
+                if (isNaN(p1Score) || isNaN(p2Score)) {
+                    showToast('Please enter scores for all sets', true);
+                    return;
+                }
+
+                const setData = { p1: p1Score, p2: p2Score };
+
+                // Check for tiebreak (7-6 or 6-7)
+                if ((p1Score === 7 && p2Score === 6) || (p1Score === 6 && p2Score === 7)) {
+                    const tiebreakInput = row.querySelector('.tiebreak-input');
+                    const tiebreakScore = parseInt(tiebreakInput.value);
+                    if (!isNaN(tiebreakScore) && tiebreakScore >= 0) {
+                        setData.tiebreak = tiebreakScore;
+                    }
+                }
+
+                sets.push(setData);
+
+                if (p1Score > p2Score) p1SetsWon++;
+                else if (p2Score > p1Score) p2SetsWon++;
+            }
+
+            if (p1SetsWon === p2SetsWon) {
+                showToast('Match cannot be tied - add another set', true);
+                return;
+            }
+
+            const winner = p1SetsWon > p2SetsWon ? p1 : p2;
 
             const match = {
                 match_type: 'singles',
                 player1: p1,
                 player2: p2,
-                winner1: winner
+                winner1: winner,
+                sets: JSON.stringify(sets)
             };
 
             await saveMatch(match);
@@ -2777,7 +2935,29 @@
                 if (match.match_type === 'singles') {
                     const winner = match.winner1;
                     const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
+                    const winnerIsP1 = match.winner1 === match.player1;
                     const singlesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+                    // Parse sets if available (show from winner's perspective)
+                    let setsDisplay = '';
+                    if (match.sets) {
+                        try {
+                            const sets = JSON.parse(match.sets);
+                            setsDisplay = sets.map(s => {
+                                const winnerScore = winnerIsP1 ? s.p1 : s.p2;
+                                const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                                let scoreStr = `${winnerScore}-${loserScore}`;
+                                // Add tiebreak score if present
+                                if (s.tiebreak !== undefined) {
+                                    scoreStr += `(${s.tiebreak})`;
+                                }
+                                return scoreStr;
+                            }).join(' ');
+                        } catch (e) {
+                            setsDisplay = '';
+                        }
+                    }
+
                     return `
                         <div class="match-item">
                             <div class="match-header">
@@ -2793,6 +2973,7 @@
                                 <span class="match-def">def.</span>
                                 <span class="match-loser">${loser}</span>
                             </div>
+                            ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
                         </div>
                     `;
                 } else if (match.match_type === 'doubles') {

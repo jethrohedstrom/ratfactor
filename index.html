@@ -2195,28 +2195,135 @@
             background: rgba(255, 107, 157, 0.1);
         }
 
-        /* Matchup Video Overlay */
-        .matchup-video-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 2500;
+        /* Interactive Wheel Styles */
+        .wheel-phase {
             display: none;
-            align-items: center;
-            justify-content: center;
         }
 
-        .matchup-video-overlay.active {
-            display: flex;
+        .wheel-phase.active {
+            display: block;
         }
 
-        .matchup-video-overlay video {
+        .wheel-player-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .wheel-player-btn {
+            padding: 25px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .wheel-player-btn:hover {
+            background: rgba(255, 107, 157, 0.1);
+            border-color: var(--accent-pink);
+        }
+
+        .wheel-player-btn:active {
+            transform: scale(0.98);
+        }
+
+        .wheel-container {
+            position: relative;
             width: 100%;
-            height: 100%;
-            object-fit: contain;
+            max-width: 320px;
+            margin: 20px auto;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .wheel-canvas {
+            width: 100%;
+            aspect-ratio: 1;
+            cursor: grab;
+            display: block;
+        }
+
+        .wheel-canvas:active {
+            cursor: grabbing;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 30px solid var(--accent-pink);
+            filter: drop-shadow(0 0 10px rgba(255, 107, 157, 0.5));
+        }
+
+        .wheel-instruction {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 15px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .wheel-selected-player {
+            text-align: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--accent-pink);
+            margin-bottom: 10px;
+        }
+
+        .btn-change-player {
+            width: 100%;
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid var(--text-muted);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        .btn-change-player:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .result-buttons .btn-spin-again {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .result-buttons .btn-change-player {
+            flex: 1;
+            margin-top: 0;
         }
     </style>
 </head>
@@ -2302,45 +2409,61 @@
         <section id="matchup" class="section">
             <div class="card">
                 <h2 class="card-title">🎲 Doubles Matchup</h2>
-                <p class="matchup-description">When all 4 players are present, spin the wheel to randomly determine doubles teams!</p>
 
-                <button class="btn-fighter-select btn-spin-wheel" onclick="spinMatchupWheel()">
-                    <span class="btn-icon">🎡</span>
-                    Spin the Wheel
-                </button>
+                <!-- Phase 1: Player Selection -->
+                <div id="wheelPhase1" class="wheel-phase active">
+                    <p class="matchup-description">Who are you?</p>
+                    <div id="wheelPlayerSelect" class="wheel-player-select">
+                        <!-- Buttons generated by JS -->
+                    </div>
+                </div>
 
-                <div id="matchupResult" class="matchup-result" style="display: none;">
-                    <div class="matchup-teams">
-                        <div class="matchup-team team-1">
-                            <div class="team-label">TEAM 1</div>
-                            <div class="team-players">
-                                <span class="team-player" id="team1Player1"></span>
-                                <span class="team-ampersand">&</span>
-                                <span class="team-player" id="team1Player2"></span>
+                <!-- Phase 2: Wheel Spin -->
+                <div id="wheelPhase2" class="wheel-phase">
+                    <div class="wheel-selected-player">Playing as: <span id="wheelSelectedName"></span></div>
+                    <div class="wheel-container" id="wheelContainer">
+                        <canvas id="wheelCanvas" class="wheel-canvas"></canvas>
+                        <div class="wheel-pointer"></div>
+                    </div>
+                    <p class="wheel-instruction" id="wheelInstruction">Swipe or drag to spin!</p>
+                    <button class="btn-change-player" onclick="showWheelPhase(1)">Change Player</button>
+                </div>
+
+                <!-- Phase 3: Result Display -->
+                <div id="wheelPhase3" class="wheel-phase">
+                    <div id="matchupResult" class="matchup-result">
+                        <div class="matchup-teams">
+                            <div class="matchup-team team-1">
+                                <div class="team-label">TEAM 1</div>
+                                <div class="team-players">
+                                    <span class="team-player" id="team1Player1"></span>
+                                    <span class="team-ampersand">&</span>
+                                    <span class="team-player" id="team1Player2"></span>
+                                </div>
+                            </div>
+                            <div class="matchup-vs">VS</div>
+                            <div class="matchup-team team-2">
+                                <div class="team-label">TEAM 2</div>
+                                <div class="team-players">
+                                    <span class="team-player" id="team2Player1"></span>
+                                    <span class="team-ampersand">&</span>
+                                    <span class="team-player" id="team2Player2"></span>
+                                </div>
                             </div>
                         </div>
-                        <div class="matchup-vs">VS</div>
-                        <div class="matchup-team team-2">
-                            <div class="team-label">TEAM 2</div>
-                            <div class="team-players">
-                                <span class="team-player" id="team2Player1"></span>
-                                <span class="team-ampersand">&</span>
-                                <span class="team-player" id="team2Player2"></span>
-                            </div>
+                        <div class="result-buttons">
+                            <button class="btn-spin-again" onclick="resetWheelForSpin()">
+                                <span class="btn-icon">🔄</span>
+                                Spin Again
+                            </button>
+                            <button class="btn-change-player" onclick="showWheelPhase(1)">
+                                Change Player
+                            </button>
                         </div>
                     </div>
-                    <button class="btn-spin-again" onclick="spinMatchupWheel()">
-                        <span class="btn-icon">🔄</span>
-                        Spin Again
-                    </button>
                 </div>
             </div>
         </section>
-    </div>
-
-    <!-- Matchup Video Overlay -->
-    <div id="matchupVideoOverlay" class="matchup-video-overlay">
-        <video id="matchupVideo" src="group images/Video_Editing_With_Spinning_Wheel (1).mp4" playsinline></video>
     </div>
 
     <!-- Fighter Select Overlay -->
@@ -4441,52 +4564,331 @@
             }
         }
 
-        // Matchup Wheel Functions
-        const MATCHUPS = [
-            { team1: ['Rick', 'Ed'], team2: ['Tom', 'Jethro'] },
-            { team1: ['Rick', 'Tom'], team2: ['Ed', 'Jethro'] },
-            { team1: ['Rick', 'Jethro'], team2: ['Ed', 'Tom'] }
-        ];
+        // Interactive Matchup Wheel Functions
+        const wheelState = {
+            selectedPlayer: null,
+            otherPlayers: [],
+            rotation: 0,
+            velocity: 0,
+            isSpinning: false,
+            isDragging: false,
+            lastAngle: 0,
+            lastTime: 0,
+            velocityHistory: [],
+            canvas: null,
+            ctx: null,
+            centerX: 0,
+            centerY: 0,
+            radius: 0
+        };
 
-        function spinMatchupWheel() {
-            const overlay = document.getElementById('matchupVideoOverlay');
-            const video = document.getElementById('matchupVideo');
-            const resultDiv = document.getElementById('matchupResult');
+        const WHEEL_COLORS = ['#FF6B9D', '#44FF44', '#FFD93D'];
+        const FRICTION = 0.985;
+        const MIN_VELOCITY = 0.1;
+        const MIN_SPIN_VELOCITY = 3;
 
-            // Hide any previous result
-            resultDiv.style.display = 'none';
-
-            // Show overlay and play video
-            overlay.classList.add('active');
-            video.currentTime = 0;
-            video.play();
-
-            // When video ends, show result
-            video.onended = function() {
-                onMatchupVideoEnd();
-            };
+        // Initialize player selection buttons
+        function initWheelPlayerSelect() {
+            const container = document.getElementById('wheelPlayerSelect');
+            container.innerHTML = PLAYERS.map(player => `
+                <button class="wheel-player-btn" onclick="selectWheelPlayer('${player}')">${player}</button>
+            `).join('');
         }
 
-        function onMatchupVideoEnd() {
-            const overlay = document.getElementById('matchupVideoOverlay');
-
-            // Hide video overlay
-            overlay.classList.remove('active');
-
-            // Get random matchup and display it
-            const matchup = getRandomMatchup();
-            displayMatchupResult(matchup);
+        // Handle player selection
+        function selectWheelPlayer(player) {
+            wheelState.selectedPlayer = player;
+            wheelState.otherPlayers = PLAYERS.filter(p => p !== player);
+            document.getElementById('wheelSelectedName').textContent = player;
+            showWheelPhase(2);
+            initWheel();
         }
 
-        function getRandomMatchup() {
-            const randomIndex = Math.floor(Math.random() * MATCHUPS.length);
-            return MATCHUPS[randomIndex];
+        // Show specific phase
+        function showWheelPhase(phase) {
+            document.querySelectorAll('.wheel-phase').forEach(el => el.classList.remove('active'));
+            document.getElementById(`wheelPhase${phase}`).classList.add('active');
+
+            if (phase === 2) {
+                document.getElementById('wheelInstruction').textContent = 'Swipe or drag to spin!';
+                document.getElementById('wheelInstruction').style.animation = 'pulse 2s ease-in-out infinite';
+            }
         }
 
+        // Initialize wheel canvas
+        function initWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const container = document.getElementById('wheelContainer');
+
+            // High-DPI support
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            const size = Math.min(rect.width, 320);
+
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+
+            wheelState.canvas = canvas;
+            wheelState.ctx = canvas.getContext('2d');
+            wheelState.ctx.scale(dpr, dpr);
+
+            wheelState.centerX = size / 2;
+            wheelState.centerY = size / 2;
+            wheelState.radius = (size / 2) - 10;
+            wheelState.rotation = 0;
+            wheelState.velocity = 0;
+            wheelState.isSpinning = false;
+
+            drawWheel();
+            setupWheelEvents();
+        }
+
+        // Draw the wheel
+        function drawWheel() {
+            const { ctx, centerX, centerY, radius, rotation, otherPlayers } = wheelState;
+            const segmentAngle = (2 * Math.PI) / 3;
+
+            ctx.clearRect(0, 0, wheelState.canvas.width, wheelState.canvas.height);
+
+            // Draw segments
+            for (let i = 0; i < 3; i++) {
+                const startAngle = rotation + (i * segmentAngle);
+                const endAngle = startAngle + segmentAngle;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = WHEEL_COLORS[i];
+                ctx.fill();
+
+                // Draw border
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw player name
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + segmentAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 20px "Bebas Neue", sans-serif';
+                ctx.letterSpacing = '2px';
+                ctx.fillText(otherPlayers[i].toUpperCase(), radius - 20, 0);
+                ctx.restore();
+            }
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // Get unified event position (touch or mouse)
+        function getEventPosition(e) {
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            return { x: e.clientX, y: e.clientY };
+        }
+
+        // Calculate angle from center of wheel
+        function getAngleFromCenter(x, y) {
+            const rect = wheelState.canvas.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            return Math.atan2(y - centerY, x - centerX);
+        }
+
+        // Setup wheel event listeners
+        function setupWheelEvents() {
+            const canvas = wheelState.canvas;
+
+            // Remove old listeners by replacing element
+            const newCanvas = canvas.cloneNode(true);
+            canvas.parentNode.replaceChild(newCanvas, canvas);
+            wheelState.canvas = newCanvas;
+            wheelState.ctx = newCanvas.getContext('2d');
+
+            const dpr = window.devicePixelRatio || 1;
+            wheelState.ctx.scale(dpr, dpr);
+
+            // Touch events
+            newCanvas.addEventListener('touchstart', handleDragStart, { passive: false });
+            newCanvas.addEventListener('touchmove', handleDragMove, { passive: false });
+            newCanvas.addEventListener('touchend', handleDragEnd);
+            newCanvas.addEventListener('touchcancel', handleDragEnd);
+
+            // Mouse events
+            newCanvas.addEventListener('mousedown', handleDragStart);
+            newCanvas.addEventListener('mousemove', handleDragMove);
+            newCanvas.addEventListener('mouseup', handleDragEnd);
+            newCanvas.addEventListener('mouseleave', handleDragEnd);
+
+            drawWheel();
+        }
+
+        function handleDragStart(e) {
+            if (wheelState.isSpinning) return;
+
+            e.preventDefault();
+            const pos = getEventPosition(e);
+
+            wheelState.isDragging = true;
+            wheelState.lastAngle = getAngleFromCenter(pos.x, pos.y);
+            wheelState.lastTime = performance.now();
+            wheelState.velocityHistory = [];
+        }
+
+        function handleDragMove(e) {
+            if (!wheelState.isDragging || wheelState.isSpinning) return;
+
+            e.preventDefault();
+            const pos = getEventPosition(e);
+            const currentAngle = getAngleFromCenter(pos.x, pos.y);
+            const currentTime = performance.now();
+
+            // Calculate angle delta
+            let deltaAngle = currentAngle - wheelState.lastAngle;
+
+            // Handle wrap-around
+            if (deltaAngle > Math.PI) deltaAngle -= 2 * Math.PI;
+            if (deltaAngle < -Math.PI) deltaAngle += 2 * Math.PI;
+
+            // Update rotation
+            wheelState.rotation += deltaAngle;
+
+            // Track velocity (degrees per ms)
+            const deltaTime = currentTime - wheelState.lastTime;
+            if (deltaTime > 0) {
+                const velocity = (deltaAngle * 180 / Math.PI) / deltaTime;
+                wheelState.velocityHistory.push(velocity);
+                if (wheelState.velocityHistory.length > 5) {
+                    wheelState.velocityHistory.shift();
+                }
+            }
+
+            wheelState.lastAngle = currentAngle;
+            wheelState.lastTime = currentTime;
+
+            drawWheel();
+        }
+
+        function handleDragEnd(e) {
+            if (!wheelState.isDragging) return;
+
+            wheelState.isDragging = false;
+
+            // Calculate average velocity
+            if (wheelState.velocityHistory.length > 0) {
+                const avgVelocity = wheelState.velocityHistory.reduce((a, b) => a + b, 0) / wheelState.velocityHistory.length;
+
+                // Convert to degrees per frame (assuming 60fps)
+                wheelState.velocity = avgVelocity * 16.67;
+
+                // Only spin if velocity exceeds threshold
+                if (Math.abs(wheelState.velocity) >= MIN_SPIN_VELOCITY) {
+                    wheelState.isSpinning = true;
+                    document.getElementById('wheelInstruction').textContent = 'Spinning...';
+                    document.getElementById('wheelInstruction').style.animation = 'none';
+                    animateWheel();
+                }
+            }
+        }
+
+        // Animate wheel spin with friction
+        function animateWheel() {
+            if (!wheelState.isSpinning) return;
+
+            // Apply friction
+            wheelState.velocity *= FRICTION;
+
+            // Update rotation (convert degrees to radians)
+            wheelState.rotation += wheelState.velocity * Math.PI / 180;
+
+            drawWheel();
+
+            // Check if wheel has stopped
+            if (Math.abs(wheelState.velocity) < MIN_VELOCITY) {
+                wheelState.isSpinning = false;
+                wheelState.velocity = 0;
+                determineWinner();
+            } else {
+                requestAnimationFrame(animateWheel);
+            }
+        }
+
+        // Determine which segment the pointer landed on
+        function determineWinner() {
+            // Pointer is on the right side (0 radians)
+            // Normalize rotation to 0-2π
+            let normalizedRotation = wheelState.rotation % (2 * Math.PI);
+            if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
+
+            // Calculate which segment is at the pointer (right side = 0 radians)
+            const segmentAngle = (2 * Math.PI) / 3;
+
+            // The pointer points at angle 0, so we need to find which segment contains angle 0
+            // Segment i covers from rotation + i*segmentAngle to rotation + (i+1)*segmentAngle
+            // We need to find i where 0 is in that range
+
+            let winningIndex = 0;
+            for (let i = 0; i < 3; i++) {
+                let segmentStart = normalizedRotation + (i * segmentAngle);
+                let segmentEnd = segmentStart + segmentAngle;
+
+                // Normalize to check if 0 (or 2π) is in this range
+                segmentStart = segmentStart % (2 * Math.PI);
+                segmentEnd = segmentEnd % (2 * Math.PI);
+
+                // Check if 0 is in this segment (handling wrap-around)
+                if (segmentEnd < segmentStart) {
+                    // Segment wraps around 0
+                    winningIndex = i;
+                    break;
+                } else if (segmentStart <= 0.001 || segmentEnd >= 2 * Math.PI - 0.001) {
+                    // Very close to 0 or 2π
+                    winningIndex = i;
+                    break;
+                }
+            }
+
+            // Actually, simpler approach: find which segment contains the pointer angle (0)
+            // The rotation represents where segment 0 starts
+            // So segment i starts at: rotation + i * (2π/3)
+            // Pointer is at angle 0, so we need: rotation + i * (2π/3) <= 0 < rotation + (i+1) * (2π/3)
+            // Rearranging: -rotation / (2π/3) - 1 < i <= -rotation / (2π/3)
+
+            // Simpler: which segment index is the pointer pointing at?
+            // If rotation = 0, pointer points at segment 0
+            // As rotation increases, pointer moves counter-clockwise relative to wheel
+
+            const pointerAngle = 0; // Right side
+            const relativeAngle = (pointerAngle - normalizedRotation + 2 * Math.PI) % (2 * Math.PI);
+            winningIndex = Math.floor(relativeAngle / segmentAngle) % 3;
+
+            const partner = wheelState.otherPlayers[winningIndex];
+            const opponents = wheelState.otherPlayers.filter(p => p !== partner);
+
+            displayMatchupResult({
+                team1: [wheelState.selectedPlayer, partner],
+                team2: opponents
+            });
+
+            showWheelPhase(3);
+        }
+
+        // Display the matchup result
         function displayMatchupResult(matchup) {
-            const resultDiv = document.getElementById('matchupResult');
-
-            // Set player names with staggered animation
             document.getElementById('team1Player1').textContent = matchup.team1[0];
             document.getElementById('team1Player1').style.animationDelay = '0s';
             document.getElementById('team1Player2').textContent = matchup.team1[1];
@@ -4495,10 +4897,19 @@
             document.getElementById('team2Player1').style.animationDelay = '0.4s';
             document.getElementById('team2Player2').textContent = matchup.team2[1];
             document.getElementById('team2Player2').style.animationDelay = '0.6s';
-
-            // Show the result
-            resultDiv.style.display = 'block';
         }
+
+        // Reset wheel for another spin (same player)
+        function resetWheelForSpin() {
+            showWheelPhase(2);
+            wheelState.rotation = Math.random() * 2 * Math.PI; // Random starting position
+            wheelState.velocity = 0;
+            wheelState.isSpinning = false;
+            drawWheel();
+        }
+
+        // Initialize player selection on page load
+        document.addEventListener('DOMContentLoaded', initWheelPlayerSelect);
     </script>
 </body>
 </html>

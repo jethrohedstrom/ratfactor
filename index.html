@@ -4579,13 +4579,22 @@
             ctx: null,
             centerX: 0,
             centerY: 0,
-            radius: 0
+            radius: 0,
+            playerImages: {}
         };
 
         const WHEEL_COLORS = ['#FF6B9D', '#44FF44', '#FFD93D'];
         const FRICTION = 0.985;
         const MIN_VELOCITY = 0.1;
         const MIN_SPIN_VELOCITY = 3;
+
+        // Player image paths
+        const PLAYER_WHEEL_IMAGES = {
+            'Rick': 'rick images/rick wheel.jpeg',
+            'Ed': 'ed images/gein.png',
+            'Tom': 'tom images/drdeath.png',
+            'Jethro': 'jethro images/IMG_1066.JPG'
+        };
 
         // Initialize player selection buttons
         function initWheelPlayerSelect() {
@@ -4601,7 +4610,34 @@
             wheelState.otherPlayers = PLAYERS.filter(p => p !== player);
             document.getElementById('wheelSelectedName').textContent = player;
             showWheelPhase(2);
-            initWheel();
+
+            // Preload images for the other players
+            loadWheelImages().then(() => {
+                initWheel();
+            });
+        }
+
+        // Preload player images
+        function loadWheelImages() {
+            const promises = wheelState.otherPlayers.map(player => {
+                return new Promise((resolve) => {
+                    if (wheelState.playerImages[player]) {
+                        resolve();
+                        return;
+                    }
+                    const img = new Image();
+                    img.onload = () => {
+                        wheelState.playerImages[player] = img;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        wheelState.playerImages[player] = null;
+                        resolve();
+                    };
+                    img.src = PLAYER_WHEEL_IMAGES[player];
+                });
+            });
+            return Promise.all(promises);
         }
 
         // Show specific phase
@@ -4647,7 +4683,7 @@
 
         // Draw the wheel
         function drawWheel() {
-            const { ctx, centerX, centerY, radius, rotation, otherPlayers } = wheelState;
+            const { ctx, centerX, centerY, radius, rotation, otherPlayers, playerImages } = wheelState;
             const segmentAngle = (2 * Math.PI) / 3;
 
             ctx.clearRect(0, 0, wheelState.canvas.width, wheelState.canvas.height);
@@ -4656,8 +4692,10 @@
             for (let i = 0; i < 3; i++) {
                 const startAngle = rotation + (i * segmentAngle);
                 const endAngle = startAngle + segmentAngle;
+                const player = otherPlayers[i];
+                const img = playerImages[player];
 
-                // Draw segment
+                // Draw segment background
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -4665,30 +4703,76 @@
                 ctx.fillStyle = WHEEL_COLORS[i];
                 ctx.fill();
 
-                // Draw border
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-                ctx.lineWidth = 2;
+                // Draw player image if loaded
+                if (img) {
+                    ctx.save();
+                    // Clip to segment
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.clip();
+
+                    // Calculate image position - center it in the segment
+                    const midAngle = startAngle + segmentAngle / 2;
+                    const imgDistance = radius * 0.55;
+                    const imgX = centerX + Math.cos(midAngle) * imgDistance;
+                    const imgY = centerY + Math.sin(midAngle) * imgDistance;
+
+                    // Draw circular image
+                    const imgRadius = radius * 0.35;
+                    ctx.beginPath();
+                    ctx.arc(imgX, imgY, imgRadius, 0, 2 * Math.PI);
+                    ctx.closePath();
+                    ctx.clip();
+
+                    // Draw image scaled to cover the circle
+                    const aspectRatio = img.width / img.height;
+                    let drawWidth, drawHeight;
+                    if (aspectRatio > 1) {
+                        drawHeight = imgRadius * 2;
+                        drawWidth = drawHeight * aspectRatio;
+                    } else {
+                        drawWidth = imgRadius * 2;
+                        drawHeight = drawWidth / aspectRatio;
+                    }
+                    ctx.drawImage(
+                        img,
+                        imgX - drawWidth / 2,
+                        imgY - drawHeight / 2,
+                        drawWidth,
+                        drawHeight
+                    );
+                    ctx.restore();
+                }
+
+                // Draw segment border
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Draw player name
+                // Draw player name at outer edge
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + segmentAngle / 2);
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#000';
-                ctx.font = 'bold 20px "Bebas Neue", sans-serif';
-                ctx.letterSpacing = '2px';
-                ctx.fillText(otherPlayers[i].toUpperCase(), radius - 20, 0);
+                ctx.font = 'bold 16px "Bebas Neue", sans-serif';
+                ctx.fillText(player.toUpperCase(), radius - 8, 0);
                 ctx.restore();
             }
 
             // Draw center circle
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
             ctx.fillStyle = '#1a1a2e';
             ctx.fill();
-            ctx.strokeStyle = '#333';
+            ctx.strokeStyle = '#444';
             ctx.lineWidth = 3;
             ctx.stroke();
         }

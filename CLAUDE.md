@@ -40,6 +40,7 @@ The app uses a single `matches` table in Supabase with these key fields:
 1. Update database to store finishing position (1st/2nd/3rd) for each player in Rat Factor matches
 2. Update match entry form to capture placements for all 3 players
 3. Create Rat Factor championship leaderboard that calculates best-10 scores
+4. Matchup wheel celebration: When landing on a partner, show a popup animation/video announcing them (e.g. "You've got Slick Rick!")
 
 ## Development
 

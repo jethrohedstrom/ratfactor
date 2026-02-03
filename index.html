@@ -2256,15 +2256,27 @@
 
         .wheel-pointer {
             position: absolute;
-            right: -10px;
+            right: -15px;
             top: 50%;
             transform: translateY(-50%);
+            transform-origin: right center;
             width: 0;
             height: 0;
-            border-top: 20px solid transparent;
-            border-bottom: 20px solid transparent;
-            border-right: 30px solid var(--accent-pink);
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
+            border-right: 35px solid var(--accent-pink);
             filter: drop-shadow(0 0 10px rgba(255, 107, 157, 0.5));
+            transition: transform 0.05s ease-out;
+        }
+
+        .wheel-pointer.tick {
+            animation: flipperBounce 0.1s ease-out;
+        }
+
+        @keyframes flipperBounce {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-50%) rotate(-15deg); }
+            100% { transform: translateY(-50%) rotate(0deg); }
         }
 
         .wheel-instruction {
@@ -4580,13 +4592,68 @@
             centerX: 0,
             centerY: 0,
             radius: 0,
-            playerImages: {}
+            playerImages: {},
+            lastPegIndex: 0,
+            audioContext: null
         };
 
+        const NUM_PEGS = 12; // 4 copies of each of 3 players
         const WHEEL_COLORS = ['#FF6B9D', '#44FF44', '#FFD93D'];
         const FRICTION = 0.985;
         const MIN_VELOCITY = 0.1;
         const MIN_SPIN_VELOCITY = 3;
+
+        // Initialize audio context for tick sounds
+        function initAudio() {
+            if (!wheelState.audioContext) {
+                wheelState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Play tick sound using Web Audio API
+        function playTickSound() {
+            if (!wheelState.audioContext) return;
+
+            const ctx = wheelState.audioContext;
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            // Create a short, sharp tick sound
+            oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.03);
+            oscillator.type = 'square';
+
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.05);
+        }
+
+        // Trigger flipper bounce animation
+        function triggerFlipperBounce() {
+            const pointer = document.querySelector('.wheel-pointer');
+            if (pointer) {
+                pointer.classList.remove('tick');
+                // Force reflow to restart animation
+                void pointer.offsetWidth;
+                pointer.classList.add('tick');
+            }
+        }
+
+        // Get current peg index based on rotation
+        function getCurrentPegIndex() {
+            const segmentAngle = (2 * Math.PI) / NUM_PEGS;
+            let normalizedRotation = wheelState.rotation % (2 * Math.PI);
+            if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
+
+            // Pointer is at angle 0 (right side)
+            const relativeAngle = (2 * Math.PI - normalizedRotation) % (2 * Math.PI);
+            return Math.floor(relativeAngle / segmentAngle) % NUM_PEGS;
+        }
 
         // Player image paths
         const PLAYER_WHEEL_IMAGES = {
@@ -4681,18 +4748,19 @@
             setupWheelEvents();
         }
 
-        // Draw the wheel
+        // Draw the wheel with game show style pegs
         function drawWheel() {
             const { ctx, centerX, centerY, radius, rotation, otherPlayers, playerImages } = wheelState;
-            const segmentAngle = (2 * Math.PI) / 3;
+            const segmentAngle = (2 * Math.PI) / NUM_PEGS;
 
             ctx.clearRect(0, 0, wheelState.canvas.width, wheelState.canvas.height);
 
-            // Draw segments
-            for (let i = 0; i < 3; i++) {
+            // Draw 12 segments (4 copies of each player)
+            for (let i = 0; i < NUM_PEGS; i++) {
                 const startAngle = rotation + (i * segmentAngle);
                 const endAngle = startAngle + segmentAngle;
-                const player = otherPlayers[i];
+                const playerIndex = i % 3;
+                const player = otherPlayers[playerIndex];
                 const img = playerImages[player];
 
                 // Draw segment background
@@ -4700,11 +4768,11 @@
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
-                ctx.fillStyle = WHEEL_COLORS[i];
+                ctx.fillStyle = WHEEL_COLORS[playerIndex];
                 ctx.fill();
 
-                // Draw player image if loaded
-                if (img) {
+                // Draw player image in every 4th segment (centered positions)
+                if (i % 4 === 1 && img) {
                     ctx.save();
                     // Clip to segment
                     ctx.beginPath();
@@ -4715,12 +4783,12 @@
 
                     // Calculate image position - center it in the segment
                     const midAngle = startAngle + segmentAngle / 2;
-                    const imgDistance = radius * 0.55;
+                    const imgDistance = radius * 0.6;
                     const imgX = centerX + Math.cos(midAngle) * imgDistance;
                     const imgY = centerY + Math.sin(midAngle) * imgDistance;
 
                     // Draw circular image
-                    const imgRadius = radius * 0.35;
+                    const imgRadius = radius * 0.18;
                     ctx.beginPath();
                     ctx.arc(imgX, imgY, imgRadius, 0, 2 * Math.PI);
                     ctx.closePath();
@@ -4751,21 +4819,48 @@
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Draw player name at outer edge
+                // Draw player name in the segment
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + segmentAngle / 2);
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#000';
-                ctx.font = 'bold 16px "Bebas Neue", sans-serif';
-                ctx.fillText(player.toUpperCase(), radius - 8, 0);
+                ctx.font = 'bold 11px "Bebas Neue", sans-serif';
+                ctx.fillText(player.toUpperCase(), radius - 6, 0);
                 ctx.restore();
             }
+
+            // Draw pegs at segment boundaries
+            for (let i = 0; i < NUM_PEGS; i++) {
+                const pegAngle = rotation + (i * segmentAngle);
+                const pegX = centerX + Math.cos(pegAngle) * (radius - 8);
+                const pegY = centerY + Math.sin(pegAngle) * (radius - 8);
+
+                // Draw peg (metallic look)
+                ctx.beginPath();
+                ctx.arc(pegX, pegY, 6, 0, 2 * Math.PI);
+                const gradient = ctx.createRadialGradient(pegX - 2, pegY - 2, 0, pegX, pegY, 6);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.3, '#cccccc');
+                gradient.addColorStop(1, '#666666');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Draw outer rim
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.stroke();
 
             // Draw center circle
             ctx.beginPath();
@@ -4825,12 +4920,17 @@
             if (wheelState.isSpinning) return;
 
             e.preventDefault();
+
+            // Initialize audio on first user interaction
+            initAudio();
+
             const pos = getEventPosition(e);
 
             wheelState.isDragging = true;
             wheelState.lastAngle = getAngleFromCenter(pos.x, pos.y);
             wheelState.lastTime = performance.now();
             wheelState.velocityHistory = [];
+            wheelState.lastPegIndex = getCurrentPegIndex();
         }
 
         function handleDragMove(e) {
@@ -4899,6 +4999,14 @@
             // Update rotation (convert degrees to radians)
             wheelState.rotation += wheelState.velocity * Math.PI / 180;
 
+            // Check for peg crossing and trigger tick
+            const currentPegIndex = getCurrentPegIndex();
+            if (currentPegIndex !== wheelState.lastPegIndex) {
+                wheelState.lastPegIndex = currentPegIndex;
+                playTickSound();
+                triggerFlipperBounce();
+            }
+
             drawWheel();
 
             // Check if wheel has stopped
@@ -4913,54 +5021,15 @@
 
         // Determine which segment the pointer landed on
         function determineWinner() {
-            // Pointer is on the right side (0 radians)
-            // Normalize rotation to 0-2π
-            let normalizedRotation = wheelState.rotation % (2 * Math.PI);
-            if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
+            // With 12 segments (4 copies of each player), we need to find which player
+            // the current segment belongs to
+            const currentPegIndex = getCurrentPegIndex();
 
-            // Calculate which segment is at the pointer (right side = 0 radians)
-            const segmentAngle = (2 * Math.PI) / 3;
+            // Each player appears 4 times, at indices: 0,3,6,9 / 1,4,7,10 / 2,5,8,11
+            // So playerIndex = pegIndex % 3
+            const playerIndex = currentPegIndex % 3;
 
-            // The pointer points at angle 0, so we need to find which segment contains angle 0
-            // Segment i covers from rotation + i*segmentAngle to rotation + (i+1)*segmentAngle
-            // We need to find i where 0 is in that range
-
-            let winningIndex = 0;
-            for (let i = 0; i < 3; i++) {
-                let segmentStart = normalizedRotation + (i * segmentAngle);
-                let segmentEnd = segmentStart + segmentAngle;
-
-                // Normalize to check if 0 (or 2π) is in this range
-                segmentStart = segmentStart % (2 * Math.PI);
-                segmentEnd = segmentEnd % (2 * Math.PI);
-
-                // Check if 0 is in this segment (handling wrap-around)
-                if (segmentEnd < segmentStart) {
-                    // Segment wraps around 0
-                    winningIndex = i;
-                    break;
-                } else if (segmentStart <= 0.001 || segmentEnd >= 2 * Math.PI - 0.001) {
-                    // Very close to 0 or 2π
-                    winningIndex = i;
-                    break;
-                }
-            }
-
-            // Actually, simpler approach: find which segment contains the pointer angle (0)
-            // The rotation represents where segment 0 starts
-            // So segment i starts at: rotation + i * (2π/3)
-            // Pointer is at angle 0, so we need: rotation + i * (2π/3) <= 0 < rotation + (i+1) * (2π/3)
-            // Rearranging: -rotation / (2π/3) - 1 < i <= -rotation / (2π/3)
-
-            // Simpler: which segment index is the pointer pointing at?
-            // If rotation = 0, pointer points at segment 0
-            // As rotation increases, pointer moves counter-clockwise relative to wheel
-
-            const pointerAngle = 0; // Right side
-            const relativeAngle = (pointerAngle - normalizedRotation + 2 * Math.PI) % (2 * Math.PI);
-            winningIndex = Math.floor(relativeAngle / segmentAngle) % 3;
-
-            const partner = wheelState.otherPlayers[winningIndex];
+            const partner = wheelState.otherPlayers[playerIndex];
             const opponents = wheelState.otherPlayers.filter(p => p !== partner);
 
             displayMatchupResult({

@@ -3646,56 +3646,72 @@
                 }
 
                 // ========== COMMON LOSING DENOMINATOR ==========
-                // Find who is most often on the losing team in doubles
-                const doublesLosses = {};
-                PLAYERS.forEach(p => doublesLosses[p] = { losses: 0, total: 0 });
+                // Compare how partners perform WITH vs WITHOUT each player
+                // If your partners consistently do worse with you, you're the problem
 
-                doublesMatches.forEach(match => {
-                    const team1 = [match.player1, match.player2];
-                    const team2 = [match.player3, match.player4];
-                    const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
-                    const losingTeam = team1Won ? team2 : team1;
-                    const winningTeam = team1Won ? team1 : team2;
+                // We already have playerPartnerStats from the chemistry section above
+                // For each player, calculate average partner win rate WITH them vs WITHOUT them
 
-                    // Track losses and total matches for each player
-                    losingTeam.forEach(player => {
-                        if (player) {
-                            doublesLosses[player].losses++;
-                            doublesLosses[player].total++;
-                        }
-                    });
-                    winningTeam.forEach(player => {
-                        if (player) {
-                            doublesLosses[player].total++;
-                        }
-                    });
-                });
-
-                // Find player with highest loss rate (min 4 doubles matches)
-                let worstDenominator = null;
+                const denominatorScores = {};
                 PLAYERS.forEach(player => {
-                    const stats = doublesLosses[player];
-                    if (stats.total >= 4) {
-                        const lossRate = stats.losses / stats.total;
-                        if (!worstDenominator || lossRate > worstDenominator.lossRate ||
-                            (lossRate === worstDenominator.lossRate && stats.losses > worstDenominator.losses)) {
-                            worstDenominator = {
-                                player,
-                                losses: stats.losses,
-                                total: stats.total,
-                                lossRate
-                            };
+                    // Get this player's win rate with each partner
+                    const withPlayer = playerPartnerStats[player];
+                    let totalPartnerWinsWithMe = 0;
+                    let totalPartnerGamesWithMe = 0;
+
+                    // For each of my partners, compare their performance with me vs with others
+                    let partnerDifferentials = [];
+
+                    Object.entries(withPlayer).forEach(([partner, statsWithMe]) => {
+                        const gamesWithMe = statsWithMe.wins + statsWithMe.losses;
+                        if (gamesWithMe < 1) return;
+
+                        const winRateWithMe = statsWithMe.wins / gamesWithMe;
+                        totalPartnerWinsWithMe += statsWithMe.wins;
+                        totalPartnerGamesWithMe += gamesWithMe;
+
+                        // Get partner's win rate with OTHER players (not me)
+                        const partnerStats = playerPartnerStats[partner];
+                        let winsWithoutMe = 0;
+                        let gamesWithoutMe = 0;
+
+                        Object.entries(partnerStats).forEach(([otherPartner, stats]) => {
+                            if (otherPartner !== player) {
+                                winsWithoutMe += stats.wins;
+                                gamesWithoutMe += stats.wins + stats.losses;
+                            }
+                        });
+
+                        if (gamesWithoutMe >= 1) {
+                            const winRateWithoutMe = winsWithoutMe / gamesWithoutMe;
+                            // Negative = partner does WORSE with me
+                            partnerDifferentials.push(winRateWithMe - winRateWithoutMe);
                         }
+                    });
+
+                    // Average differential across all partners
+                    if (partnerDifferentials.length >= 2 && totalPartnerGamesWithMe >= 3) {
+                        const avgDifferential = partnerDifferentials.reduce((a, b) => a + b, 0) / partnerDifferentials.length;
+                        denominatorScores[player] = {
+                            differential: avgDifferential,
+                            gamesPlayed: totalPartnerGamesWithMe,
+                            partnersCompared: partnerDifferentials.length
+                        };
                     }
                 });
 
-                // Only show if loss rate is notable (> 55%)
-                if (worstDenominator && worstDenominator.lossRate > 0.55) {
-                    const lossPercent = Math.round(worstDenominator.lossRate * 100);
+                // Find player with most negative differential (partners do worse with them)
+                const worstDenominator = Object.entries(denominatorScores)
+                    .filter(([_, stats]) => stats.differential < -0.15) // Partners do >15% worse with them
+                    .sort((a, b) => a[1].differential - b[1].differential)[0];
+
+                if (worstDenominator) {
+                    const [player, stats] = worstDenominator;
+                    const dropPercent = Math.abs(Math.round(stats.differential * 100));
                     insights.push({
                         type: 'cold',
                         priority: 7,
-                        text: `🪨 ${worstDenominator.player} is the common losing denominator in doubles (${lossPercent}% loss rate)`
+                        text: `🪨 ${player} is the common losing denominator - partners win ${dropPercent}% less with them`
                     });
                 }
             }

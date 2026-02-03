@@ -2256,17 +2256,52 @@
 
         .wheel-pointer {
             position: absolute;
-            right: -15px;
+            right: -20px;
             top: 50%;
             transform: translateY(-50%);
             transform-origin: right center;
-            width: 0;
-            height: 0;
-            border-top: 18px solid transparent;
-            border-bottom: 18px solid transparent;
-            border-right: 35px solid var(--accent-pink);
-            filter: drop-shadow(0 0 10px rgba(255, 107, 157, 0.5));
+            display: flex;
+            align-items: center;
             transition: transform 0.05s ease-out;
+        }
+
+        /* The flipper arm */
+        .wheel-pointer::before {
+            content: '';
+            width: 45px;
+            height: 14px;
+            background: linear-gradient(to bottom,
+                #f0f0f0 0%,
+                #d0d0d0 20%,
+                #a0a0a0 50%,
+                #808080 80%,
+                #606060 100%);
+            border-radius: 3px 8px 8px 3px;
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            border: 1px solid #555;
+        }
+
+        /* The mounting bracket/pivot point */
+        .wheel-pointer::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg,
+                #e0e0e0 0%,
+                #b0b0b0 30%,
+                #808080 70%,
+                #505050 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 3px 6px rgba(0, 0, 0, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+            border: 2px solid #444;
         }
 
         .wheel-pointer.tick {
@@ -2275,7 +2310,7 @@
 
         @keyframes flipperBounce {
             0% { transform: translateY(-50%) rotate(0deg); }
-            50% { transform: translateY(-50%) rotate(-15deg); }
+            50% { transform: translateY(-50%) rotate(-12deg); }
             100% { transform: translateY(-50%) rotate(0deg); }
         }
 

@@ -3644,6 +3644,60 @@
                         text: `🤝 ${bestChemistry.player} & ${bestChemistry.partner} have great chemistry: ${bestChemistry.wins}-${bestChemistry.losses} together`
                     });
                 }
+
+                // ========== COMMON LOSING DENOMINATOR ==========
+                // Find who is most often on the losing team in doubles
+                const doublesLosses = {};
+                PLAYERS.forEach(p => doublesLosses[p] = { losses: 0, total: 0 });
+
+                doublesMatches.forEach(match => {
+                    const team1 = [match.player1, match.player2];
+                    const team2 = [match.player3, match.player4];
+                    const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                    const losingTeam = team1Won ? team2 : team1;
+                    const winningTeam = team1Won ? team1 : team2;
+
+                    // Track losses and total matches for each player
+                    losingTeam.forEach(player => {
+                        if (player) {
+                            doublesLosses[player].losses++;
+                            doublesLosses[player].total++;
+                        }
+                    });
+                    winningTeam.forEach(player => {
+                        if (player) {
+                            doublesLosses[player].total++;
+                        }
+                    });
+                });
+
+                // Find player with highest loss rate (min 4 doubles matches)
+                let worstDenominator = null;
+                PLAYERS.forEach(player => {
+                    const stats = doublesLosses[player];
+                    if (stats.total >= 4) {
+                        const lossRate = stats.losses / stats.total;
+                        if (!worstDenominator || lossRate > worstDenominator.lossRate ||
+                            (lossRate === worstDenominator.lossRate && stats.losses > worstDenominator.losses)) {
+                            worstDenominator = {
+                                player,
+                                losses: stats.losses,
+                                total: stats.total,
+                                lossRate
+                            };
+                        }
+                    }
+                });
+
+                // Only show if loss rate is notable (> 55%)
+                if (worstDenominator && worstDenominator.lossRate > 0.55) {
+                    const lossPercent = Math.round(worstDenominator.lossRate * 100);
+                    insights.push({
+                        type: 'cold',
+                        priority: 7,
+                        text: `🪨 ${worstDenominator.player} is the common losing denominator in doubles (${lossPercent}% loss rate)`
+                    });
+                }
             }
 
             // ========== SINGLES STREAKS ==========

@@ -2517,6 +2517,7 @@
                 <div id="leaderboard" class="loading">
                     <div class="spinner"></div>
                 </div>
+                <div id="mobile-breakdown" class="mobile-event-breakdown"></div>
             </div>
 
             <div class="card">
@@ -3506,8 +3507,10 @@
                     ${playerRows}
                 </div>
                 <div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>
-                <div class="mobile-event-breakdown">${mobileBreakdown}</div>
             `;
+
+            // Render mobile breakdown into separate container (outside #leaderboard overflow context)
+            document.getElementById('mobile-breakdown').innerHTML = mobileBreakdown;
         }
 
         // Render history

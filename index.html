@@ -421,6 +421,11 @@
             text-align: center;
         }
 
+        /* Mobile event breakdown - hidden on desktop */
+        .mobile-event-breakdown {
+            display: none;
+        }
+
         /* Points gap from leader */
         .points-gap {
             font-family: 'Space Mono', monospace;
@@ -2387,51 +2392,84 @@
                 font-size: 3rem;
             }
 
-            /* Leaderboard - compact for mobile */
-            .leaderboard-rank {
-                width: 30px;
-                font-size: 1.3rem;
-            }
-
-            .leaderboard-header-rank {
-                width: 30px;
+            /* Leaderboard - hide event columns on mobile */
+            .leaderboard-header-event,
+            .leaderboard-events {
+                display: none;
             }
 
             .leaderboard-player {
-                width: 100px;
-                gap: 6px;
+                flex: 1;
+                width: auto;
+                gap: 10px;
             }
 
             .leaderboard-header-name {
-                width: 100px;
-            }
-
-            .leaderboard-avatar {
-                width: 28px;
-                height: 28px;
-            }
-
-            .leaderboard-name {
-                font-size: 0.7rem;
-            }
-
-            .leaderboard-event-score {
-                width: 35px;
-                font-size: 0.7rem;
-            }
-
-            .leaderboard-header-event {
-                width: 35px;
+                flex: 1;
+                width: auto;
             }
 
             .leaderboard-total {
-                width: 45px;
-                font-size: 1.3rem;
+                font-size: 1.4rem;
             }
 
             .leaderboard-header-pts {
-                width: 45px;
+                width: 55px;
             }
+
+            /* Mobile event breakdown */
+            .mobile-event-breakdown {
+                display: block;
+                margin-top: 20px;
+            }
+
+            .mobile-breakdown-player {
+                margin-bottom: 16px;
+                padding: 12px;
+                background: var(--bg-dark);
+                border-radius: 8px;
+            }
+
+            .mobile-breakdown-name {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.1rem;
+                letter-spacing: 1px;
+                margin-bottom: 8px;
+                color: var(--text-light);
+            }
+
+            .mobile-breakdown-events {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .mobile-breakdown-event {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 38px;
+                padding: 4px 2px;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.04);
+            }
+
+            .mobile-breakdown-event-num {
+                font-size: 0.55rem;
+                color: var(--text-muted);
+                margin-bottom: 2px;
+            }
+
+            .mobile-breakdown-event-pts {
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.1rem;
+            }
+
+            .mobile-breakdown-event-pts.first-place { color: #ffd700; font-weight: 700; }
+            .mobile-breakdown-event-pts.second-place { color: #c0c0c0; }
+            .mobile-breakdown-event-pts.third-place { color: var(--text-muted); }
+            .mobile-breakdown-event-pts.no-play { color: var(--text-muted); opacity: 0.3; }
+            .mobile-breakdown-event-pts.not-counting { text-decoration: line-through; color: var(--text-muted); opacity: 0.5; }
 
             /* H2H grid */
             .h2h-grid {
@@ -3422,6 +3460,31 @@
                 `;
             }).join('');
 
+            // Build mobile event breakdown
+            const mobileBreakdown = standings.map(player => {
+                const events = player.eventResults.map((result, eventIndex) => {
+                    if (result.points === null) {
+                        return `<div class="mobile-breakdown-event">
+                            <span class="mobile-breakdown-event-num">${eventIndex + 1}</span>
+                            <span class="mobile-breakdown-event-pts no-play">-</span>
+                        </div>`;
+                    }
+                    const isCounting = player.best10Indices.has(eventIndex);
+                    const positionClass = result.position === 1 ? 'first-place' :
+                                         result.position === 2 ? 'second-place' : 'third-place';
+                    const countingClass = isCounting ? '' : 'not-counting';
+                    return `<div class="mobile-breakdown-event">
+                        <span class="mobile-breakdown-event-num">${eventIndex + 1}</span>
+                        <span class="mobile-breakdown-event-pts ${positionClass} ${countingClass}">${result.points}</span>
+                    </div>`;
+                }).join('');
+
+                return `<div class="mobile-breakdown-player">
+                    <div class="mobile-breakdown-name">${player.name}</div>
+                    <div class="mobile-breakdown-events">${events}</div>
+                </div>`;
+            }).join('');
+
             container.innerHTML = `
                 <div class="leaderboard-table">
                     <div class="leaderboard-header">
@@ -3433,6 +3496,7 @@
                     ${playerRows}
                 </div>
                 <div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>
+                <div class="mobile-event-breakdown">${mobileBreakdown}</div>
             `;
         }
 

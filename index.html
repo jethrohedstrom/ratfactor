@@ -2433,53 +2433,85 @@
                 margin-top: 20px;
             }
 
-            .mobile-breakdown-player {
-                margin-bottom: 16px;
-                padding: 12px;
-                background: var(--bg-dark);
-                border-radius: 8px;
+            .mobile-breakdown-header,
+            .mobile-breakdown-row {
+                display: flex;
+                align-items: center;
+                padding: 6px 0;
             }
 
-            .mobile-breakdown-name {
+            .mobile-breakdown-header {
+                border-bottom: 2px solid var(--accent-yellow);
+                margin-bottom: 4px;
+            }
+
+            .mobile-breakdown-row {
+                border-bottom: 1px solid var(--border-subtle);
+            }
+
+            .mobile-breakdown-row:last-child {
+                border-bottom: none;
+            }
+
+            .mobile-breakdown-name-col {
+                width: 70px;
+                flex-shrink: 0;
                 font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.1rem;
-                letter-spacing: 1px;
-                margin-bottom: 8px;
+                font-size: 0.95rem;
+                letter-spacing: 0.5px;
                 color: var(--text-light);
             }
 
-            .mobile-breakdown-events {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
+            .mobile-breakdown-header .mobile-breakdown-name-col {
+                color: transparent;
             }
 
-            .mobile-breakdown-event {
+            .mobile-breakdown-scores {
+                display: flex;
+                flex: 1;
+            }
+
+            .mobile-breakdown-cell {
+                flex: 1;
+                text-align: center;
+                font-family: 'Bebas Neue', sans-serif;
+                font-size: 1.1rem;
+                padding: 4px 0;
+            }
+
+            .mobile-breakdown-header-cell {
+                flex: 1;
+                text-align: center;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                width: 38px;
-                padding: 4px 2px;
-                border-radius: 6px;
-                background: rgba(255, 255, 255, 0.04);
+                gap: 1px;
             }
 
-            .mobile-breakdown-event-num {
-                font-size: 0.55rem;
+            .mobile-breakdown-header-cell .event-icon {
+                font-size: 0.65rem;
+            }
+
+            .mobile-breakdown-header-cell .event-num {
+                font-size: 0.6rem;
                 color: var(--text-muted);
-                margin-bottom: 2px;
+                font-weight: 700;
+                letter-spacing: 1px;
             }
 
-            .mobile-breakdown-event-pts {
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.1rem;
+            .mobile-breakdown-header-cell .event-loc {
+                font-size: 0.5rem;
+                color: var(--text-muted);
+                opacity: 0.7;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
 
-            .mobile-breakdown-event-pts.first-place { color: #ffd700; font-weight: 700; }
-            .mobile-breakdown-event-pts.second-place { color: #c0c0c0; }
-            .mobile-breakdown-event-pts.third-place { color: var(--text-muted); }
-            .mobile-breakdown-event-pts.no-play { color: var(--text-muted); opacity: 0.3; }
-            .mobile-breakdown-event-pts.not-counting { text-decoration: line-through; color: var(--text-muted); opacity: 0.5; }
+            .mobile-breakdown-cell.first-place { color: #ffd700; font-weight: 700; }
+            .mobile-breakdown-cell.second-place { color: #c0c0c0; }
+            .mobile-breakdown-cell.third-place { color: var(--text-muted); }
+            .mobile-breakdown-cell.no-play { color: var(--text-muted); opacity: 0.3; }
+            .mobile-breakdown-cell.not-counting { text-decoration: line-through; color: var(--text-muted); opacity: 0.5; }
 
             /* H2H grid */
             .h2h-grid {
@@ -3471,30 +3503,39 @@
                 `;
             }).join('');
 
-            // Build mobile event breakdown
-            const mobileBreakdown = standings.map(player => {
-                const events = player.eventResults.map((result, eventIndex) => {
+            // Build mobile event breakdown (leaderboard-style rows)
+            const mobileHeader = `<div class="mobile-breakdown-header">
+                <div class="mobile-breakdown-name-col"></div>
+                <div class="mobile-breakdown-scores">
+                    ${canadianMatches.map((match, i) => `
+                        <div class="mobile-breakdown-header-cell">
+                            <span class="event-icon">🐀</span>
+                            <span class="event-num">${i + 1}</span>
+                            ${match.location ? `<span class="event-loc">${match.location}</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+
+            const mobileRows = standings.map(player => {
+                const cells = player.eventResults.map((result, eventIndex) => {
                     if (result.points === null) {
-                        return `<div class="mobile-breakdown-event">
-                            <span class="mobile-breakdown-event-num">${eventIndex + 1}</span>
-                            <span class="mobile-breakdown-event-pts no-play">-</span>
-                        </div>`;
+                        return `<div class="mobile-breakdown-cell no-play">-</div>`;
                     }
                     const isCounting = player.best10Indices.has(eventIndex);
                     const positionClass = result.position === 1 ? 'first-place' :
                                          result.position === 2 ? 'second-place' : 'third-place';
                     const countingClass = isCounting ? '' : 'not-counting';
-                    return `<div class="mobile-breakdown-event">
-                        <span class="mobile-breakdown-event-num">${eventIndex + 1}</span>
-                        <span class="mobile-breakdown-event-pts ${positionClass} ${countingClass}">${result.points}</span>
-                    </div>`;
+                    return `<div class="mobile-breakdown-cell ${positionClass} ${countingClass}">${result.points}</div>`;
                 }).join('');
 
-                return `<div class="mobile-breakdown-player">
-                    <div class="mobile-breakdown-name">${player.name}</div>
-                    <div class="mobile-breakdown-events">${events}</div>
+                return `<div class="mobile-breakdown-row">
+                    <div class="mobile-breakdown-name-col">${player.name}</div>
+                    <div class="mobile-breakdown-scores">${cells}</div>
                 </div>`;
             }).join('');
+
+            const mobileBreakdown = mobileHeader + mobileRows;
 
             container.innerHTML = `
                 <div class="leaderboard-table">

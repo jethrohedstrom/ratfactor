@@ -161,15 +161,12 @@
         /* Navigation tabs */
         .nav-tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 25px;
-            overflow-x: auto;
-            padding-bottom: 5px;
         }
 
         .nav-tab {
-            flex: 1;
-            min-width: fit-content;
             padding: 12px 16px;
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
@@ -2371,6 +2368,80 @@
         .result-buttons .btn-change-player {
             flex: 1;
             margin-top: 0;
+        }
+
+        /* ========== MOBILE RESPONSIVE ========== */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 12px;
+                padding-bottom: 100px;
+            }
+
+            /* Header */
+            .header {
+                padding: 20px 0 15px;
+            }
+
+            .header h1 {
+                font-size: 3rem;
+            }
+
+            /* Leaderboard - compact for mobile */
+            .leaderboard-rank {
+                width: 30px;
+                font-size: 1.3rem;
+            }
+
+            .leaderboard-header-rank {
+                width: 30px;
+            }
+
+            .leaderboard-player {
+                width: 100px;
+                gap: 6px;
+            }
+
+            .leaderboard-header-name {
+                width: 100px;
+            }
+
+            .leaderboard-avatar {
+                width: 28px;
+                height: 28px;
+            }
+
+            .leaderboard-name {
+                font-size: 0.7rem;
+            }
+
+            .leaderboard-event-score {
+                width: 35px;
+                font-size: 0.7rem;
+            }
+
+            .leaderboard-header-event {
+                width: 35px;
+            }
+
+            .leaderboard-total {
+                width: 45px;
+                font-size: 1.3rem;
+            }
+
+            .leaderboard-header-pts {
+                width: 45px;
+            }
+
+            /* H2H grid */
+            .h2h-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Insights */
+            .insight-item {
+                padding: 12px 14px;
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>

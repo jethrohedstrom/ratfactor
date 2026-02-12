@@ -3916,13 +3916,24 @@
                 singlesThisYear.forEach(m => {
                     if (m.winner1) winCountsThisYear[m.winner1]++;
                 });
-                const topWinner = Object.entries(winCountsThisYear).sort((a, b) => b[1] - a[1])[0];
-                if (topWinner[1] >= 1) {
-                    insights.push({
-                        type: 'stat',
-                        priority: topWinner[1] >= 3 ? 5 : 3,
-                        text: `👑 ${topWinner[0]} leads ${currentYear} singles with ${topWinner[1]} win${topWinner[1] > 1 ? 's' : ''}`
-                    });
+                const sorted = Object.entries(winCountsThisYear).sort((a, b) => b[1] - a[1]);
+                const topWins = sorted[0][1];
+                const tiedPlayers = sorted.filter(([_, wins]) => wins === topWins);
+                if (topWins >= 1) {
+                    if (tiedPlayers.length > 1) {
+                        const names = tiedPlayers.map(([name]) => name).join(' & ');
+                        insights.push({
+                            type: 'stat',
+                            priority: topWins >= 3 ? 5 : 3,
+                            text: `👑 ${names} are tied for ${currentYear} singles lead with ${topWins} win${topWins > 1 ? 's' : ''} each`
+                        });
+                    } else {
+                        insights.push({
+                            type: 'stat',
+                            priority: topWins >= 3 ? 5 : 3,
+                            text: `👑 ${sorted[0][0]} leads ${currentYear} singles with ${topWins} win${topWins > 1 ? 's' : ''}`
+                        });
+                    }
                 }
             }
 

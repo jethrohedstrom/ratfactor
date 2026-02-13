@@ -235,8 +235,7 @@
         }
 
         .leaderboard-table {
-            min-width: fit-content;
-            margin: 0 auto;
+            width: 100%;
         }
 
         .leaderboard-header {
@@ -286,6 +285,7 @@
             width: 55px;
             text-align: center;
             flex-shrink: 0;
+            margin-left: auto;
         }
 
         .leaderboard-item {
@@ -398,6 +398,7 @@
             color: var(--accent-yellow);
             line-height: 1;
             flex-shrink: 0;
+            margin-left: auto;
         }
 
         /* Leader row highlight */
@@ -2417,10 +2418,12 @@
 
             .leaderboard-total {
                 font-size: 1.4rem;
+                margin-left: 0;
             }
 
             .leaderboard-header-pts {
                 width: 55px;
+                margin-left: 0;
             }
 
             /* Mobile event breakdown */
@@ -2555,6 +2558,7 @@
                 <div id="leaderboard" class="loading">
                     <div class="spinner"></div>
                 </div>
+                <div id="championship-footer"></div>
                 <div id="mobile-breakdown" class="mobile-event-breakdown"></div>
             </div>
 
@@ -3553,10 +3557,10 @@
                     </div>
                     ${playerRows}
                 </div>
-                <div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>
             `;
 
-            // Render mobile breakdown into separate container (outside #leaderboard overflow context)
+            // Render subtitle and mobile breakdown into separate containers (outside #leaderboard)
+            document.getElementById('championship-footer').innerHTML = `<div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>`;
             document.getElementById('mobile-breakdown').innerHTML = mobileBreakdown;
         }
 

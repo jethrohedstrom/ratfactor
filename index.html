@@ -3764,7 +3764,7 @@
                     insights.push({
                         type: 'doubles',
                         priority: 10,
-                        text: `🏆 ${team} are unbeaten this year in doubles (${record.wins}-0)`
+                        text: `🧀 ${team} are unbeaten this year in doubles (${record.wins}-0)`
                     });
                 }
             });
@@ -3777,7 +3777,7 @@
                 insights.push({
                     type: 'stat',
                     priority: 5,
-                    text: `👥 ${bestDoublesTeam[0]} lead doubles this year: ${bestDoublesTeam[1].wins}-${bestDoublesTeam[1].losses}`
+                    text: `🧀 ${bestDoublesTeam[0]} lead doubles this year: ${bestDoublesTeam[1].wins}-${bestDoublesTeam[1].losses}`
                 });
             }
 
@@ -3867,7 +3867,7 @@
                     insights.push({
                         type: 'doubles',
                         priority: 6,
-                        text: `🤝 ${bestChemistry.player} & ${bestChemistry.partner} have great chemistry: ${bestChemistry.wins}-${bestChemistry.losses} together`
+                        text: `🧀 ${bestChemistry.player} & ${bestChemistry.partner} have great chemistry: ${bestChemistry.wins}-${bestChemistry.losses} together`
                     });
                 }
 
@@ -3974,7 +3974,7 @@
                         insights.push({
                             type: 'streak',
                             priority: streak.count >= 3 ? 8 : 5,
-                            text: `🔥 ${player} has won ${streak.count} singles matches in a row!`
+                            text: `🧀 ${player} has won ${streak.count} singles matches in a row!`
                         });
                     } else {
                         insights.push({
@@ -4028,7 +4028,7 @@
                         insights.push({
                             type: 'stat',
                             priority: 4,
-                            text: `📊 ${dominant} dominates ${dominated} in singles: ${dominantWins}-${dominatedWins}`
+                            text: `🧀 ${dominant} dominates ${dominated} in singles: ${dominantWins}-${dominatedWins}`
                         });
                     }
                 }
@@ -4046,7 +4046,7 @@
                         insights.push({
                             type: 'streak',
                             priority: 7,
-                            text: `🎯 ${recentWinner} has won the last ${streak} matches against ${opponent}`
+                            text: `🧀 ${recentWinner} has won the last ${streak} matches against ${opponent}`
                         });
                         // Punching bag - from the loser's perspective
                         insights.push({
@@ -4080,7 +4080,7 @@
                     insights.push({
                         type: 'stat',
                         priority: 5,
-                        text: `🐀 ${ratKing[0]} is the Rat Factor king with ${ratKing[1]} wins`
+                        text: `🧀 ${ratKing[0]} is the Rat Factor king with ${ratKing[1]} wins`
                     });
                 }
 
@@ -4124,7 +4124,7 @@
                             insights.push({
                                 type: 'streak',
                                 priority: 6,
-                                text: `📈 ${player} is on fire in Rat Factor! Avg ${avg.toFixed(1)} pts in last ${scores.length} matches`
+                                text: `🧀 ${player} is on fire in Rat Factor! Avg ${avg.toFixed(1)} pts in last ${scores.length} matches`
                             });
                         } else if (avg <= 4) {
                             insights.push({
@@ -4159,7 +4159,7 @@
                     insights.push({
                         type: 'streak',
                         priority: 7,
-                        text: `🎯 ${clutchLeader[0]} is clutch! ${clutchLeader[1]} wins in close Rat Factor games`
+                        text: `🧀 ${clutchLeader[0]} is clutch! ${clutchLeader[1]} wins in close Rat Factor games`
                     });
                 }
             }
@@ -4182,13 +4182,13 @@
                         insights.push({
                             type: 'stat',
                             priority: topWins >= 3 ? 5 : 3,
-                            text: `👑 ${names} are tied for ${currentYear} singles lead with ${topWins} win${topWins > 1 ? 's' : ''} each`
+                            text: `🐀🐀 ${names} are tied for ${currentYear} singles lead with ${topWins} win${topWins > 1 ? 's' : ''} each`
                         });
                     } else {
                         insights.push({
                             type: 'stat',
                             priority: topWins >= 3 ? 5 : 3,
-                            text: `👑 ${sorted[0][0]} leads ${currentYear} singles with ${topWins} win${topWins > 1 ? 's' : ''}`
+                            text: `🧀 ${sorted[0][0]} leads ${currentYear} singles with ${topWins} win${topWins > 1 ? 's' : ''}`
                         });
                     }
                 }

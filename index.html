@@ -4124,13 +4124,13 @@
                             insights.push({
                                 type: 'streak',
                                 priority: 6,
-                                text: `📈 ${player} is on fire in Rat Factor! Avg ${avg.toFixed(1)} pts recently`
+                                text: `📈 ${player} is on fire in Rat Factor! Avg ${avg.toFixed(1)} pts in last ${scores.length} matches`
                             });
                         } else if (avg <= 4) {
                             insights.push({
                                 type: 'cold',
                                 priority: 3,
-                                text: `📉 ${player} is struggling in Rat Factor (avg ${avg.toFixed(1)} pts)`
+                                text: `📉 ${player} is struggling in Rat Factor (avg ${avg.toFixed(1)} pts in last ${scores.length} matches)`
                             });
                         }
                     }

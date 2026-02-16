@@ -3789,7 +3789,7 @@
                 insights.push({
                     type: 'cold',
                     priority: 5,
-                    text: `💀 ${worstDoublesTeam[0]} are the worst doubles team this year: ${worstDoublesTeam[1].wins}-${worstDoublesTeam[1].losses}`
+                    text: `🪤 ${worstDoublesTeam[0]} are the worst doubles team this year: ${worstDoublesTeam[1].wins}-${worstDoublesTeam[1].losses}`
                 });
             }
 
@@ -3799,7 +3799,7 @@
                     insights.push({
                         type: 'cold',
                         priority: 7,
-                        text: `🚫 ${team} have never won a doubles match together (0-${record.losses})`
+                        text: `🪤 ${team} have never won a doubles match together (0-${record.losses})`
                     });
                 }
             });
@@ -3937,7 +3937,7 @@
                     insights.push({
                         type: 'cold',
                         priority: 7,
-                        text: `🪨 ${player} is the common losing denominator - partners win ${dropPercent}% less with them`
+                        text: `🪤 ${player} is the common losing denominator - partners win ${dropPercent}% less with them`
                     });
                 }
             }
@@ -3980,7 +3980,7 @@
                         insights.push({
                             type: 'cold',
                             priority: streak.count >= 3 ? 6 : 4,
-                            text: `📉 ${player} has lost ${streak.count} singles matches in a row`
+                            text: `🪤 ${player} has lost ${streak.count} singles matches in a row`
                         });
                     }
                 }
@@ -4006,13 +4006,13 @@
                         insights.push({
                             type: 'dominance',
                             priority: 9,
-                            text: `💀 ${p1} has never beaten ${p2} in singles (0-${p2Wins})`
+                            text: `🪤 ${p1} has never beaten ${p2} in singles (0-${p2Wins})`
                         });
                     } else if (p2Wins === 0) {
                         insights.push({
                             type: 'dominance',
                             priority: 9,
-                            text: `💀 ${p2} has never beaten ${p1} in singles (0-${p1Wins})`
+                            text: `🪤 ${p2} has never beaten ${p1} in singles (0-${p1Wins})`
                         });
                     }
                 }
@@ -4052,7 +4052,7 @@
                         insights.push({
                             type: 'cold',
                             priority: 6,
-                            text: `😵 ${opponent} is ${recentWinner}'s punching bag - lost the last ${streak} against them`
+                            text: `🪤 ${opponent} is ${recentWinner}'s punching bag - lost the last ${streak} against them`
                         });
                     }
                 }
@@ -4102,7 +4102,7 @@
                     insights.push({
                         type: 'cold',
                         priority: 5,
-                        text: `🧀 ${ratLoser[0]} has finished last in ${ratLoser[1]} Rat Factor matches`
+                        text: `🪤 ${ratLoser[0]} has finished last in ${ratLoser[1]} Rat Factor matches`
                     });
                 }
 
@@ -4130,7 +4130,7 @@
                             insights.push({
                                 type: 'cold',
                                 priority: 3,
-                                text: `📉 ${player} is struggling in Rat Factor (avg ${avg.toFixed(1)} pts in last ${scores.length} matches)`
+                                text: `🪤 ${player} is struggling in Rat Factor (avg ${avg.toFixed(1)} pts in last ${scores.length} matches)`
                             });
                         }
                     }
@@ -4213,7 +4213,7 @@
                     insights.push({
                         type: 'cold',
                         priority: 5,
-                        text: `🗑️ ${worstRecord[0]} has the worst singles record this year: ${worstRecord[1].wins}-${worstRecord[1].losses}`
+                        text: `🪤 ${worstRecord[0]} has the worst singles record this year: ${worstRecord[1].wins}-${worstRecord[1].losses}`
                     });
                 }
             }

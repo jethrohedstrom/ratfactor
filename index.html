@@ -859,7 +859,7 @@
         .insight-emoji {
             font-size: 1.4rem;
             flex-shrink: 0;
-            width: 28px;
+            min-width: 28px;
             text-align: center;
         }
 
@@ -4260,10 +4260,14 @@
 
             // Helper to format insight text with highlighted player names
             function formatInsight(text) {
-                // Extract emoji from start
-                const emojiMatch = text.match(/^(\p{Emoji})\s*/u);
-                const emoji = emojiMatch ? emojiMatch[1] : '📊';
+                // Extract emoji(s) from start
+                const emojiMatch = text.match(/^(\p{Emoji}+)\s*/u);
+                const emojiRaw = emojiMatch ? emojiMatch[1] : '📊';
                 const textWithoutEmoji = emojiMatch ? text.slice(emojiMatch[0].length) : text;
+                // Two rats facing off - flip the first one
+                const emoji = emojiRaw === '🐀🐀'
+                    ? '<span style="display:inline-block;transform:scaleX(-1)">🐀</span>🐀'
+                    : emojiRaw;
 
                 // Highlight player names
                 let formatted = textWithoutEmoji;

@@ -3974,13 +3974,13 @@
                         insights.push({
                             type: 'streak',
                             priority: streak.count >= 3 ? 8 : 5,
-                            text: `🧀 ${player} has won ${streak.count} singles matches in a row!`
+                            text: `${'🧀'.repeat(streak.count)} ${player} has won ${streak.count} singles matches in a row!`
                         });
                     } else {
                         insights.push({
                             type: 'cold',
                             priority: streak.count >= 3 ? 6 : 4,
-                            text: `🪤 ${player} has lost ${streak.count} singles matches in a row`
+                            text: `${'🪤'.repeat(streak.count)} ${player} has lost ${streak.count} singles matches in a row`
                         });
                     }
                 }

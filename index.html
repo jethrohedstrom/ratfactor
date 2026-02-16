@@ -3923,20 +3923,23 @@
 
             // Calculate current winning/losing streaks for each player
             const playerStreaks = {};
-            PLAYERS.forEach(p => playerStreaks[p] = { type: null, count: 0 });
+            PLAYERS.forEach(p => playerStreaks[p] = { type: null, count: 0, done: false });
 
             // Go through matches chronologically (newest first) to find current streaks
             singlesMatches.forEach(match => {
                 [match.player1, match.player2].forEach(player => {
+                    if (playerStreaks[player].done) return;
+                    const won = match.winner1 === player;
                     if (!playerStreaks[player].type) {
-                        const won = match.winner1 === player;
                         playerStreaks[player].type = won ? 'win' : 'loss';
                         playerStreaks[player].count = 1;
                     } else if (
-                        (playerStreaks[player].type === 'win' && match.winner1 === player) ||
-                        (playerStreaks[player].type === 'loss' && match.winner1 !== player)
+                        (playerStreaks[player].type === 'win' && won) ||
+                        (playerStreaks[player].type === 'loss' && !won)
                     ) {
                         playerStreaks[player].count++;
+                    } else {
+                        playerStreaks[player].done = true;
                     }
                 });
             });

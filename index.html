@@ -4166,34 +4166,8 @@
 
             // ========== OVERALL STATS ==========
 
-            // Singles win leader this year
+            // Worst singles record this year (min 3 matches)
             if (singlesThisYear.length > 0) {
-                const winCountsThisYear = {};
-                PLAYERS.forEach(p => winCountsThisYear[p] = 0);
-                singlesThisYear.forEach(m => {
-                    if (m.winner1) winCountsThisYear[m.winner1]++;
-                });
-                const sorted = Object.entries(winCountsThisYear).sort((a, b) => b[1] - a[1]);
-                const topWins = sorted[0][1];
-                const tiedPlayers = sorted.filter(([_, wins]) => wins === topWins);
-                if (topWins >= 1) {
-                    if (tiedPlayers.length > 1) {
-                        const names = tiedPlayers.map(([name]) => name).join(' & ');
-                        insights.push({
-                            type: 'stat',
-                            priority: topWins >= 3 ? 5 : 3,
-                            text: `🐀🐀 ${names} are tied for ${currentYear} singles lead with ${topWins} win${topWins > 1 ? 's' : ''} each`
-                        });
-                    } else {
-                        insights.push({
-                            type: 'stat',
-                            priority: topWins >= 3 ? 5 : 3,
-                            text: `🧀 ${sorted[0][0]} leads ${currentYear} singles with ${topWins} win${topWins > 1 ? 's' : ''}`
-                        });
-                    }
-                }
-
-                // Worst singles record this year (min 3 matches)
                 const playerRecordsThisYear = {};
                 PLAYERS.forEach(p => playerRecordsThisYear[p] = { wins: 0, losses: 0 });
                 singlesThisYear.forEach(m => {

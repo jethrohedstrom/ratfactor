@@ -3781,6 +3781,29 @@
                 });
             }
 
+            // Worst doubles team this year
+            const worstDoublesTeam = Object.entries(doublesTeamRecords)
+                .filter(([_, r]) => r.wins + r.losses >= 2)
+                .sort((a, b) => (a[1].wins - a[1].losses) - (b[1].wins - b[1].losses))[0];
+            if (worstDoublesTeam && worstDoublesTeam[1].losses > worstDoublesTeam[1].wins) {
+                insights.push({
+                    type: 'cold',
+                    priority: 5,
+                    text: `💀 ${worstDoublesTeam[0]} are the worst doubles team this year: ${worstDoublesTeam[1].wins}-${worstDoublesTeam[1].losses}`
+                });
+            }
+
+            // Winless doubles teams (0 wins, 2+ matches)
+            Object.entries(doublesTeamRecords).forEach(([team, record]) => {
+                if (record.wins === 0 && record.losses >= 2) {
+                    insights.push({
+                        type: 'cold',
+                        priority: 7,
+                        text: `🚫 ${team} have never won a doubles match together (0-${record.losses})`
+                    });
+                }
+            });
+
             // ========== DOUBLES CHEMISTRY ==========
             // Track each player's win rate with each partner
             if (doublesMatches.length >= 3) {
@@ -3953,11 +3976,11 @@
                             priority: streak.count >= 3 ? 8 : 5,
                             text: `🔥 ${player} has won ${streak.count} singles matches in a row!`
                         });
-                    } else if (streak.count >= 3) {
+                    } else {
                         insights.push({
                             type: 'cold',
-                            priority: 6,
-                            text: `❄️ ${player} is on a ${streak.count}-match losing streak in singles`
+                            priority: streak.count >= 3 ? 6 : 4,
+                            text: `📉 ${player} has lost ${streak.count} singles matches in a row`
                         });
                     }
                 }
@@ -4025,6 +4048,12 @@
                             priority: 7,
                             text: `🎯 ${recentWinner} has won the last ${streak} matches against ${opponent}`
                         });
+                        // Punching bag - from the loser's perspective
+                        insights.push({
+                            type: 'cold',
+                            priority: 6,
+                            text: `😵 ${opponent} is ${recentWinner}'s punching bag - lost the last ${streak} against them`
+                        });
                     }
                 }
             });
@@ -4052,6 +4081,28 @@
                         type: 'stat',
                         priority: 5,
                         text: `🐀 ${ratKing[0]} is the Rat Factor king with ${ratKing[1]} wins`
+                    });
+                }
+
+                // Most last-place finishes in Rat Factor
+                const ratFactorLasts = {};
+                PLAYERS.forEach(p => ratFactorLasts[p] = 0);
+
+                canadianMatches.forEach(match => {
+                    const players = [
+                        { name: match.player1, score: match.score_player1 },
+                        { name: match.player2, score: match.score_player2 },
+                        { name: match.player3, score: match.score_player3 }
+                    ].sort((a, b) => a.score - b.score);
+                    if (players[0].name) ratFactorLasts[players[0].name]++;
+                });
+
+                const ratLoser = Object.entries(ratFactorLasts).sort((a, b) => b[1] - a[1])[0];
+                if (ratLoser[1] >= 3) {
+                    insights.push({
+                        type: 'cold',
+                        priority: 5,
+                        text: `🧀 ${ratLoser[0]} has finished last in ${ratLoser[1]} Rat Factor matches`
                     });
                 }
 
@@ -4140,6 +4191,30 @@
                             text: `👑 ${sorted[0][0]} leads ${currentYear} singles with ${topWins} win${topWins > 1 ? 's' : ''}`
                         });
                     }
+                }
+
+                // Worst singles record this year (min 3 matches)
+                const playerRecordsThisYear = {};
+                PLAYERS.forEach(p => playerRecordsThisYear[p] = { wins: 0, losses: 0 });
+                singlesThisYear.forEach(m => {
+                    [m.player1, m.player2].forEach(p => {
+                        if (m.winner1 === p) playerRecordsThisYear[p].wins++;
+                        else playerRecordsThisYear[p].losses++;
+                    });
+                });
+                const worstRecord = Object.entries(playerRecordsThisYear)
+                    .filter(([_, r]) => r.wins + r.losses >= 3)
+                    .sort((a, b) => {
+                        const aRate = a[1].wins / (a[1].wins + a[1].losses);
+                        const bRate = b[1].wins / (b[1].wins + b[1].losses);
+                        return aRate - bRate;
+                    })[0];
+                if (worstRecord && worstRecord[1].wins < worstRecord[1].losses) {
+                    insights.push({
+                        type: 'cold',
+                        priority: 5,
+                        text: `🗑️ ${worstRecord[0]} has the worst singles record this year: ${worstRecord[1].wins}-${worstRecord[1].losses}`
+                    });
                 }
             }
 

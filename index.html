@@ -730,11 +730,11 @@
 
         .h2h-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
 
-        .h2h-matchup {
+        .h2h-player-card {
             background: var(--bg-dark);
             border: 1px solid var(--border-subtle);
             border-radius: 8px;
@@ -742,67 +742,108 @@
             transition: all 0.2s ease;
         }
 
-        .h2h-matchup:hover {
+        .h2h-player-card:hover {
             border-color: var(--accent-yellow);
             transform: translateY(-2px);
         }
 
-        .h2h-players {
+        .h2h-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .h2h-player {
+        .h2h-card-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+        }
+
+        .h2h-card-overall {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .h2h-card-overall.winning { color: var(--accent-green); }
+        .h2h-card-overall.losing { color: var(--accent-pink); }
+        .h2h-card-overall.tied { color: var(--accent-yellow); }
+
+        .h2h-opponent-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .h2h-opponent-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .h2h-opponent-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .h2h-opponent-row.no-matches {
+            cursor: default;
+        }
+
+        .h2h-opponent-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .h2h-opponent-label strong {
+            color: var(--text-light);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .h2h-opponent-record {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.2rem;
             letter-spacing: 1px;
         }
 
-        .h2h-vs {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.9rem;
-            color: var(--accent-pink);
-        }
+        .h2h-opponent-record.winning { color: var(--accent-green); }
+        .h2h-opponent-record.losing { color: var(--accent-pink); }
+        .h2h-opponent-record.tied { color: var(--accent-yellow); }
 
-        .h2h-score {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .h2h-score-number {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.5rem;
-            color: var(--accent-yellow);
-        }
-
-        .h2h-score-separator {
-            font-size: 1.5rem;
-            color: var(--text-muted);
-        }
-
-        .h2h-matches {
+        .h2h-no-matches {
             font-size: 0.7rem;
             color: var(--text-muted);
-            text-align: center;
-            letter-spacing: 1px;
+            opacity: 0.5;
+            font-style: italic;
         }
 
-        .h2h-empty {
-            text-align: center;
-            padding: 20px;
+        .h2h-expand-arrow {
+            font-size: 0.6rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            margin-left: 8px;
+            display: inline-block;
+            transition: transform 0.2s ease;
         }
 
-        .h2h-match-list {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-subtle);
+        .h2h-expand-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .h2h-opponent-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .h2h-opponent-details.open {
+            max-height: 500px;
         }
 
         .h2h-match-detail {
@@ -2857,6 +2898,19 @@
                     openFighterCard(fighterCard.dataset.player);
                 }
             });
+
+            // H2H opponent row expand/collapse
+            document.addEventListener('click', (e) => {
+                const row = e.target.closest('[data-h2h-toggle]');
+                if (row) {
+                    const details = row.nextElementSibling;
+                    if (details && details.classList.contains('h2h-opponent-details')) {
+                        details.classList.toggle('open');
+                        const arrow = row.querySelector('.h2h-expand-arrow');
+                        if (arrow) arrow.classList.toggle('open');
+                    }
+                }
+            });
         });
 
         // Navigation
@@ -4296,6 +4350,31 @@
         }
 
         // H2H comprehensive view
+        function formatMatchScores(match) {
+            if (!match.sets) return '-';
+            try {
+                const sets = JSON.parse(match.sets);
+                const winnerIsP1 = match.winner1 === match.player1;
+                return sets.map(s => {
+                    const winnerScore = winnerIsP1 ? s.p1 : s.p2;
+                    const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                    let scoreStr = `${winnerScore}-${loserScore}`;
+                    if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                        const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
+                        const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                        scoreStr += `(${winnerTB}-${loserTB})`;
+                    } else if (s.tiebreak !== undefined) {
+                        const loserTB = s.tiebreak;
+                        const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
+                        scoreStr += `(${winnerTB}-${loserTB})`;
+                    }
+                    return scoreStr;
+                }).join(' ');
+            } catch (e) {
+                return '-';
+            }
+        }
+
         function renderH2H() {
             const container = document.getElementById('h2hGrid');
             const singlesMatches = matches.filter(m => m.match_type === 'singles');
@@ -4309,102 +4388,77 @@
             const matchesByYear = {};
             singlesMatches.forEach(match => {
                 const year = new Date(match.created_at).getFullYear();
-                if (!matchesByYear[year]) {
-                    matchesByYear[year] = [];
-                }
+                if (!matchesByYear[year]) matchesByYear[year] = [];
                 matchesByYear[year].push(match);
             });
 
-            // Sort years descending (newest first)
             const years = Object.keys(matchesByYear).sort((a, b) => b - a);
-
-            // Generate all unique player combinations
-            const matchups = [];
-            for (let i = 0; i < PLAYERS.length; i++) {
-                for (let j = i + 1; j < PLAYERS.length; j++) {
-                    matchups.push([PLAYERS[i], PLAYERS[j]]);
-                }
-            }
 
             const yearSections = years.map(year => {
                 const yearMatches = matchesByYear[year];
 
-                const matchupHTML = matchups.map(([p1, p2]) => {
-                    const h2hMatches = yearMatches.filter(m =>
-                        (m.player1 === p1 && m.player2 === p2) || (m.player1 === p2 && m.player2 === p1)
-                    );
+                const playerCardsHTML = PLAYERS.map(player => {
+                    const opponents = PLAYERS.filter(p => p !== player);
+                    let totalWins = 0;
+                    let totalLosses = 0;
 
-                    if (h2hMatches.length === 0) {
-                        return `
-                            <div class="h2h-matchup">
-                                <div class="h2h-players">
-                                    <span class="h2h-player">${p1}</span>
-                                    <span class="h2h-vs">VS</span>
-                                    <span class="h2h-player">${p2}</span>
-                                </div>
-                                <div class="h2h-empty">No matches</div>
-                            </div>
-                        `;
-                    }
+                    const opponentRowsHTML = opponents.map(opponent => {
+                        const h2hMatches = yearMatches.filter(m =>
+                            (m.player1 === player && m.player2 === opponent) ||
+                            (m.player1 === opponent && m.player2 === player)
+                        );
 
-                    const p1Wins = h2hMatches.filter(m => m.winner1 === p1).length;
-                    const p2Wins = h2hMatches.length - p1Wins;
+                        const wins = h2hMatches.filter(m => m.winner1 === player).length;
+                        const losses = h2hMatches.length - wins;
+                        totalWins += wins;
+                        totalLosses += losses;
 
-                    // Generate match details with scores
-                    const matchDetails = h2hMatches
-                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .map(match => {
-                            const winner = match.winner1;
-                            const winnerIsP1 = match.winner1 === match.player1;
-
-                            // Parse set scores
-                            let scoresDisplay = '';
-                            if (match.sets) {
-                                try {
-                                    const sets = JSON.parse(match.sets);
-                                    scoresDisplay = sets.map(s => {
-                                        const winnerScore = winnerIsP1 ? s.p1 : s.p2;
-                                        const loserScore = winnerIsP1 ? s.p2 : s.p1;
-                                        let scoreStr = `${winnerScore}-${loserScore}`;
-                                        if (s.tb1 !== undefined && s.tb2 !== undefined) {
-                                            const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
-                                            const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
-                                            scoreStr += `(${winnerTB}-${loserTB})`;
-                                        } else if (s.tiebreak !== undefined) {
-                                            const loserTB = s.tiebreak;
-                                            const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
-                                            scoreStr += `(${winnerTB}-${loserTB})`;
-                                        }
-                                        return scoreStr;
-                                    }).join(' ');
-                                } catch (e) {}
-                            }
-
-                            const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
-
+                        if (h2hMatches.length === 0) {
                             return `
-                                <div class="h2h-match-detail">
-                                    <span class="h2h-match-winner">${winner}</span>
-                                    <span class="h2h-match-scores">${scoresDisplay || '-'}</span>
-                                    <span class="h2h-match-date">${matchDate}</span>
+                                <div class="h2h-opponent-row no-matches">
+                                    <span class="h2h-opponent-label">vs <strong>${opponent}</strong></span>
+                                    <span class="h2h-no-matches">No matches</span>
                                 </div>
                             `;
-                        }).join('');
+                        }
+
+                        const recordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
+
+                        const matchDetailsHTML = h2hMatches
+                            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                            .map(match => {
+                                const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+                                return `
+                                    <div class="h2h-match-detail">
+                                        <span class="h2h-match-winner">${match.winner1}</span>
+                                        <span class="h2h-match-scores">${formatMatchScores(match)}</span>
+                                        <span class="h2h-match-date">${matchDate}</span>
+                                    </div>
+                                `;
+                            }).join('');
+
+                        return `
+                            <div class="h2h-opponent-row" data-h2h-toggle>
+                                <span class="h2h-opponent-label">vs <strong>${opponent}</strong></span>
+                                <span>
+                                    <span class="h2h-opponent-record ${recordClass}">${wins}-${losses}</span>
+                                    <span class="h2h-expand-arrow">&#9654;</span>
+                                </span>
+                            </div>
+                            <div class="h2h-opponent-details">${matchDetailsHTML}</div>
+                        `;
+                    }).join('');
+
+                    const overallClass = totalWins > totalLosses ? 'winning' :
+                                         totalWins < totalLosses ? 'losing' : 'tied';
 
                     return `
-                        <div class="h2h-matchup">
-                            <div class="h2h-players">
-                                <span class="h2h-player">${p1}</span>
-                                <span class="h2h-vs">VS</span>
-                                <span class="h2h-player">${p2}</span>
+                        <div class="h2h-player-card">
+                            <div class="h2h-card-header">
+                                <span class="h2h-card-name">${player}</span>
+                                <span class="h2h-card-overall ${overallClass}">${totalWins}W - ${totalLosses}L</span>
                             </div>
-                            <div class="h2h-score">
-                                <span class="h2h-score-number">${p1Wins}</span>
-                                <span class="h2h-score-separator">-</span>
-                                <span class="h2h-score-number">${p2Wins}</span>
-                            </div>
-                            <div class="h2h-matches">${h2hMatches.length} ${h2hMatches.length === 1 ? 'match' : 'matches'}</div>
-                            <div class="h2h-match-list">${matchDetails}</div>
+                            ${opponentRowsHTML}
                         </div>
                     `;
                 }).join('');
@@ -4412,7 +4466,7 @@
                 return `
                     <div class="h2h-year-section">
                         <div class="h2h-year-title">${year}</div>
-                        <div class="h2h-grid">${matchupHTML}</div>
+                        <div class="h2h-grid">${playerCardsHTML}</div>
                     </div>
                 `;
             }).join('');

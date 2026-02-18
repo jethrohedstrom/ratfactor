@@ -714,6 +714,14 @@
             text-align: right;
         }
 
+        .ratfactor-tiebreak {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-family: 'Space Mono', monospace;
+        }
+
         /* Head to head */
         .h2h-year-section {
             margin-bottom: 30px;
@@ -3838,6 +3846,22 @@
                     const players = sortCanadianPlayers(match);
 
                     const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+                    // Parse tiebreak display
+                    let tbDisplay = '';
+                    if (match.sets) {
+                        try {
+                            const tb = JSON.parse(match.sets);
+                            if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
+                                const tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
+                                const tbLoser = tb.score1 > tb.score2 ? tb.player2 : tb.player1;
+                                const tbWinScore = Math.max(tb.score1, tb.score2);
+                                const tbLoseScore = Math.min(tb.score1, tb.score2);
+                                tbDisplay = `<div class="ratfactor-tiebreak">TB: ${tbWinner} ${tbWinScore} - ${tbLoser} ${tbLoseScore}</div>`;
+                            }
+                        } catch (e) {}
+                    }
+
                     return `
                         <div class="match-item match-item-ratfactor">
                             <div class="match-header">
@@ -3865,6 +3889,7 @@
                                     <span class="ratfactor-score">${players[2].score}</span>
                                 </div>
                             </div>
+                            ${tbDisplay}
                         </div>
                     `;
                 }

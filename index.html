@@ -3044,18 +3044,13 @@
                             <div class="canadian-players" id="canadianPlayerScores"></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Target Score</label>
-                            <select id="canadianTarget" class="form-select">
-                                <option value="">No target</option>
-                                <option value="11">First to 11</option>
-                                <option value="7">First to 7</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <label class="form-check-label">
                                 <input type="checkbox" id="canadianTiebreak" class="form-checkbox">
                                 Tiebreak <span style="color: var(--text-muted); font-size: 0.75rem;">(if applicable)</span>
                             </label>
+                            <div id="canadianTiebreakScores" style="display: none; margin-top: 10px;">
+                                <div class="canadian-players" id="canadianTBInputs"></div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Location (optional)</label>
@@ -3067,6 +3062,48 @@
 
                 document.querySelectorAll('.canadian-toggle').forEach(btn => {
                     btn.addEventListener('click', handleCanadianPlayerToggle);
+                });
+
+                // Tiebreak checkbox toggle
+                document.getElementById('canadianTiebreak').addEventListener('change', function() {
+                    const tbContainer = document.getElementById('canadianTiebreakScores');
+                    const tbInputs = document.getElementById('canadianTBInputs');
+                    if (this.checked) {
+                        // Find the two players with the highest tied scores
+                        const selected = Array.from(document.querySelectorAll('.canadian-toggle.selected')).map(b => b.dataset.player);
+                        const playerScores = selected.map(p => ({
+                            name: p,
+                            score: parseInt(document.getElementById(`score_${p}`)?.value) || 0
+                        })).sort((a, b) => b.score - a.score);
+
+                        // Pick the two tied players (top 2 with equal scores), or just top 2 if no tie
+                        let tbPlayers;
+                        if (playerScores.length >= 2 && playerScores[0].score === playerScores[1].score) {
+                            tbPlayers = [playerScores[0].name, playerScores[1].name];
+                        } else if (playerScores.length >= 3 && playerScores[1].score === playerScores[2].score) {
+                            tbPlayers = [playerScores[1].name, playerScores[2].name];
+                        } else {
+                            tbPlayers = playerScores.slice(0, 2).map(p => p.name);
+                        }
+
+                        tbInputs.innerHTML = `
+                            <div class="canadian-player-row" style="justify-content: center; gap: 10px;">
+                                <span class="canadian-player-name" style="text-align: right;">${tbPlayers[0]}</span>
+                                <div class="canadian-player-score">
+                                    <input type="number" data-player="${tbPlayers[0]}" min="0" placeholder="0">
+                                </div>
+                                <span style="color: var(--text-muted); font-size: 0.9rem;">-</span>
+                                <div class="canadian-player-score">
+                                    <input type="number" data-player="${tbPlayers[1]}" min="0" placeholder="0">
+                                </div>
+                                <span class="canadian-player-name">${tbPlayers[1]}</span>
+                            </div>
+                        `;
+                        tbContainer.style.display = 'block';
+                    } else {
+                        tbContainer.style.display = 'none';
+                        tbInputs.innerHTML = '';
+                    }
                 });
             }
         }
@@ -3405,10 +3442,24 @@
                 return;
             }
 
-            const targetVal = document.getElementById('canadianTarget').value;
             const tiebreak = document.getElementById('canadianTiebreak').checked;
-            const target = tiebreak ? 0 : (targetVal !== '' ? parseInt(targetVal) : null);
             const location = document.getElementById('canadianLocation').value.trim() || null;
+
+            let target = null;
+            let tiebreakData = null;
+
+            if (tiebreak) {
+                target = 0;
+                const tbInputs = document.querySelectorAll('#canadianTBInputs input[type="number"]');
+                if (tbInputs.length === 2) {
+                    tiebreakData = {
+                        player1: tbInputs[0].dataset.player,
+                        score1: parseInt(tbInputs[0].value) || 0,
+                        player2: tbInputs[1].dataset.player,
+                        score2: parseInt(tbInputs[1].value) || 0
+                    };
+                }
+            }
 
             const match = {
                 match_type: 'canadian',
@@ -3419,6 +3470,7 @@
                 score_player2: scores[selected[1]],
                 score_player3: scores[selected[2]],
                 target_score: target,
+                sets: tiebreakData ? JSON.stringify(tiebreakData) : null,
                 location: location
             };
 

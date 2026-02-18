@@ -3517,6 +3517,36 @@
             }
         }
 
+        // Sort Rat Factor players by score, using tiebreak data to break ties
+        function sortCanadianPlayers(match) {
+            const players = [
+                { name: match.player1, score: match.score_player1 || 0 },
+                { name: match.player2, score: match.score_player2 || 0 },
+                { name: match.player3, score: match.score_player3 || 0 }
+            ].filter(p => p.name);
+
+            let tbWinner = null;
+            if (match.sets) {
+                try {
+                    const tb = JSON.parse(match.sets);
+                    if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
+                        tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
+                    }
+                } catch (e) {}
+            }
+
+            players.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                if (tbWinner) {
+                    if (a.name === tbWinner) return -1;
+                    if (b.name === tbWinner) return 1;
+                }
+                return 0;
+            });
+
+            return players;
+        }
+
         // Render leaderboard - WSL Championship style with event columns
         function renderLeaderboard() {
             const container = document.getElementById('leaderboard');
@@ -3545,13 +3575,7 @@
             PLAYERS.forEach(p => playerEventResults[p] = []);
 
             canadianMatches.forEach((match, eventIndex) => {
-                const players = [
-                    { name: match.player1, score: match.score_player1 || 0 },
-                    { name: match.player2, score: match.score_player2 || 0 },
-                    { name: match.player3, score: match.score_player3 || 0 }
-                ].filter(p => p.name);
-
-                players.sort((a, b) => b.score - a.score);
+                const players = sortCanadianPlayers(match);
 
                 // Award points: 1st = 3, 2nd = 1, 3rd = 0
                 const pointsMap = { 0: 3, 1: 1, 2: 0 };
@@ -3810,12 +3834,8 @@
                         </div>
                     `;
                 } else if (match.match_type === 'canadian') {
-                    // Sort players by score to show ranking
-                    const players = [
-                        { name: match.player1, score: match.score_player1 },
-                        { name: match.player2, score: match.score_player2 },
-                        { name: match.player3, score: match.score_player3 }
-                    ].sort((a, b) => b.score - a.score);
+                    // Sort players by score (with tiebreak awareness)
+                    const players = sortCanadianPlayers(match);
 
                     const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `
@@ -4196,11 +4216,7 @@
                 PLAYERS.forEach(p => ratFactorWins[p] = 0);
 
                 canadianMatches.forEach(match => {
-                    const players = [
-                        { name: match.player1, score: match.score_player1 },
-                        { name: match.player2, score: match.score_player2 },
-                        { name: match.player3, score: match.score_player3 }
-                    ].sort((a, b) => b.score - a.score);
+                    const players = sortCanadianPlayers(match);
                     if (players[0].name) ratFactorWins[players[0].name]++;
                 });
 
@@ -4271,11 +4287,7 @@
                 PLAYERS.forEach(p => clutchWins[p] = 0);
 
                 canadianMatches.forEach(match => {
-                    const players = [
-                        { name: match.player1, score: match.score_player1 },
-                        { name: match.player2, score: match.score_player2 },
-                        { name: match.player3, score: match.score_player3 }
-                    ].sort((a, b) => b.score - a.score);
+                    const players = sortCanadianPlayers(match);
 
                     // Close game = 1st and 2nd place within 2 points
                     const margin = players[0].score - players[1].score;
@@ -4809,11 +4821,7 @@
             PLAYERS.forEach(player => {
                 const playerResults = [];
                 canadianMatches.forEach(match => {
-                    const players = [
-                        { name: match.player1, score: match.score_player1 },
-                        { name: match.player2, score: match.score_player2 },
-                        { name: match.player3, score: match.score_player3 }
-                    ].sort((a, b) => b.score - a.score);
+                    const players = sortCanadianPlayers(match);
 
                     const position = players.findIndex(p => p.name === player);
                     if (position !== -1) {
@@ -4985,11 +4993,7 @@
             const rfResults = [];
 
             canadianMatches.forEach(match => {
-                const players = [
-                    { name: match.player1, score: match.score_player1 },
-                    { name: match.player2, score: match.score_player2 },
-                    { name: match.player3, score: match.score_player3 }
-                ].sort((a, b) => b.score - a.score);
+                const players = sortCanadianPlayers(match);
 
                 const position = players.findIndex(p => p.name === player);
                 if (position !== -1) {

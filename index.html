@@ -3031,8 +3031,10 @@
                         <div class="form-group">
                             <label class="form-label">Target Score</label>
                             <select id="canadianTarget" class="form-select">
+                                <option value="">No target</option>
                                 <option value="11">First to 11</option>
                                 <option value="7">First to 7</option>
+                                <option value="0">Tiebreak</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -3383,7 +3385,8 @@
                 return;
             }
 
-            const target = parseInt(document.getElementById('canadianTarget').value);
+            const targetVal = document.getElementById('canadianTarget').value;
+            const target = targetVal !== '' ? parseInt(targetVal) : null;
             const location = document.getElementById('canadianLocation').value.trim() || null;
 
             const match = {

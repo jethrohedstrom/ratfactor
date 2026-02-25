@@ -3023,9 +3023,16 @@
                         <div id="setsContainer">
                             <div class="set-row" data-set="1">
                                 <span class="set-label">Set 1</span>
-                                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0">
+                                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0" onchange="checkDoublesTiebreak(this)">
                                 <span class="set-separator">-</span>
-                                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0">
+                                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0" onchange="checkDoublesTiebreak(this)">
+                                <div class="tiebreak-group">
+                                    <span class="tiebreak-label">(</span>
+                                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0">
+                                    <span class="tiebreak-label">-</span>
+                                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0">
+                                    <span class="tiebreak-label">)</span>
+                                </div>
                                 <button class="set-remove-btn" onclick="removeSet(this)" style="visibility: hidden;">×</button>
                             </div>
                         </div>
@@ -3219,6 +3226,21 @@
             }
         }
 
+        function checkDoublesTiebreak(input) {
+            const row = input.closest('.set-row');
+            const t1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value) || 0;
+            const t2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value) || 0;
+            const tiebreakGroup = row.querySelector('.tiebreak-group');
+
+            // Show tiebreak input when scores are tied (any equal score >= 1)
+            if (t1Score === t2Score && t1Score >= 1) {
+                tiebreakGroup.classList.add('visible');
+            } else {
+                tiebreakGroup.classList.remove('visible');
+                tiebreakGroup.querySelectorAll('.tiebreak-input').forEach(inp => inp.value = '');
+            }
+        }
+
         function addSet() {
             const container = document.getElementById('setsContainer');
             const setRows = container.querySelectorAll('.set-row');
@@ -3234,9 +3256,16 @@
             newRow.dataset.set = newSetNum;
             newRow.innerHTML = `
                 <span class="set-label">Set ${newSetNum}</span>
-                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0">
+                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0" onchange="checkDoublesTiebreak(this)">
                 <span class="set-separator">-</span>
-                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0">
+                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0" onchange="checkDoublesTiebreak(this)">
+                <div class="tiebreak-group">
+                    <span class="tiebreak-label">(</span>
+                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0">
+                    <span class="tiebreak-label">-</span>
+                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0">
+                    <span class="tiebreak-label">)</span>
+                </div>
                 <button class="set-remove-btn" onclick="removeSet(this)">×</button>
             `;
             container.appendChild(newRow);
@@ -3393,18 +3422,43 @@
             let team2SetsWon = 0;
 
             for (const row of setRows) {
-                const team1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value);
-                const team2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value);
+                let team1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value);
+                let team2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value);
 
                 if (isNaN(team1Score) || isNaN(team2Score)) {
                     showToast('Please enter scores for all sets', true);
                     return;
                 }
 
-                sets.push({ team1: team1Score, team2: team2Score });
+                const setData = { team1: team1Score, team2: team2Score };
 
-                if (team1Score > team2Score) team1SetsWon++;
-                else if (team2Score > team1Score) team2SetsWon++;
+                // Check for tiebreak
+                if (team1Score === team2Score && team1Score >= 1) {
+                    const tb1Input = row.querySelector('.tiebreak-input[data-tb="1"]');
+                    const tb2Input = row.querySelector('.tiebreak-input[data-tb="2"]');
+                    const tb1Score = parseInt(tb1Input?.value);
+                    const tb2Score = parseInt(tb2Input?.value);
+
+                    if (!isNaN(tb1Score) && !isNaN(tb2Score) && (tb1Score > 0 || tb2Score > 0)) {
+                        if (tb1Score === tb2Score) {
+                            showToast('Tiebreak scores cannot be equal', true);
+                            return;
+                        }
+                        setData.tb1 = tb1Score;
+                        setData.tb2 = tb2Score;
+                        // Auto-increment winner's game score
+                        if (tb1Score > tb2Score) {
+                            setData.team1 = team1Score + 1;
+                        } else {
+                            setData.team2 = team2Score + 1;
+                        }
+                    }
+                }
+
+                sets.push(setData);
+
+                if (setData.team1 > setData.team2) team1SetsWon++;
+                else if (setData.team2 > setData.team1) team2SetsWon++;
             }
 
             if (team1SetsWon === team2SetsWon) {
@@ -3815,7 +3869,13 @@
                             setsDisplay = sets.map(s => {
                                 const winnerScore = team1Won ? s.team1 : s.team2;
                                 const loserScore = team1Won ? s.team2 : s.team1;
-                                return `${winnerScore}-${loserScore}`;
+                                let scoreStr = `${winnerScore}-${loserScore}`;
+                                if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                    const winnerTB = team1Won ? s.tb1 : s.tb2;
+                                    const loserTB = team1Won ? s.tb2 : s.tb1;
+                                    scoreStr += ` (${winnerTB}-${loserTB})`;
+                                }
+                                return scoreStr;
                             }).join(' ');
                         } catch (e) {
                             setsDisplay = '';

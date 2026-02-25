@@ -4708,9 +4708,9 @@
                     return `
                         <div class="set-row" data-set="${index + 1}">
                             <span class="set-label">Set ${index + 1}</span>
-                            <input type="number" class="set-score-input" data-player="1" min="0" value="${set.p1 || ''}" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
+                            <input type="number" class="set-score-input" data-player="1" min="0" value="${set.p1 ?? ''}" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
                             <span class="set-separator">-</span>
-                            <input type="number" class="set-score-input" data-player="2" min="0" value="${set.p2 || ''}" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
+                            <input type="number" class="set-score-input" data-player="2" min="0" value="${set.p2 ?? ''}" placeholder="0" onchange="checkEditSinglesTiebreak(this)">
                             <div class="tiebreak-group ${isTiebreak ? 'visible' : ''}">
                                 <span class="tiebreak-label">(</span>
                                 <input type="number" class="tiebreak-input" data-tb="1" min="0" value="${tb1Val}" placeholder="0" style="width:35px;">

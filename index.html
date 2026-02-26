@@ -5238,27 +5238,38 @@
             }
         }
 
-        // Play tick sound using Web Audio API
+        // Play rat squeak sound using Web Audio API
         function playTickSound() {
             if (!wheelState.audioContext) return;
 
             const ctx = wheelState.audioContext;
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
+            const now = ctx.currentTime;
 
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
+            // Primary squeak - high sine wave sweeping upward
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(2800, now);
+            osc1.frequency.exponentialRampToValueAtTime(3800, now + 0.05);
+            gain1.gain.setValueAtTime(0.18, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+            osc1.start(now);
+            osc1.stop(now + 0.07);
 
-            // Deeper, more satisfying casino tick
-            oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
-            oscillator.type = 'square';
-
-            gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.06);
-
-            oscillator.start(ctx.currentTime);
-            oscillator.stop(ctx.currentTime + 0.06);
+            // Secondary squeak - slightly detuned for texture
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(3000, now);
+            osc2.frequency.exponentialRampToValueAtTime(4100, now + 0.04);
+            gain2.gain.setValueAtTime(0.08, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc2.start(now);
+            osc2.stop(now + 0.05);
         }
 
         // Trigger flipper bounce animation

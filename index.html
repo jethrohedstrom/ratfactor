@@ -5222,7 +5222,8 @@
             radius: 0,
             playerImages: {},
             lastPegIndex: 0,
-            audioContext: null
+            audioContext: null,
+            squeakBuffer: null
         };
 
         const NUM_PEGS = 6; // 2 copies of each of 3 players
@@ -5231,45 +5232,33 @@
         const MIN_VELOCITY = 0.08;
         const MIN_SPIN_VELOCITY = 2.5;
 
-        // Initialize audio context for tick sounds
+        // Initialize audio context and preload rat squeak sound
         function initAudio() {
             if (!wheelState.audioContext) {
                 wheelState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
+            // Preload rat squeak as AudioBuffer for low-latency playback
+            if (!wheelState.squeakBuffer) {
+                fetch('sounds/rat-squeak.mp3')
+                    .then(response => response.arrayBuffer())
+                    .then(data => wheelState.audioContext.decodeAudioData(data))
+                    .then(buffer => { wheelState.squeakBuffer = buffer; })
+                    .catch(() => {}); // Silently fail if file not found
+            }
         }
 
-        // Play rat squeak sound using Web Audio API
+        // Play rat squeak sound
         function playTickSound() {
-            if (!wheelState.audioContext) return;
+            if (!wheelState.audioContext || !wheelState.squeakBuffer) return;
 
-            const ctx = wheelState.audioContext;
-            const now = ctx.currentTime;
-
-            // Primary squeak - high sine wave sweeping upward
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(2800, now);
-            osc1.frequency.exponentialRampToValueAtTime(3800, now + 0.05);
-            gain1.gain.setValueAtTime(0.18, now);
-            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
-            osc1.start(now);
-            osc1.stop(now + 0.07);
-
-            // Secondary squeak - slightly detuned for texture
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(3000, now);
-            osc2.frequency.exponentialRampToValueAtTime(4100, now + 0.04);
-            gain2.gain.setValueAtTime(0.08, now);
-            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-            osc2.start(now);
-            osc2.stop(now + 0.05);
+            const source = wheelState.audioContext.createBufferSource();
+            const gainNode = wheelState.audioContext.createGain();
+            source.buffer = wheelState.squeakBuffer;
+            source.connect(gainNode);
+            gainNode.connect(wheelState.audioContext.destination);
+            gainNode.gain.value = 0.4;
+            source.playbackRate.value = 1.0 + Math.random() * 0.3; // Slight random pitch variation
+            source.start(0);
         }
 
         // Trigger flipper bounce animation

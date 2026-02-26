@@ -2306,8 +2306,8 @@
         .wheel-container {
             position: relative;
             width: 100%;
-            max-width: 320px;
-            margin: 20px auto;
+            max-width: 400px;
+            margin: 30px auto 20px;
             touch-action: none;
             user-select: none;
         }
@@ -2325,52 +2325,44 @@
 
         .wheel-pointer {
             position: absolute;
-            right: -20px;
-            top: 50%;
-            transform: translateY(-50%);
-            transform-origin: right center;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            transform-origin: center bottom;
             display: flex;
+            flex-direction: column;
             align-items: center;
             transition: transform 0.05s ease-out;
+            z-index: 10;
         }
 
-        /* The flipper arm */
+        /* Downward-pointing triangle (casino style) */
         .wheel-pointer::before {
             content: '';
-            width: 45px;
-            height: 14px;
-            background: linear-gradient(to bottom,
-                #f0f0f0 0%,
-                #d0d0d0 20%,
-                #a0a0a0 50%,
-                #808080 80%,
-                #606060 100%);
-            border-radius: 3px 8px 8px 3px;
-            box-shadow:
-                0 2px 4px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 rgba(255, 255, 255, 0.5),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-            border: 1px solid #555;
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 40px solid #c0392b;
+            filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.5));
         }
 
-        /* The mounting bracket/pivot point */
+        /* Circular mount at top */
         .wheel-pointer::after {
             content: '';
             position: absolute;
-            right: -8px;
-            width: 24px;
-            height: 24px;
+            top: -8px;
+            width: 22px;
+            height: 22px;
             background: linear-gradient(135deg,
-                #e0e0e0 0%,
-                #b0b0b0 30%,
-                #808080 70%,
-                #505050 100%);
+                #e74c3c 0%,
+                #c0392b 50%,
+                #922b21 100%);
             border-radius: 50%;
             box-shadow:
                 0 3px 6px rgba(0, 0, 0, 0.5),
-                inset 0 2px 3px rgba(255, 255, 255, 0.4),
-                inset 0 -2px 3px rgba(0, 0, 0, 0.3);
-            border: 2px solid #444;
+                inset 0 2px 3px rgba(255, 255, 255, 0.3);
+            border: 2px solid #7b241c;
         }
 
         .wheel-pointer.tick {
@@ -2378,9 +2370,9 @@
         }
 
         @keyframes flipperBounce {
-            0% { transform: translateY(-50%) rotate(0deg); }
-            50% { transform: translateY(-50%) rotate(-12deg); }
-            100% { transform: translateY(-50%) rotate(0deg); }
+            0% { transform: translateX(-50%) rotate(0deg); }
+            50% { transform: translateX(-50%) rotate(-8deg); }
+            100% { transform: translateX(-50%) rotate(0deg); }
         }
 
         .wheel-instruction {
@@ -5233,11 +5225,11 @@
             audioContext: null
         };
 
-        const NUM_PEGS = 12; // 4 copies of each of 3 players
-        const WHEEL_COLORS = ['#FF6B9D', '#44FF44', '#FFD93D'];
-        const FRICTION = 0.985;
-        const MIN_VELOCITY = 0.1;
-        const MIN_SPIN_VELOCITY = 3;
+        const NUM_PEGS = 6; // 2 copies of each of 3 players
+        const WHEEL_COLORS = ['#D4145A', '#1B8A2A', '#D4A017'];
+        const FRICTION = 0.988;
+        const MIN_VELOCITY = 0.08;
+        const MIN_SPIN_VELOCITY = 2.5;
 
         // Initialize audio context for tick sounds
         function initAudio() {
@@ -5257,16 +5249,16 @@
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
 
-            // Create a short, sharp tick sound
-            oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.03);
+            // Deeper, more satisfying casino tick
+            oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.04);
             oscillator.type = 'square';
 
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+            gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.06);
 
             oscillator.start(ctx.currentTime);
-            oscillator.stop(ctx.currentTime + 0.05);
+            oscillator.stop(ctx.currentTime + 0.06);
         }
 
         // Trigger flipper bounce animation
@@ -5286,8 +5278,9 @@
             let normalizedRotation = wheelState.rotation % (2 * Math.PI);
             if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
 
-            // Pointer is at angle 0 (right side)
-            const relativeAngle = (2 * Math.PI - normalizedRotation) % (2 * Math.PI);
+            // Pointer is at the top (angle = 3PI/2 in canvas coords)
+            const pointerAngle = 3 * Math.PI / 2;
+            const relativeAngle = (pointerAngle - normalizedRotation + 2 * Math.PI) % (2 * Math.PI);
             return Math.floor(relativeAngle / segmentAngle) % NUM_PEGS;
         }
 
@@ -5362,7 +5355,7 @@
             // High-DPI support
             const dpr = window.devicePixelRatio || 1;
             const rect = container.getBoundingClientRect();
-            const size = Math.min(rect.width, 320);
+            const size = Math.min(rect.width, 400);
 
             canvas.width = size * dpr;
             canvas.height = size * dpr;
@@ -5391,7 +5384,23 @@
 
             ctx.clearRect(0, 0, wheelState.canvas.width, wheelState.canvas.height);
 
-            // Draw 12 segments (4 copies of each player)
+            // --- Gold outer decorative rim ---
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
+            const rimGradient = ctx.createLinearGradient(
+                centerX - radius, centerY - radius,
+                centerX + radius, centerY + radius
+            );
+            rimGradient.addColorStop(0, '#8B7332');
+            rimGradient.addColorStop(0.3, '#D4A017');
+            rimGradient.addColorStop(0.5, '#FAFAD2');
+            rimGradient.addColorStop(0.7, '#D4A017');
+            rimGradient.addColorStop(1, '#8B7332');
+            ctx.strokeStyle = rimGradient;
+            ctx.lineWidth = 8;
+            ctx.stroke();
+
+            // --- Draw 6 segments with large player faces ---
             for (let i = 0; i < NUM_PEGS; i++) {
                 const startAngle = rotation + (i * segmentAngle);
                 const endAngle = startAngle + segmentAngle;
@@ -5399,7 +5408,7 @@
                 const player = otherPlayers[playerIndex];
                 const img = playerImages[player];
 
-                // Draw segment background
+                // Segment background
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -5407,105 +5416,124 @@
                 ctx.fillStyle = WHEEL_COLORS[playerIndex];
                 ctx.fill();
 
-                // Draw player image in every 4th segment (centered positions)
-                if (i % 4 === 1 && img) {
+                // Large player face filling the segment
+                if (img) {
                     ctx.save();
-                    // Clip to segment
                     ctx.beginPath();
                     ctx.moveTo(centerX, centerY);
                     ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                     ctx.closePath();
                     ctx.clip();
 
-                    // Calculate image position - center it in the segment
                     const midAngle = startAngle + segmentAngle / 2;
-                    const imgDistance = radius * 0.6;
-                    const imgX = centerX + Math.cos(midAngle) * imgDistance;
-                    const imgY = centerY + Math.sin(midAngle) * imgDistance;
+                    const imgDistance = radius * 0.52;
+                    const imgCenterX = centerX + Math.cos(midAngle) * imgDistance;
+                    const imgCenterY = centerY + Math.sin(midAngle) * imgDistance;
+                    const faceSize = radius * 0.42;
 
-                    // Draw circular image
-                    const imgRadius = radius * 0.18;
-                    ctx.beginPath();
-                    ctx.arc(imgX, imgY, imgRadius, 0, 2 * Math.PI);
-                    ctx.closePath();
-                    ctx.clip();
-
-                    // Draw image scaled to cover the circle
                     const aspectRatio = img.width / img.height;
                     let drawWidth, drawHeight;
                     if (aspectRatio > 1) {
-                        drawHeight = imgRadius * 2;
+                        drawHeight = faceSize * 2;
                         drawWidth = drawHeight * aspectRatio;
                     } else {
-                        drawWidth = imgRadius * 2;
+                        drawWidth = faceSize * 2;
                         drawHeight = drawWidth / aspectRatio;
                     }
+
                     ctx.drawImage(
                         img,
-                        imgX - drawWidth / 2,
-                        imgY - drawHeight / 2,
+                        imgCenterX - drawWidth / 2,
+                        imgCenterY - drawHeight / 2,
                         drawWidth,
                         drawHeight
                     );
                     ctx.restore();
                 }
 
-                // Draw segment border
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Draw player name in the segment
+                // Player name near outer rim (white with shadow for readability)
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + segmentAngle / 2);
-                ctx.textAlign = 'right';
+                ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 11px "Bebas Neue", sans-serif';
-                ctx.fillText(player.toUpperCase(), radius - 6, 0);
+                // Text outline for readability
+                ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+                ctx.lineWidth = 3;
+                ctx.font = 'bold 14px "Bebas Neue", sans-serif';
+                ctx.strokeText(player.toUpperCase(), radius * 0.82, 0);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(player.toUpperCase(), radius * 0.82, 0);
                 ctx.restore();
+
+                // Gold segment divider line
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + Math.cos(startAngle) * radius,
+                    centerY + Math.sin(startAngle) * radius
+                );
+                ctx.strokeStyle = '#D4A017';
+                ctx.lineWidth = 2;
+                ctx.stroke();
             }
 
-            // Draw pegs at segment boundaries
+            // --- Gold pegs at segment boundaries ---
             for (let i = 0; i < NUM_PEGS; i++) {
                 const pegAngle = rotation + (i * segmentAngle);
-                const pegX = centerX + Math.cos(pegAngle) * (radius - 8);
-                const pegY = centerY + Math.sin(pegAngle) * (radius - 8);
+                const pegX = centerX + Math.cos(pegAngle) * (radius - 10);
+                const pegY = centerY + Math.sin(pegAngle) * (radius - 10);
 
-                // Draw peg (metallic look)
                 ctx.beginPath();
-                ctx.arc(pegX, pegY, 6, 0, 2 * Math.PI);
-                const gradient = ctx.createRadialGradient(pegX - 2, pegY - 2, 0, pegX, pegY, 6);
-                gradient.addColorStop(0, '#ffffff');
-                gradient.addColorStop(0.3, '#cccccc');
-                gradient.addColorStop(1, '#666666');
+                ctx.arc(pegX, pegY, 7, 0, 2 * Math.PI);
+                const gradient = ctx.createRadialGradient(pegX - 2, pegY - 2, 0, pegX, pegY, 7);
+                gradient.addColorStop(0, '#FAFAD2');
+                gradient.addColorStop(0.3, '#D4A017');
+                gradient.addColorStop(1, '#8B7332');
                 ctx.fillStyle = gradient;
                 ctx.fill();
-                ctx.strokeStyle = '#333';
+                ctx.strokeStyle = '#6B5B1F';
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
 
-            // Draw outer rim
+            // --- Outer rim ring ---
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-
-            // Draw center circle
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fill();
-            ctx.strokeStyle = '#444';
+            ctx.strokeStyle = '#8B7332';
             ctx.lineWidth = 3;
             ctx.stroke();
+
+            // --- Center hub (casino style) ---
+            const hubRadius = 30;
+
+            // Outer gold ring
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, hubRadius + 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#D4A017';
+            ctx.fill();
+
+            // Inner hub
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, hubRadius, 0, 2 * Math.PI);
+            const hubGradient = ctx.createRadialGradient(
+                centerX - 5, centerY - 5, 0,
+                centerX, centerY, hubRadius
+            );
+            hubGradient.addColorStop(0, '#2c2c4a');
+            hubGradient.addColorStop(1, '#1a1a2e');
+            ctx.fillStyle = hubGradient;
+            ctx.fill();
+            ctx.strokeStyle = '#D4A017';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // RF initials in center
+            ctx.fillStyle = '#D4A017';
+            ctx.font = 'bold 16px "Bebas Neue", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('RF', centerX, centerY);
         }
 
         // Get unified event position (touch or mouse)
@@ -5657,11 +5685,11 @@
 
         // Determine which segment the pointer landed on
         function determineWinner() {
-            // With 12 segments (4 copies of each player), we need to find which player
+            // With 6 segments (2 copies of each player), find which player
             // the current segment belongs to
             const currentPegIndex = getCurrentPegIndex();
 
-            // Each player appears 4 times, at indices: 0,3,6,9 / 1,4,7,10 / 2,5,8,11
+            // Each player appears twice, at indices: 0,3 / 1,4 / 2,5
             // So playerIndex = pegIndex % 3
             const playerIndex = currentPegIndex % 3;
 

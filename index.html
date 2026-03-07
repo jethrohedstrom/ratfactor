@@ -892,12 +892,13 @@
             align-items: flex-start;
             gap: 12px;
             padding: 16px 18px;
-            background: var(--bg-dark);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, rgba(22, 33, 62, 0.6) 100%);
             border-left: 4px solid var(--accent-green);
             border-radius: 0 10px 10px 0;
             font-size: 0.9rem;
             line-height: 1.6;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
         }
 
         .insight-item:hover {
@@ -957,6 +958,40 @@
 
         .insight-item.stat {
             border-left-color: var(--accent-green);
+        }
+
+        .insight-item.fun {
+            border-left-color: #e67e22;
+        }
+
+        .insight-item.fun .insight-text strong {
+            color: #e67e22;
+        }
+
+        .insight-item::after {
+            content: attr(data-label);
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.35;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .insight-badge-new {
+            display: inline-block;
+            background: var(--accent-pink);
+            color: var(--bg-dark);
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 6px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Empty state */
@@ -2420,18 +2455,399 @@
 
         .result-buttons {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-top: 25px;
         }
 
-        .result-buttons .btn-spin-again {
+        .result-buttons-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .result-buttons-row .btn-spin-again {
             flex: 1;
             margin-top: 0;
         }
 
-        .result-buttons .btn-change-player {
+        .result-buttons-row .btn-change-player {
             flex: 1;
             margin-top: 0;
+        }
+
+        .btn-who-serves {
+            background: linear-gradient(135deg, #D4A017, #e6b422);
+            border: none;
+            color: #0a0e1a;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-who-serves:hover {
+            background: linear-gradient(135deg, #e6b422, #f0c040);
+            transform: scale(1.02);
+        }
+
+        /* ========== RACKET SPIN (Phase 4) ========== */
+        .racket-spin-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .serve-prompt {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--text-primary);
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .serve-call-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn-serve-call {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--text-muted);
+            color: var(--text-primary);
+            padding: 20px 40px;
+            border-radius: 16px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-serve-call:hover {
+            border-color: #D4A017;
+            background: rgba(212, 160, 23, 0.1);
+            transform: scale(1.05);
+        }
+
+        .btn-serve-call:active {
+            transform: scale(0.98);
+        }
+
+        .call-arrow {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .serve-call-buttons.hidden {
+            display: none;
+        }
+
+        /* 3D Racket — Wimbledon wooden style */
+        .racket-viewport {
+            width: 150px;
+            height: 360px;
+            perspective: 900px;
+            display: none;
+            filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+        }
+
+        .racket-viewport.visible {
+            display: block;
+        }
+
+        .racket {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(0deg);
+        }
+
+        .racket-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .racket-back {
+            transform: rotateX(180deg);
+        }
+
+        /* Racket Head — wooden oval frame */
+        .racket-head {
+            width: 130px;
+            height: 170px;
+            border: 9px solid;
+            border-image: none;
+            border-color: #A0782C;
+            border-radius: 50% 50% 46% 46%;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(139, 105, 20, 0.12), rgba(160, 120, 44, 0.06));
+            box-shadow:
+                0 0 15px rgba(46, 204, 113, 0.2),
+                inset 0 0 10px rgba(46, 204, 113, 0.08),
+                inset 0 2px 0 rgba(255,255,255,0.15),
+                0 2px 0 #8B6914,
+                0 4px 0 #705010;
+        }
+
+        /* Wood grain texture on the frame */
+        .racket-head::before {
+            content: '';
+            position: absolute;
+            top: -9px; left: -9px; right: -9px; bottom: -9px;
+            border-radius: inherit;
+            border: 9px solid transparent;
+            background: repeating-linear-gradient(
+                170deg,
+                rgba(255,255,255,0.06) 0px,
+                transparent 2px,
+                transparent 6px
+            ) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .racket-head-back {
+            border-color: #A0782C;
+            background: linear-gradient(135deg, rgba(139, 105, 20, 0.12), rgba(160, 120, 44, 0.06));
+            box-shadow:
+                0 0 15px rgba(231, 76, 60, 0.2),
+                inset 0 0 10px rgba(231, 76, 60, 0.08),
+                inset 0 2px 0 rgba(255,255,255,0.15),
+                0 2px 0 #8B6914,
+                0 4px 0 #705010;
+        }
+
+        /* Bumper guard around the head */
+        .racket-bumper {
+            position: absolute;
+            top: -2px; left: -2px; right: -2px;
+            height: 50%;
+            border: 2px solid rgba(200, 170, 100, 0.3);
+            border-bottom: none;
+            border-radius: 50% 50% 0 0;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* String bed — tighter, more visible */
+        .racket-strings {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(220, 210, 180, 0.22) 7px, rgba(220, 210, 180, 0.22) 8.5px),
+                repeating-linear-gradient(90deg, transparent, transparent 7px, rgba(220, 210, 180, 0.22) 7px, rgba(220, 210, 180, 0.22) 8.5px);
+            z-index: 1;
+        }
+
+        /* Brand logo */
+        .racket-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            color: rgba(180, 150, 80, 0.25);
+            letter-spacing: 4px;
+            z-index: 2;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Throat — V-shaped yoke */
+        .racket-throat {
+            width: 50px;
+            height: 22px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .throat-left, .throat-right {
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, #A0782C, #8B6914);
+            border-radius: 0 0 2px 2px;
+            box-shadow: inset 1px 0 0 rgba(255,255,255,0.1);
+        }
+
+        .throat-left {
+            transform: rotate(8deg);
+            transform-origin: top center;
+        }
+
+        .throat-right {
+            transform: rotate(-8deg);
+            transform-origin: top center;
+        }
+
+        /* Shaft — short connector */
+        .racket-shaft {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(180deg, #8B6914, #7a5c12);
+            border-radius: 2px;
+            box-shadow: inset 1px 0 0 rgba(255,255,255,0.1), inset -1px 0 0 rgba(0,0,0,0.2);
+        }
+
+        /* Collar between shaft and grip */
+        .racket-collar {
+            width: 22px;
+            height: 8px;
+            background: linear-gradient(180deg, #c0a050, #a08030);
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        /* Handle with leather grip wrap */
+        .racket-handle {
+            width: 18px;
+            height: 90px;
+            background: #3a2a1a;
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                inset 2px 0 0 rgba(255,255,255,0.05),
+                inset -2px 0 0 rgba(0,0,0,0.3),
+                1px 0 2px rgba(0,0,0,0.3),
+                -1px 0 2px rgba(0,0,0,0.3);
+        }
+
+        /* Diagonal grip wrap texture */
+        .grip-wrap {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 3px,
+                rgba(80, 60, 30, 0.6) 3px,
+                rgba(80, 60, 30, 0.6) 4px,
+                transparent 4px,
+                transparent 5px,
+                rgba(100, 75, 40, 0.4) 5px,
+                rgba(100, 75, 40, 0.4) 6px
+            );
+        }
+
+        /* Butt cap */
+        .racket-butt-cap {
+            width: 26px;
+            height: 26px;
+            line-height: 26px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .butt-cap-down {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        @keyframes racketSpin {
+            from { transform: rotateX(0deg); }
+            to { transform: rotateX(360deg); }
+        }
+
+        /* Serve result */
+        .serve-result {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .serve-result.visible {
+            display: flex;
+        }
+
+        .serve-result-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            letter-spacing: 4px;
+            font-weight: bold;
+        }
+
+        .serve-result-label.up {
+            color: #2ecc71;
+        }
+
+        .serve-result-label.down {
+            color: #e74c3c;
+        }
+
+        .serve-winner {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            color: #D4A017;
+            letter-spacing: 2px;
+        }
+
+        .tennis-fact {
+            max-width: 340px;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .fact-label {
+            display: block;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .fact-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ========== MOBILE RESPONSIVE ========== */
@@ -2721,14 +3137,85 @@
                             </div>
                         </div>
                         <div class="result-buttons">
-                            <button class="btn-spin-again" onclick="resetWheelForSpin()">
-                                <span class="btn-icon">🔄</span>
-                                Spin Again
-                            </button>
-                            <button class="btn-change-player" onclick="showWheelPhase(1)">
-                                Change Player
+                            <div class="result-buttons-row">
+                                <button class="btn-spin-again" onclick="resetWheelForSpin()">
+                                    <span class="btn-icon">🔄</span>
+                                    Spin Again
+                                </button>
+                                <button class="btn-change-player" onclick="showWheelPhase(1)">
+                                    Change Player
+                                </button>
+                            </div>
+                            <button class="btn-who-serves" onclick="startRacketSpin()">
+                                🎾 Who Serves First?
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: Who Serves First (Racket Spin) -->
+                <div id="wheelPhase4" class="wheel-phase">
+                    <div class="racket-spin-container">
+                        <h2 class="serve-prompt" id="servePrompt">Rick, call it!</h2>
+                        <div class="serve-call-buttons" id="serveCallButtons">
+                            <button class="btn-serve-call" onclick="onServeCall('UP')">
+                                <span class="call-arrow">▲</span>
+                                UP
+                            </button>
+                            <button class="btn-serve-call" onclick="onServeCall('DOWN')">
+                                <span class="call-arrow">▼</span>
+                                DOWN
+                            </button>
+                        </div>
+                        <div class="racket-viewport" id="racketViewport">
+                            <div class="racket" id="racketElement">
+                                <div class="racket-face racket-front">
+                                    <div class="racket-head">
+                                        <div class="racket-bumper"></div>
+                                        <div class="racket-strings"></div>
+                                        <div class="racket-logo">W</div>
+                                    </div>
+                                    <div class="racket-throat">
+                                        <div class="throat-left"></div>
+                                        <div class="throat-right"></div>
+                                    </div>
+                                    <div class="racket-shaft"></div>
+                                    <div class="racket-collar"></div>
+                                    <div class="racket-handle">
+                                        <div class="grip-wrap"></div>
+                                    </div>
+                                    <div class="racket-butt-cap">▲ UP</div>
+                                </div>
+                                <div class="racket-face racket-back">
+                                    <div class="racket-head racket-head-back">
+                                        <div class="racket-bumper"></div>
+                                        <div class="racket-strings"></div>
+                                        <div class="racket-logo">W</div>
+                                    </div>
+                                    <div class="racket-throat">
+                                        <div class="throat-left"></div>
+                                        <div class="throat-right"></div>
+                                    </div>
+                                    <div class="racket-shaft"></div>
+                                    <div class="racket-collar"></div>
+                                    <div class="racket-handle">
+                                        <div class="grip-wrap"></div>
+                                    </div>
+                                    <div class="racket-butt-cap butt-cap-down">▼ DOWN</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="serve-result" id="serveResult">
+                            <div class="serve-result-label" id="serveResultLabel">UP!</div>
+                            <div class="serve-winner" id="serveWinner">Rick serves first</div>
+                            <div class="tennis-fact" id="tennisFact">
+                                <span class="fact-label">Tennis Fact:</span>
+                                <span class="fact-text" id="tennisFactText"></span>
+                            </div>
+                        </div>
+                        <button class="btn-change-player" onclick="showWheelPhase(3)" id="serveBackBtn">
+                            ← Back to Matchup
+                        </button>
                     </div>
                 </div>
             </div>
@@ -3968,6 +4455,8 @@
             const container = document.getElementById('insights');
             const insights = [];
             const currentYear = new Date().getFullYear();
+            const now = Date.now();
+            const TWO_DAYS_MS = 48 * 60 * 60 * 1000;
 
             // Filter matches by type
             const singlesMatches = matches.filter(m => m.match_type === 'singles');
@@ -4004,8 +4493,9 @@
                 if (record.wins >= 1 && record.losses === 0) {
                     insights.push({
                         type: 'doubles',
+                        subcategory: 'doubles-unbeaten',
                         priority: 10,
-                        text: `🧀 ${team} are unbeaten this year in doubles (${record.wins}-0)`
+                        text: `🧀 ${team} haven't lost together all year (${record.wins}-0) — the dream team`
                     });
                 }
             });
@@ -4017,8 +4507,9 @@
             if (bestDoublesTeam && bestDoublesTeam[1].wins > bestDoublesTeam[1].losses) {
                 insights.push({
                     type: 'stat',
+                    subcategory: 'doubles-best',
                     priority: 5,
-                    text: `🧀 ${bestDoublesTeam[0]} lead doubles this year: ${bestDoublesTeam[1].wins}-${bestDoublesTeam[1].losses}`
+                    text: `🧀 ${bestDoublesTeam[0]} own the doubles court this year: ${bestDoublesTeam[1].wins}-${bestDoublesTeam[1].losses}`
                 });
             }
 
@@ -4029,8 +4520,9 @@
             if (worstDoublesTeam && worstDoublesTeam[1].losses > worstDoublesTeam[1].wins) {
                 insights.push({
                     type: 'cold',
+                    subcategory: 'doubles-worst',
                     priority: 5,
-                    text: `🪤 ${worstDoublesTeam[0]} are the worst doubles team this year: ${worstDoublesTeam[1].wins}-${worstDoublesTeam[1].losses}`
+                    text: `🪤 ${worstDoublesTeam[0]} might want to rethink their partnership: ${worstDoublesTeam[1].wins}-${worstDoublesTeam[1].losses} this year`
                 });
             }
 
@@ -4039,16 +4531,17 @@
                 if (record.wins === 0 && record.losses >= 2) {
                     insights.push({
                         type: 'cold',
+                        subcategory: 'doubles-winless',
                         priority: 7,
-                        text: `🪤 ${team} have never won a doubles match together (0-${record.losses})`
+                        text: `🪤 ${team} are still searching for their first doubles win together (0-${record.losses})`
                     });
                 }
             });
 
             // ========== DOUBLES CHEMISTRY ==========
             // Track each player's win rate with each partner
+            let playerPartnerStats = {};
             if (doublesMatches.length >= 3) {
-                const playerPartnerStats = {};
                 PLAYERS.forEach(p => playerPartnerStats[p] = {});
 
                 doublesMatches.forEach(match => {
@@ -4107,26 +4600,18 @@
                 if (bestChemistry && bestChemistry.winRate >= 0.6 && bestChemistry.wins >= 2) {
                     insights.push({
                         type: 'doubles',
+                        subcategory: 'doubles-chemistry',
                         priority: 6,
-                        text: `🧀 ${bestChemistry.player} & ${bestChemistry.partner} have great chemistry: ${bestChemistry.wins}-${bestChemistry.losses} together`
+                        text: `🧀 ${bestChemistry.player} & ${bestChemistry.partner} are doubles gold: ${bestChemistry.wins}-${bestChemistry.losses} when they team up`
                     });
                 }
 
                 // ========== COMMON LOSING DENOMINATOR ==========
-                // Compare how partners perform WITH vs WITHOUT each player
-                // If your partners consistently do worse with you, you're the problem
-
-                // We already have playerPartnerStats from the chemistry section above
-                // For each player, calculate average partner win rate WITH them vs WITHOUT them
-
                 const denominatorScores = {};
                 PLAYERS.forEach(player => {
-                    // Get this player's win rate with each partner
                     const withPlayer = playerPartnerStats[player];
                     let totalPartnerWinsWithMe = 0;
                     let totalPartnerGamesWithMe = 0;
-
-                    // For each of my partners, compare their performance with me vs with others
                     let partnerDifferentials = [];
 
                     Object.entries(withPlayer).forEach(([partner, statsWithMe]) => {
@@ -4137,7 +4622,6 @@
                         totalPartnerWinsWithMe += statsWithMe.wins;
                         totalPartnerGamesWithMe += gamesWithMe;
 
-                        // Get partner's win rate with OTHER players (not me)
                         const partnerStats = playerPartnerStats[partner];
                         let winsWithoutMe = 0;
                         let gamesWithoutMe = 0;
@@ -4151,12 +4635,10 @@
 
                         if (gamesWithoutMe >= 1) {
                             const winRateWithoutMe = winsWithoutMe / gamesWithoutMe;
-                            // Negative = partner does WORSE with me
                             partnerDifferentials.push(winRateWithMe - winRateWithoutMe);
                         }
                     });
 
-                    // Average differential across all partners
                     if (partnerDifferentials.length >= 2 && totalPartnerGamesWithMe >= 3) {
                         const avgDifferential = partnerDifferentials.reduce((a, b) => a + b, 0) / partnerDifferentials.length;
                         denominatorScores[player] = {
@@ -4167,9 +4649,8 @@
                     }
                 });
 
-                // Find player with most negative differential (partners do worse with them)
                 const worstDenominator = Object.entries(denominatorScores)
-                    .filter(([_, stats]) => stats.differential < -0.15) // Partners do >15% worse with them
+                    .filter(([_, stats]) => stats.differential < -0.15)
                     .sort((a, b) => a[1].differential - b[1].differential)[0];
 
                 if (worstDenominator) {
@@ -4177,19 +4658,45 @@
                     const dropPercent = Math.abs(Math.round(stats.differential * 100));
                     insights.push({
                         type: 'cold',
+                        subcategory: 'doubles-kryptonite',
                         priority: 7,
-                        text: `🪤 Doubles kryptonite: partners' win rate drops ${dropPercent}% with ${player}`
+                        text: `🪤 Warning: playing doubles with ${player} reduces your win rate by ${dropPercent}%`
                     });
                 }
+
+                // ========== PARTNERSHIP CONTRAST ==========
+                PLAYERS.forEach(player => {
+                    const partnerRates = [];
+                    Object.entries(playerPartnerStats[player]).forEach(([partner, stats]) => {
+                        const total = stats.wins + stats.losses;
+                        if (total >= 2) {
+                            partnerRates.push({ partner, winRate: stats.wins / total, wins: stats.wins, losses: stats.losses, total });
+                        }
+                    });
+
+                    if (partnerRates.length >= 2) {
+                        partnerRates.sort((a, b) => b.winRate - a.winRate);
+                        const best = partnerRates[0];
+                        const worst = partnerRates[partnerRates.length - 1];
+                        const diff = Math.round((best.winRate - worst.winRate) * 100);
+
+                        if (diff >= 40 && best.total >= 2 && worst.total >= 2) {
+                            insights.push({
+                                type: 'doubles',
+                                subcategory: 'doubles-partnercontrast',
+                                priority: 6,
+                                text: `🧪 ${player} wins ${Math.round(best.winRate * 100)}% with ${best.partner} but only ${Math.round(worst.winRate * 100)}% with ${worst.partner}`
+                            });
+                        }
+                    }
+                });
             }
 
             // ========== SINGLES STREAKS ==========
 
-            // Calculate current winning/losing streaks for each player
             const playerStreaks = {};
             PLAYERS.forEach(p => playerStreaks[p] = { type: null, count: 0, done: false });
 
-            // Go through matches chronologically (newest first) to find current streaks
             singlesMatches.forEach(match => {
                 [match.player1, match.player2].forEach(player => {
                     if (playerStreaks[player].done) return;
@@ -4208,20 +4715,21 @@
                 });
             });
 
-            // Report notable streaks (2+ matches)
             Object.entries(playerStreaks).forEach(([player, streak]) => {
                 if (streak.count >= 2) {
                     if (streak.type === 'win') {
                         insights.push({
                             type: 'streak',
+                            subcategory: 'streak-winning',
                             priority: streak.count >= 3 ? 8 : 5,
-                            text: `${'🧀'.repeat(streak.count)} ${player} has won ${streak.count} singles matches in a row!`
+                            text: `${'🧀'.repeat(streak.count)} ${player} is on a ${streak.count}-match heater in singles — who can stop them?`
                         });
                     } else {
                         insights.push({
                             type: 'cold',
+                            subcategory: 'streak-losing',
                             priority: streak.count >= 3 ? 6 : 4,
-                            text: `${'🪤'.repeat(streak.count)} ${player} has lost ${streak.count} singles matches in a row`
+                            text: `${'🪤'.repeat(streak.count)} ${player} has dropped ${streak.count} straight in singles — the slump is real`
                         });
                     }
                 }
@@ -4246,14 +4754,16 @@
                     if (p1Wins === 0) {
                         insights.push({
                             type: 'dominance',
+                            subcategory: 'h2h-never-beaten',
                             priority: 9,
-                            text: `🪤 ${p1} has never beaten ${p2} in singles (0-${p2Wins})`
+                            text: `🪤 ${p1} is still chasing that elusive first win over ${p2} (0-${p2Wins})`
                         });
                     } else if (p2Wins === 0) {
                         insights.push({
                             type: 'dominance',
+                            subcategory: 'h2h-never-beaten',
                             priority: 9,
-                            text: `🪤 ${p2} has never beaten ${p1} in singles (0-${p1Wins})`
+                            text: `🪤 ${p2} is still chasing that elusive first win over ${p1} (0-${p1Wins})`
                         });
                     }
                 }
@@ -4267,9 +4777,10 @@
                     const ratio = dominantWins / record.matches.length;
                     if (ratio >= 0.7) {
                         insights.push({
-                            type: 'stat',
+                            type: 'dominance',
+                            subcategory: 'h2h-dominance',
                             priority: 4,
-                            text: `🧀 ${dominant} dominates ${dominated} in singles: ${dominantWins}-${dominatedWins}`
+                            text: `🧀 ${dominant} owns the head-to-head vs ${dominated}: ${dominantWins}-${dominatedWins} in singles`
                         });
                     }
                 }
@@ -4286,14 +4797,48 @@
                         const opponent = recentWinner === p1 ? p2 : p1;
                         insights.push({
                             type: 'streak',
+                            subcategory: 'h2h-streak',
                             priority: 7,
-                            text: `🧀 ${recentWinner} has won the last ${streak} matches against ${opponent}`
+                            text: `🧀 ${recentWinner} has won ${streak} straight vs ${opponent} — complete domination`,
+                            recency: new Date(record.matches[0].created_at).getTime()
                         });
-                        // Punching bag - from the loser's perspective
                         insights.push({
                             type: 'cold',
+                            subcategory: 'h2h-punching-bag',
                             priority: 6,
-                            text: `🪤 ${opponent} is ${recentWinner}'s punching bag - lost the last ${streak} against them`
+                            text: `🪤 ${opponent} can't buy a win against ${recentWinner} — dropped the last ${streak}`
+                        });
+                    }
+                }
+
+                // Close rivalry (5+ matches, within 1 win)
+                if (record.matches.length >= 5 && Math.abs(p1Wins - p2Wins) <= 1) {
+                    insights.push({
+                        type: 'dominance',
+                        subcategory: 'h2h-rivalry',
+                        priority: 7,
+                        text: `🐀🐀 ${p1} vs ${p2} is the tightest rivalry: ${p1Wins}-${p2Wins} in ${record.matches.length} matches`
+                    });
+                }
+
+                // Revenge game - broke a 3+ losing streak against a specific opponent
+                if (record.matches.length >= 4) {
+                    const mostRecentWinner = record.matches[0].winner1;
+                    const loser = mostRecentWinner === p1 ? p2 : p1;
+
+                    let priorStreak = 0;
+                    for (let i = 1; i < record.matches.length; i++) {
+                        if (record.matches[i].winner1 === loser) priorStreak++;
+                        else break;
+                    }
+
+                    if (priorStreak >= 3) {
+                        insights.push({
+                            type: 'streak',
+                            subcategory: 'h2h-revenge',
+                            priority: 8,
+                            text: `🔥 Revenge! ${mostRecentWinner} ended ${loser}'s ${priorStreak}-match winning streak against them`,
+                            recency: new Date(record.matches[0].created_at).getTime()
                         });
                     }
                 }
@@ -4302,7 +4847,6 @@
             // ========== RAT FACTOR INSIGHTS ==========
 
             if (canadianMatches.length >= 3) {
-                // Track wins (1st place finishes)
                 const ratFactorWins = {};
                 PLAYERS.forEach(p => ratFactorWins[p] = 0);
 
@@ -4311,17 +4855,16 @@
                     if (players[0].name) ratFactorWins[players[0].name]++;
                 });
 
-                // Rat Factor king
                 const ratKing = Object.entries(ratFactorWins).sort((a, b) => b[1] - a[1])[0];
                 if (ratKing[1] >= 3) {
                     insights.push({
                         type: 'stat',
+                        subcategory: 'ratfactor-king',
                         priority: 5,
-                        text: `🧀 ${ratKing[0]} is the Rat Factor king with ${ratKing[1]} wins`
+                        text: `🧀 ${ratKing[0]} wears the Rat Factor crown: ${ratKing[1]} first-place finishes`
                     });
                 }
 
-                // Most last-place finishes in Rat Factor
                 const ratFactorLasts = {};
                 PLAYERS.forEach(p => ratFactorLasts[p] = 0);
 
@@ -4338,12 +4881,12 @@
                 if (ratLoser[1] >= 3) {
                     insights.push({
                         type: 'cold',
+                        subcategory: 'ratfactor-last',
                         priority: 5,
-                        text: `🪤 ${ratLoser[0]} has finished last in ${ratLoser[1]} Rat Factor matches`
+                        text: `🪤 ${ratLoser[0]} has collected ${ratLoser[1]} wooden spoons in Rat Factor`
                     });
                 }
 
-                // Recent form
                 const recentScores = {};
                 PLAYERS.forEach(p => recentScores[p] = []);
 
@@ -4360,27 +4903,26 @@
                         if (avg >= 9) {
                             insights.push({
                                 type: 'streak',
+                                subcategory: 'ratfactor-form',
                                 priority: 6,
-                                text: `🧀 ${player} is on fire in Rat Factor! Avg ${avg.toFixed(1)} pts in last ${scores.length} matches`
+                                text: `🧀 ${player} is cooking in Rat Factor — averaging ${avg.toFixed(1)} pts lately`
                             });
                         } else if (avg <= 4) {
                             insights.push({
                                 type: 'cold',
+                                subcategory: 'ratfactor-form',
                                 priority: 3,
-                                text: `🪤 ${player} is struggling in Rat Factor (avg ${avg.toFixed(1)} pts in last ${scores.length} matches)`
+                                text: `🪤 ${player} needs a Rat Factor lifeline — averaging just ${avg.toFixed(1)} pts recently`
                             });
                         }
                     }
                 });
 
-                // Clutch player - wins close Rat Factor games (winner within 2 points of 2nd place)
                 const clutchWins = {};
                 PLAYERS.forEach(p => clutchWins[p] = 0);
 
                 canadianMatches.forEach(match => {
                     const players = sortCanadianPlayers(match);
-
-                    // Close game = 1st and 2nd place within 2 points
                     const margin = players[0].score - players[1].score;
                     if (margin <= 2 && players[0].name) {
                         clutchWins[players[0].name]++;
@@ -4391,15 +4933,15 @@
                 if (clutchLeader[1] >= 2) {
                     insights.push({
                         type: 'streak',
+                        subcategory: 'ratfactor-clutch',
                         priority: 7,
-                        text: `🧀 ${clutchLeader[0]} is clutch! ${clutchLeader[1]} wins in close Rat Factor games`
+                        text: `🧀 Ice in the veins: ${clutchLeader[0]} has ${clutchLeader[1]} clutch wins in tight Rat Factor games`
                     });
                 }
             }
 
             // ========== OVERALL STATS ==========
 
-            // Singles win counts this year
             if (singlesThisYear.length > 0) {
                 const winCountsThisYear = {};
                 PLAYERS.forEach(p => winCountsThisYear[p] = 0);
@@ -4414,20 +4956,21 @@
                         const names = tiedPlayers.map(([name]) => name).join(' & ');
                         insights.push({
                             type: 'stat',
+                            subcategory: 'singles-leader',
                             priority: topWins >= 3 ? 5 : 3,
-                            text: `🐀🐀 ${names} both have ${topWins} singles win${topWins > 1 ? 's' : ''} this year`
+                            text: `🐀🐀 ${names} are neck and neck with ${topWins} singles win${topWins > 1 ? 's' : ''} each this year`
                         });
                     } else {
                         insights.push({
                             type: 'stat',
+                            subcategory: 'singles-leader',
                             priority: topWins >= 3 ? 5 : 3,
-                            text: `🧀 ${sorted[0][0]} has ${topWins} singles win${topWins > 1 ? 's' : ''} this year`
+                            text: `🧀 ${sorted[0][0]} leads the pack with ${topWins} singles win${topWins > 1 ? 's' : ''} this year`
                         });
                     }
                 }
             }
 
-            // Worst singles record this year (min 3 matches)
             if (singlesThisYear.length > 0) {
                 const playerRecordsThisYear = {};
                 PLAYERS.forEach(p => playerRecordsThisYear[p] = { wins: 0, losses: 0 });
@@ -4447,6 +4990,7 @@
                 if (worstRecord && worstRecord[1].wins < worstRecord[1].losses) {
                     insights.push({
                         type: 'cold',
+                        subcategory: 'singles-worst',
                         priority: 5,
                         text: `🪤 ${worstRecord[0]} has the worst singles record this year: ${worstRecord[1].wins}-${worstRecord[1].losses}`
                     });
@@ -4465,23 +5009,179 @@
             const sortedByMatches = Object.entries(matchCounts).sort((a, b) => b[1] - a[1]);
             const mostActive = sortedByMatches[0];
             const secondMostActive = sortedByMatches[1];
-            // Only show if there's a clear leader (no tie for first)
             if (mostActive[1] >= 3 && mostActive[1] > secondMostActive[1]) {
                 insights.push({
                     type: 'stat',
+                    subcategory: 'overall-active',
                     priority: 2,
-                    text: `🎾 ${mostActive[0]} has played the most matches: ${mostActive[1]} total`
+                    text: `🎾 Court hog alert: ${mostActive[0]} leads with ${mostActive[1]} total matches played`
                 });
             }
 
-            // Total matches played
             if (matches.length > 0) {
                 insights.push({
                     type: 'stat',
+                    subcategory: 'overall-total',
                     priority: 1,
-                    text: `📊 ${matches.length} total matches logged`
+                    text: `📊 The group has battled through ${matches.length} matches and counting`
                 });
             }
+
+            // ========== NEW: DAY-OF-WEEK QUIRKS ==========
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            PLAYERS.forEach(player => {
+                const dayRecords = {};
+                singlesMatches.forEach(m => {
+                    if (m.player1 !== player && m.player2 !== player) return;
+                    const day = new Date(m.created_at).getDay();
+                    if (!dayRecords[day]) dayRecords[day] = { wins: 0, losses: 0 };
+                    if (m.winner1 === player) dayRecords[day].wins++;
+                    else dayRecords[day].losses++;
+                });
+
+                Object.entries(dayRecords).forEach(([day, rec]) => {
+                    const total = rec.wins + rec.losses;
+                    if (total >= 3 && rec.wins === 0) {
+                        insights.push({
+                            type: 'fun',
+                            subcategory: 'fun-dayofweek',
+                            priority: 4,
+                            text: `🗓️ ${player} has never won a singles match on a ${dayNames[day]} (0-${rec.losses})`
+                        });
+                    }
+                    if (total >= 3 && rec.losses === 0) {
+                        insights.push({
+                            type: 'fun',
+                            subcategory: 'fun-dayofweek',
+                            priority: 4,
+                            text: `🗓️ ${player} is unbeaten on ${dayNames[day]}s: ${rec.wins}-0 in singles`
+                        });
+                    }
+                });
+            });
+
+            // ========== NEW: WIN RATE TRENDS ==========
+            PLAYERS.forEach(player => {
+                const playerSingles = singlesMatches.filter(m => m.player1 === player || m.player2 === player);
+                if (playerSingles.length < 10) return;
+
+                const recent = playerSingles.slice(0, 10);
+                const previous = playerSingles.slice(10, 20);
+                if (previous.length < 5) return;
+
+                const recentWinRate = recent.filter(m => m.winner1 === player).length / recent.length;
+                const prevWinRate = previous.filter(m => m.winner1 === player).length / previous.length;
+                const diff = Math.round((recentWinRate - prevWinRate) * 100);
+
+                if (diff >= 20) {
+                    insights.push({
+                        type: 'streak',
+                        subcategory: 'trend-improvement',
+                        priority: 6,
+                        text: `📈 ${player}'s singles win rate is up ${diff}% over the last 10 matches`
+                    });
+                } else if (diff <= -20) {
+                    insights.push({
+                        type: 'cold',
+                        subcategory: 'trend-decline',
+                        priority: 5,
+                        text: `📉 ${player}'s singles win rate has dropped ${Math.abs(diff)}% over the last 10 matches`
+                    });
+                }
+            });
+
+            // ========== NEW: MILESTONES ==========
+            const playerMatchCounts = {};
+            PLAYERS.forEach(p => playerMatchCounts[p] = 0);
+            matches.forEach(m => {
+                [m.player1, m.player2, m.player3, m.player4].forEach(p => {
+                    if (p) playerMatchCounts[p]++;
+                });
+            });
+
+            const milestones = [100, 75, 50, 25];
+            PLAYERS.forEach(player => {
+                const count = playerMatchCounts[player];
+                for (const milestone of milestones) {
+                    if (count >= milestone && count < milestone + 3) {
+                        insights.push({
+                            type: 'fun',
+                            subcategory: 'milestone',
+                            priority: milestone >= 50 ? 8 : 5,
+                            text: `🏅 ${player} just hit ${milestone} career matches!`
+                        });
+                        break;
+                    }
+                }
+            });
+
+            const playerSinglesWins = {};
+            PLAYERS.forEach(p => playerSinglesWins[p] = 0);
+            singlesMatches.forEach(m => { if (m.winner1) playerSinglesWins[m.winner1]++; });
+
+            PLAYERS.forEach(player => {
+                const wins = playerSinglesWins[player];
+                for (const milestone of milestones) {
+                    if (wins >= milestone && wins < milestone + 3) {
+                        insights.push({
+                            type: 'fun',
+                            subcategory: 'milestone',
+                            priority: milestone >= 50 ? 8 : 5,
+                            text: `🏆 ${player} has racked up ${milestone}+ singles victories!`
+                        });
+                        break;
+                    }
+                }
+            });
+
+            // ========== NEW: WIN DROUGHT ==========
+            PLAYERS.forEach(player => {
+                const playerMatches = singlesMatches.filter(m => m.player1 === player || m.player2 === player);
+                if (playerMatches.length < 3) return;
+
+                const lastWin = playerMatches.find(m => m.winner1 === player);
+                if (!lastWin) return;
+
+                const daysSinceLastWin = Math.floor((now - new Date(lastWin.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                const lossesSinceLastWin = playerMatches.indexOf(lastWin);
+
+                if (daysSinceLastWin >= 14 && lossesSinceLastWin >= 2) {
+                    insights.push({
+                        type: 'cold',
+                        subcategory: 'fun-drought',
+                        priority: 5,
+                        text: `🏜️ ${player} hasn't won in ${daysSinceLastWin} days (${lossesSinceLastWin} loss${lossesSinceLastWin === 1 ? '' : 'es'} since last win)`
+                    });
+                }
+            });
+
+            // ========== NEW: SAME-DAY SWEEP ==========
+            const matchesByDate = {};
+            singlesMatches.forEach(m => {
+                const date = new Date(m.created_at).toDateString();
+                if (!matchesByDate[date]) matchesByDate[date] = [];
+                matchesByDate[date].push(m);
+            });
+
+            Object.entries(matchesByDate).forEach(([date, dayMatches]) => {
+                if (dayMatches.length < 3) return;
+                const winCounts = {};
+                dayMatches.forEach(m => {
+                    if (m.winner1) winCounts[m.winner1] = (winCounts[m.winner1] || 0) + 1;
+                });
+
+                Object.entries(winCounts).forEach(([player, wins]) => {
+                    if (wins >= 3 && wins === dayMatches.length) {
+                        const displayDate = new Date(date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+                        insights.push({
+                            type: 'dominance',
+                            subcategory: 'fun-session',
+                            priority: 7,
+                            text: `🧹 ${player} swept the board on ${displayDate} — won all ${wins} singles matches that day`
+                        });
+                    }
+                });
+            });
 
             // ========== RENDER ==========
 
@@ -4490,39 +5190,96 @@
                 return;
             }
 
-            // Sort by priority and take top insights
-            insights.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+            // Diversity-aware selection: max 2 per category, max 1 per subcategory
+            function selectDiverseInsights(allInsights, maxTotal = 8, maxPerCategory = 2, maxPerSubcategory = 1) {
+                allInsights.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+                const selected = [];
+                const categoryCounts = {};
+                const subcategoryCounts = {};
+
+                for (const insight of allInsights) {
+                    if (selected.length >= maxTotal) break;
+
+                    const cat = insight.type || 'stat';
+                    const subcat = insight.subcategory || cat;
+
+                    if ((categoryCounts[cat] || 0) >= maxPerCategory) continue;
+                    if ((subcategoryCounts[subcat] || 0) >= maxPerSubcategory) continue;
+
+                    selected.push(insight);
+                    categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                    subcategoryCounts[subcat] = (subcategoryCounts[subcat] || 0) + 1;
+                }
+
+                // Relax subcategory limit if we couldn't fill slots
+                if (selected.length < maxTotal) {
+                    for (const insight of allInsights) {
+                        if (selected.length >= maxTotal) break;
+                        if (selected.includes(insight)) continue;
+
+                        const cat = insight.type || 'stat';
+                        if ((categoryCounts[cat] || 0) >= maxPerCategory) continue;
+
+                        selected.push(insight);
+                        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                    }
+                }
+
+                // Final fallback: fill remaining slots ignoring all limits
+                if (selected.length < maxTotal) {
+                    for (const insight of allInsights) {
+                        if (selected.length >= maxTotal) break;
+                        if (!selected.includes(insight)) {
+                            selected.push(insight);
+                        }
+                    }
+                }
+
+                return selected;
+            }
+
+            const selectedInsights = selectDiverseInsights(insights);
 
             // Helper to format insight text with highlighted player names
             function formatInsight(text) {
-                // Extract emoji(s) from start
                 const emojiMatch = text.match(/^(\p{Emoji}+)\s*/u);
                 const emojiRaw = emojiMatch ? emojiMatch[1] : '📊';
                 const textWithoutEmoji = emojiMatch ? text.slice(emojiMatch[0].length) : text;
-                // Two rats facing off - flip the first one
                 const emoji = emojiRaw === '🐀🐀'
                     ? '<span style="display:inline-block;transform:scaleX(-1)">🐀</span>🐀'
                     : emojiRaw;
 
-                // Highlight player names
                 let formatted = textWithoutEmoji;
                 PLAYERS.forEach(player => {
                     formatted = formatted.replace(new RegExp(`\\b${player}\\b`, 'g'), `<strong>${player}</strong>`);
                 });
 
-                // Also highlight team pairs like "Ed & Tom"
                 formatted = formatted.replace(/(\w+)\s*&amp;\s*(\w+)/g, '<strong>$1 & $2</strong>');
                 formatted = formatted.replace(/(\w+)\s*&\s*(\w+)/g, '<strong>$1 & $2</strong>');
 
                 return { emoji, text: formatted };
             }
 
-            container.innerHTML = insights.slice(0, 6).map(insight => {
+            // Category display labels
+            const categoryLabels = {
+                streak: 'hot',
+                doubles: 'doubles',
+                dominance: 'h2h',
+                cold: 'cold',
+                stat: 'stats',
+                fun: 'fun fact'
+            };
+
+            container.innerHTML = selectedInsights.map(insight => {
                 const { emoji, text } = formatInsight(insight.text);
+                const label = categoryLabels[insight.type] || insight.type;
+                const isNew = insight.recency && (now - insight.recency) < TWO_DAYS_MS;
+                const newBadge = isNew ? ' <span class="insight-badge-new">NEW</span>' : '';
                 return `
-                    <div class="insight-item ${insight.type}">
+                    <div class="insight-item ${insight.type}" data-label="${label}">
                         <span class="insight-emoji">${emoji}</span>
-                        <span class="insight-text">${text}</span>
+                        <span class="insight-text">${text}${newBadge}</span>
                     </div>
                 `;
             }).join('');
@@ -5223,7 +5980,8 @@
             playerImages: {},
             lastPegIndex: 0,
             audioContext: null,
-            squeakBuffer: null
+            squeakBuffer: null,
+            currentMatchup: null
         };
 
         const NUM_PEGS = 6; // 2 copies of each of 3 players
@@ -5701,6 +6459,12 @@
             const partner = wheelState.otherPlayers[playerIndex];
             const opponents = wheelState.otherPlayers.filter(p => p !== partner);
 
+            wheelState.currentMatchup = {
+                player: wheelState.selectedPlayer,
+                partner: partner,
+                opponents: opponents
+            };
+
             displayMatchupResult({
                 team1: [wheelState.selectedPlayer, partner],
                 team2: opponents
@@ -5732,6 +6496,131 @@
 
         // Initialize player selection on page load
         document.addEventListener('DOMContentLoaded', initWheelPlayerSelect);
+
+        // ========== WHO SERVES FIRST - RACKET SPIN ==========
+        const TENNIS_FACTS = [
+            // Facts
+            { text: "A tennis ball is only in contact with the racket for about 4 milliseconds during a shot.", type: "fact" },
+            { text: "The longest match in history lasted 11 hours and 5 minutes — Isner vs Mahut at Wimbledon 2010.", type: "fact" },
+            { text: "The word 'tennis' likely comes from the French 'tenez' meaning 'take heed' or 'receive.'", type: "fact" },
+            { text: "The 'let' call comes from the Old English 'lettian' meaning 'to hinder.'", type: "fact" },
+            { text: "Yellow tennis balls were introduced in 1972 because they showed up better on TV. Before that, they were white.", type: "fact" },
+            { text: "Players at Wimbledon must wear almost entirely white clothing — even their underwear.", type: "fact" },
+            { text: "The fastest recorded serve was 263.4 km/h (163.7 mph) by Sam Groth in 2012.", type: "fact" },
+            { text: "Tennis was originally played with bare hands — rackets weren't introduced until the 16th century.", type: "fact" },
+            { text: "The term 'love' for zero likely comes from the French 'l'oeuf' meaning 'the egg' (shaped like a zero).", type: "fact" },
+            { text: "Tennis balls are pressurised to about 12 psi — they start losing bounce the moment the can is opened.", type: "fact" },
+            { text: "Wimbledon uses approximately 54,000 tennis balls during the tournament each year.", type: "fact" },
+            { text: "The Davis Cup, started in 1900, is the largest annual international team competition in sport.", type: "fact" },
+            { text: "A tennis court is exactly 78 feet (23.77 m) long, a measurement unchanged since the 1870s.", type: "fact" },
+            { text: "The butt cap spin to decide serve is officially called the 'racquet toss' in ITF rules.", type: "fact" },
+            // Rules
+            { text: "If a ball hits you before it bounces out, your opponent wins the point — even if the ball was clearly going long.", type: "rule" },
+            { text: "You can hit the ball around the net post (not over it) and it's perfectly legal, even if the ball is below net height.", type: "rule" },
+            { text: "A serve that clips the net and lands in is a let — but during a rally, a ball that clips the net and goes over is in play.", type: "rule" },
+            { text: "You cannot reach over the net to hit the ball. But if your follow-through carries your racket over the net after contact, that's legal.", type: "rule" },
+            { text: "If you throw your racket at the ball and it goes over the net, you lose the point — you must be holding the racket on contact.", type: "rule" },
+            { text: "In doubles, either player can hit the return — there's no rule that says the ball must be taken by a specific player.", type: "rule" },
+            { text: "The server must wait until the receiver is ready. If the receiver attempts to return the serve, they're deemed to have been ready.", type: "rule" },
+            { text: "You're allowed to switch your racket hand mid-point. You can even play with two rackets — one in each hand.", type: "rule" },
+            { text: "A player who suffers from cramps cannot receive a medical timeout — cramps are considered a conditioning issue, not an injury.", type: "rule" },
+            { text: "If the ball hits your clothing or body during a rally, you lose the point — even if you're standing well outside the court.", type: "rule" },
+            { text: "You cannot catch the ball on your racket and throw it — the ball must leave the strings in a single continuous motion.", type: "rule" },
+            { text: "In doubles, the receiving team can choose which player receives on which side, and can change sides each set.", type: "rule" },
+            { text: "You can return a serve before it bounces (volley it), but you lose the point — the return of serve must be after the bounce.", type: "rule" },
+            { text: "A ball that lands on any part of the line is IN. The lines are part of the court they border.", type: "rule" },
+            { text: "The server gets two chances (first and second serve). But if they foot-fault on a second serve, it's a double fault.", type: "rule" },
+            { text: "There's no rule against underarm serving — it's completely legal at any level, including Grand Slams.", type: "rule" },
+            { text: "If a player deliberately hinders their opponent (shouts, waves, etc.), the umpire can award the point to the opponent.", type: "rule" },
+            { text: "You're allowed to hit the ball with the frame of your racket — it counts as a legal shot if it goes over.", type: "rule" },
+            { text: "If the ball bounces in your court and then the wind blows it back over the net, you can reach over and play it.", type: "rule" }
+        ];
+
+        function startRacketSpin() {
+            if (!wheelState.currentMatchup) return;
+
+            // Pick all 4 players and choose one randomly to call
+            const allPlayers = [
+                wheelState.currentMatchup.player,
+                wheelState.currentMatchup.partner,
+                ...wheelState.currentMatchup.opponents
+            ];
+            const caller = allPlayers[Math.floor(Math.random() * allPlayers.length)];
+            wheelState.serveCaller = caller;
+            wheelState.serveAllPlayers = allPlayers;
+
+            // Reset UI
+            document.getElementById('servePrompt').textContent = `${caller}, call it!`;
+            document.getElementById('serveCallButtons').classList.remove('hidden');
+            document.getElementById('racketViewport').classList.remove('visible');
+            document.getElementById('serveResult').classList.remove('visible');
+            document.getElementById('serveBackBtn').style.display = 'none';
+
+            // Reset racket rotation
+            const racket = document.getElementById('racketElement');
+            racket.style.transform = 'rotateX(0deg)';
+            racket.getAnimations().forEach(a => a.cancel());
+
+            showWheelPhase(4);
+        }
+
+        function onServeCall(call) {
+            // Hide call buttons
+            document.getElementById('serveCallButtons').classList.add('hidden');
+
+            // Show racket
+            const viewport = document.getElementById('racketViewport');
+            viewport.classList.add('visible');
+
+            // Determine result (50/50)
+            const result = Math.random() < 0.5 ? 'UP' : 'DOWN';
+
+            // Calculate final rotation:
+            // UP = front face showing = 0deg (or multiple of 360)
+            // DOWN = back face showing = 180deg
+            const fullSpins = 6 + Math.floor(Math.random() * 4); // 6-9 full rotations
+            const finalAngle = result === 'UP'
+                ? fullSpins * 360
+                : fullSpins * 360 + 180;
+
+            const racket = document.getElementById('racketElement');
+
+            // Animate with Web Animations API
+            const animation = racket.animate([
+                { transform: 'rotateX(0deg)' },
+                { transform: `rotateX(${finalAngle}deg)` }
+            ], {
+                duration: 2500 + Math.random() * 1000,
+                easing: 'cubic-bezier(0.15, 0.8, 0.3, 1)',
+                fill: 'forwards'
+            });
+
+            animation.onfinish = () => {
+                // Determine who serves
+                const caller = wheelState.serveCaller;
+                const otherPlayers = wheelState.serveAllPlayers.filter(p => p !== caller);
+                const opponent = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+
+                const callerWins = call === result;
+                const server = callerWins ? caller : opponent;
+
+                // Show result
+                const resultLabel = document.getElementById('serveResultLabel');
+                resultLabel.textContent = `${result}!`;
+                resultLabel.className = 'serve-result-label ' + result.toLowerCase();
+
+                document.getElementById('serveWinner').textContent = `${server} serves first`;
+
+                // Random tennis fact or rule
+                const factIndex = Math.floor(Math.random() * TENNIS_FACTS.length);
+                const entry = TENNIS_FACTS[factIndex];
+                document.getElementById('tennisFactText').textContent = entry.text;
+                document.querySelector('.fact-label').textContent = entry.type === 'rule' ? 'Tennis Rule:' : 'Tennis Fact:';
+
+                document.getElementById('serveResult').classList.add('visible');
+                document.getElementById('serveBackBtn').style.display = '';
+            };
+        }
     </script>
 </body>
 </html>

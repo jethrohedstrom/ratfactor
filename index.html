@@ -930,10 +930,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 8px 0 8px 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 2px solid transparent;
             cursor: pointer;
-            transition: background 0.15s ease;
+            transition: background 0.15s ease, border-left-color 0.15s ease;
         }
 
         .doubles-opponent-row:last-of-type {
@@ -942,6 +943,7 @@
 
         .doubles-opponent-row:hover {
             background: rgba(255, 255, 255, 0.03);
+            border-left-color: var(--accent-yellow);
         }
 
         .doubles-opponent-label {
@@ -1038,9 +1040,144 @@
             margin-bottom: 30px;
         }
 
+        .doubles-partnership-card {
+            opacity: 0;
+            animation: doublesFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes doublesFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .doubles-summary-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+        }
+
+        .doubles-summary-stat {
+            text-align: center;
+        }
+
+        .doubles-summary-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .doubles-summary-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            color: var(--accent-yellow);
+            letter-spacing: 1px;
+        }
+
+        .doubles-card-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0 8px 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .doubles-win-ring {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .doubles-win-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .doubles-win-ring-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .doubles-streak {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .doubles-streak.win-streak {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+        }
+
+        .doubles-streak.loss-streak {
+            background: rgba(255, 107, 157, 0.15);
+            color: var(--accent-pink);
+        }
+
+        .doubles-matches-played {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .doubles-matches-played strong {
+            color: var(--text-light);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .doubles-history-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .doubles-history-toggle:hover {
+            color: var(--accent-green);
+        }
+
+        .doubles-history-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .doubles-history-section.open {
+            max-height: 5000px;
+        }
+
         @media (max-width: 600px) {
             .doubles-partnership-grid {
                 grid-template-columns: 1fr;
+            }
+            .doubles-summary-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .doubles-card-stats {
+                gap: 10px;
+            }
+            .doubles-win-ring {
+                width: 40px;
+                height: 40px;
             }
         }
 
@@ -5668,8 +5805,43 @@
             });
 
             // Partnership cards
-            const cardsHTML = sortedPairs.map(([pair, data]) => {
+            const cardsHTML = sortedPairs.map(([pair, data], index) => {
                 const recordClass = data.wins > data.losses ? 'winning' : data.wins < data.losses ? 'losing' : 'tied';
+                const totalMatches = data.wins + data.losses;
+                const winPct = totalMatches > 0 ? Math.round((data.wins / totalMatches) * 100) : 0;
+
+                // Streak calculation
+                const allPartnershipMatches = Object.values(data.opponents)
+                    .flat()
+                    .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at));
+                let streakType = allPartnershipMatches.length > 0 ? (allPartnershipMatches[0].team1Won ? 'W' : 'L') : null;
+                let streakCount = 0;
+                for (const m of allPartnershipMatches) {
+                    const result = m.team1Won ? 'W' : 'L';
+                    if (result === streakType) streakCount++;
+                    else break;
+                }
+
+                // SVG win ring
+                const circumference = 2 * Math.PI * 20;
+                const offset = circumference * (1 - winPct / 100);
+                const ringColor = winPct >= 50 ? 'var(--accent-green)' : 'var(--accent-pink)';
+                const ringSize = 48;
+                const ringHTML = `
+                    <div class="doubles-win-ring">
+                        <svg width="${ringSize}" height="${ringSize}" viewBox="0 0 ${ringSize} ${ringSize}">
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="${ringColor}" stroke-width="3"
+                                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+                                stroke-linecap="round"/>
+                        </svg>
+                        <span class="doubles-win-ring-label" style="color:${ringColor}">${winPct}%</span>
+                    </div>`;
+
+                // Streak badge (only show for streaks >= 2)
+                const streakHTML = streakCount >= 2
+                    ? `<span class="doubles-streak ${streakType === 'W' ? 'win-streak' : 'loss-streak'}">${streakType === 'W' ? '🔥' : '❄️'} ${streakType}${streakCount}</span>`
+                    : '';
 
                 const opponentRowsHTML = Object.entries(data.opponents).map(([oppPair, matchList]) => {
                     const wins = matchList.filter(m => m.team1Won).length;
@@ -5707,10 +5879,17 @@
                 }).join('');
 
                 return `
-                    <div class="doubles-partnership-card">
+                    <div class="doubles-partnership-card" style="animation-delay: ${index * 0.08}s">
                         <div class="doubles-card-header">
                             <span class="doubles-card-name">${pair}</span>
                             <span class="doubles-card-record ${recordClass}">${data.wins}W - ${data.losses}L</span>
+                        </div>
+                        <div class="doubles-card-stats">
+                            ${ringHTML}
+                            <div>
+                                ${streakHTML}
+                                <div class="doubles-matches-played"><strong>${totalMatches}</strong> matches</div>
+                            </div>
                         </div>
                         ${opponentRowsHTML}
                     </div>
@@ -5749,11 +5928,55 @@
                     `;
                 }).join('');
 
+            // Summary stats
+            const totalDoublesMatches = doublesMatches.length;
+            const bestPair = sortedPairs[0];
+            const bestPairName = bestPair ? bestPair[0] : '-';
+            const bestWinPct = bestPair ? (bestPair[1].wins + bestPair[1].losses > 0 ? Math.round((bestPair[1].wins / (bestPair[1].wins + bestPair[1].losses)) * 100) : 0) : 0;
+
+            // Find highest win% partnership (min 2 matches)
+            const topPair = sortedPairs
+                .filter(([, d]) => d.wins + d.losses >= 2)
+                .sort((a, b) => {
+                    const pctA = a[1].wins / (a[1].wins + a[1].losses);
+                    const pctB = b[1].wins / (b[1].wins + b[1].losses);
+                    return pctB - pctA;
+                })[0];
+            const topPairName = topPair ? topPair[0] : bestPairName;
+            const topPairPct = topPair ? Math.round((topPair[1].wins / (topPair[1].wins + topPair[1].losses)) * 100) : 0;
+
             container.innerHTML = `
+                <div class="doubles-summary-bar">
+                    <div class="doubles-summary-stat">
+                        <div class="doubles-summary-value">${totalDoublesMatches}</div>
+                        <div class="doubles-summary-label">Total Matches</div>
+                    </div>
+                    <div class="doubles-summary-stat">
+                        <div class="doubles-summary-value">${sortedPairs.length}</div>
+                        <div class="doubles-summary-label">Partnerships</div>
+                    </div>
+                    <div class="doubles-summary-stat">
+                        <div class="doubles-summary-value">${topPairName}</div>
+                        <div class="doubles-summary-label">Best Win% (${topPairPct}%)</div>
+                    </div>
+                </div>
                 <div class="doubles-partnership-grid">${cardsHTML}</div>
-                <div class="doubles-history-title">Match History</div>
-                ${historyHTML}
+                <div class="doubles-history-title doubles-history-toggle" data-doubles-history-toggle>
+                    Match History <span class="doubles-expand-arrow">&#9654;</span>
+                </div>
+                <div class="doubles-history-section">${historyHTML}</div>
             `;
+
+            // History toggle listener
+            const historyToggle = container.querySelector('[data-doubles-history-toggle]');
+            if (historyToggle) {
+                historyToggle.addEventListener('click', function() {
+                    const section = this.nextElementSibling;
+                    const arrow = this.querySelector('.doubles-expand-arrow');
+                    section.classList.toggle('open');
+                    arrow.classList.toggle('open');
+                });
+            }
         }
 
         // Toast notification

@@ -4572,12 +4572,7 @@
             }
 
             // Player photos
-            const playerPhotos = {
-                'Rick': 'rick images/angler.png',
-                'Ed': 'ed images/Gemini_Generated_Image_d8u7cpd8u7cpd8u7.png',
-                'Tom': 'tom images/drdeath.png',
-                'Jethro': 'jethro images/diesel.png'
-            };
+            const playerPhotos = PLAYER_PHOTOS;
 
             // Calculate points per event for each player
             // Points: 1st = 3pts, 2nd = 1pt, 3rd = 0pts
@@ -4822,8 +4817,12 @@
                         return `<span class="doubles-set-score ${won ? 'set-won' : ''}">${teamScore}${tbDisplay}</span>`;
                     }
 
-                    const team1Sets = setsArr.map(s => renderSetCell(s.team1, s.team2, s.tb1, s.tb1 !== undefined && s.tb2 !== undefined)).join('');
-                    const team2Sets = setsArr.map(s => renderSetCell(s.team2, s.team1, s.tb2, s.tb1 !== undefined && s.tb2 !== undefined)).join('');
+                    const team1Sets = setsArr.length > 0
+                        ? setsArr.map(s => renderSetCell(s.team1, s.team2, s.tb1, s.tb1 !== undefined && s.tb2 !== undefined)).join('')
+                        : (team1Won ? '<span class="doubles-set-score set-won">W</span>' : '');
+                    const team2Sets = setsArr.length > 0
+                        ? setsArr.map(s => renderSetCell(s.team2, s.team1, s.tb2, s.tb1 !== undefined && s.tb2 !== undefined)).join('')
+                        : (!team1Won ? '<span class="doubles-set-score set-won">W</span>' : '');
 
                     const doublesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `

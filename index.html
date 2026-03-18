@@ -880,6 +880,170 @@
             opacity: 0.7;
         }
 
+        /* Doubles Tab */
+        .doubles-partnership-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .doubles-partnership-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .doubles-partnership-card:hover {
+            border-color: var(--accent-yellow);
+            transform: translateY(-2px);
+        }
+
+        .doubles-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .doubles-card-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .doubles-card-record {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .doubles-card-record.winning { color: var(--accent-green); }
+        .doubles-card-record.losing { color: var(--accent-pink); }
+        .doubles-card-record.tied { color: var(--accent-yellow); }
+
+        .doubles-opponent-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .doubles-opponent-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .doubles-opponent-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .doubles-opponent-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .doubles-opponent-label strong {
+            color: var(--text-light);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .doubles-opponent-record {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .doubles-opponent-record.winning { color: var(--accent-green); }
+        .doubles-opponent-record.losing { color: var(--accent-pink); }
+        .doubles-opponent-record.tied { color: var(--accent-yellow); }
+
+        .doubles-expand-arrow {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-left: 8px;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .doubles-expand-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .doubles-opponent-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .doubles-opponent-details.open {
+            max-height: 500px;
+        }
+
+        .doubles-match-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .doubles-match-winner {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .doubles-match-scores {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            color: var(--accent-yellow);
+            letter-spacing: 1px;
+        }
+
+        .doubles-match-date {
+            font-size: 0.6rem;
+            opacity: 0.7;
+        }
+
+        .doubles-history-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .doubles-year-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--accent-yellow);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .doubles-year-section {
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .doubles-partnership-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Insights */
         #insights {
             display: flex;
@@ -3023,6 +3187,7 @@
             <button class="nav-tab" data-section="log">Log Match</button>
             <button class="nav-tab" data-section="history">History</button>
             <button class="nav-tab" data-section="h2h">H2H</button>
+            <button class="nav-tab" data-section="doubles">Doubles</button>
             <button class="nav-tab" data-section="matchup">Matchup</button>
         </nav>
 
@@ -3088,6 +3253,16 @@
                 <span class="btn-icon">🎮</span>
                 Fighter Select
             </button>
+        </section>
+
+        <!-- DOUBLES SECTION -->
+        <section id="doubles" class="section">
+            <div class="card">
+                <h2 class="card-title">🎾 Doubles</h2>
+                <div id="doublesStats">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
         </section>
 
         <!-- MATCHUP SECTION -->
@@ -3409,6 +3584,19 @@
                     if (details && details.classList.contains('h2h-opponent-details')) {
                         details.classList.toggle('open');
                         const arrow = row.querySelector('.h2h-expand-arrow');
+                        if (arrow) arrow.classList.toggle('open');
+                    }
+                }
+            });
+
+            // Doubles opponent row expand/collapse
+            document.addEventListener('click', (e) => {
+                const row = e.target.closest('[data-doubles-toggle]');
+                if (row) {
+                    const details = row.nextElementSibling;
+                    if (details && details.classList.contains('doubles-opponent-details')) {
+                        details.classList.toggle('open');
+                        const arrow = row.querySelector('.doubles-expand-arrow');
                         if (arrow) arrow.classList.toggle('open');
                     }
                 }
@@ -4066,6 +4254,7 @@
                 renderHistory();
                 renderInsights();
                 renderH2H();
+                renderDoubles();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -5408,6 +5597,163 @@
             }).join('');
 
             container.innerHTML = yearSections;
+        }
+
+        function formatDoublesMatchScores(match, team1Won) {
+            if (!match.sets) return '-';
+            try {
+                const sets = JSON.parse(match.sets);
+                return sets.map(s => {
+                    const winnerScore = team1Won ? s.team1 : s.team2;
+                    const loserScore = team1Won ? s.team2 : s.team1;
+                    let scoreStr = `${winnerScore}-${loserScore}`;
+                    if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                        const winnerTB = team1Won ? s.tb1 : s.tb2;
+                        const loserTB = team1Won ? s.tb2 : s.tb1;
+                        scoreStr += `(${winnerTB}-${loserTB})`;
+                    }
+                    return scoreStr;
+                }).join(' ');
+            } catch (e) {
+                return '-';
+            }
+        }
+
+        function renderDoubles() {
+            const container = document.getElementById('doublesStats');
+            const doublesMatches = matches.filter(m => m.match_type === 'doubles');
+
+            if (doublesMatches.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No doubles matches recorded yet</div>';
+                return;
+            }
+
+            // Build partnership data: key = sorted pair names
+            function pairKey(a, b) {
+                return [a, b].sort().join(' & ');
+            }
+
+            const partnerships = {};
+
+            doublesMatches.forEach(match => {
+                const team1Key = pairKey(match.player1, match.player2);
+                const team2Key = pairKey(match.player3, match.player4);
+                const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+
+                // Record for team1
+                if (!partnerships[team1Key]) partnerships[team1Key] = { wins: 0, losses: 0, opponents: {} };
+                if (!partnerships[team2Key]) partnerships[team2Key] = { wins: 0, losses: 0, opponents: {} };
+
+                if (team1Won) {
+                    partnerships[team1Key].wins++;
+                    partnerships[team2Key].losses++;
+                } else {
+                    partnerships[team1Key].losses++;
+                    partnerships[team2Key].wins++;
+                }
+
+                // Track per-opponent
+                if (!partnerships[team1Key].opponents[team2Key]) partnerships[team1Key].opponents[team2Key] = [];
+                partnerships[team1Key].opponents[team2Key].push({ match, team1Won });
+
+                if (!partnerships[team2Key].opponents[team1Key]) partnerships[team2Key].opponents[team1Key] = [];
+                partnerships[team2Key].opponents[team1Key].push({ match, team1Won: !team1Won });
+            });
+
+            // Sort partnerships by most matches played
+            const sortedPairs = Object.entries(partnerships).sort((a, b) => {
+                const totalA = a[1].wins + a[1].losses;
+                const totalB = b[1].wins + b[1].losses;
+                return totalB - totalA || b[1].wins - a[1].wins;
+            });
+
+            // Partnership cards
+            const cardsHTML = sortedPairs.map(([pair, data]) => {
+                const recordClass = data.wins > data.losses ? 'winning' : data.wins < data.losses ? 'losing' : 'tied';
+
+                const opponentRowsHTML = Object.entries(data.opponents).map(([oppPair, matchList]) => {
+                    const wins = matchList.filter(m => m.team1Won).length;
+                    const losses = matchList.length - wins;
+                    const oppRecordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
+
+                    const matchDetailsHTML = matchList
+                        .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at))
+                        .map(({ match, team1Won: thisTeamWon }) => {
+                            const t1 = `${match.player1} & ${match.player2}`;
+                            const t2 = `${match.player3} & ${match.player4}`;
+                            const matchT1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                            const winner = matchT1Won ? t1 : t2;
+                            const scores = formatDoublesMatchScores(match, matchT1Won);
+                            const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+                            return `
+                                <div class="doubles-match-detail">
+                                    <span class="doubles-match-winner">${winner}</span>
+                                    <span class="doubles-match-scores">${scores}</span>
+                                    <span class="doubles-match-date">${matchDate}</span>
+                                </div>
+                            `;
+                        }).join('');
+
+                    return `
+                        <div class="doubles-opponent-row" data-doubles-toggle>
+                            <span class="doubles-opponent-label">vs <strong>${oppPair}</strong></span>
+                            <span>
+                                <span class="doubles-opponent-record ${oppRecordClass}">${wins}-${losses}</span>
+                                <span class="doubles-expand-arrow">&#9654;</span>
+                            </span>
+                        </div>
+                        <div class="doubles-opponent-details">${matchDetailsHTML}</div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="doubles-partnership-card">
+                        <div class="doubles-card-header">
+                            <span class="doubles-card-name">${pair}</span>
+                            <span class="doubles-card-record ${recordClass}">${data.wins}W - ${data.losses}L</span>
+                        </div>
+                        ${opponentRowsHTML}
+                    </div>
+                `;
+            }).join('');
+
+            // Match history list
+            const historyHTML = doublesMatches
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .map(match => {
+                    const team1 = `${match.player1} & ${match.player2}`;
+                    const team2 = `${match.player3} & ${match.player4}`;
+                    const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                    const winner = team1Won ? team1 : team2;
+                    const loser = team1Won ? team2 : team1;
+                    const scores = formatDoublesMatchScores(match, team1Won);
+                    const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+                    return `
+                        <div class="match-item">
+                            <div class="match-header">
+                                <div class="match-header-left">
+                                    <div class="match-type">Doubles</div>
+                                    <div class="match-date">${date}</div>
+                                </div>
+                            </div>
+                            ${locationDisplay}
+                            <div class="match-result">
+                                <span class="match-winner">${winner}</span>
+                                <span class="match-def">def.</span>
+                                <span class="match-loser">${loser}</span>
+                            </div>
+                            ${scores !== '-' ? `<div class="match-sets">${scores}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+            container.innerHTML = `
+                <div class="doubles-partnership-grid">${cardsHTML}</div>
+                <div class="doubles-history-title">Match History</div>
+                ${historyHTML}
+            `;
         }
 
         // Toast notification

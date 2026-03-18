@@ -662,6 +662,129 @@
             opacity: 0.7;
         }
 
+        /* Doubles scoreboard layout */
+        .doubles-scoreboard {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .doubles-team-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            gap: 8px;
+        }
+
+        .doubles-team-row:first-child {
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .doubles-team-row.winner {
+            background: rgba(0, 255, 136, 0.08);
+        }
+
+        .doubles-team-row.loser {
+            opacity: 0.55;
+        }
+
+        .doubles-win-indicator {
+            width: 4px;
+            height: 24px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .doubles-team-row.winner .doubles-win-indicator {
+            background: var(--accent-green);
+        }
+
+        .doubles-team-avatars {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .doubles-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--border-subtle);
+        }
+
+        .doubles-avatar:last-child {
+            margin-left: -6px;
+        }
+
+        .doubles-team-row.winner .doubles-avatar {
+            border-color: var(--accent-green);
+        }
+
+        .doubles-team-names {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doubles-team-row.winner .doubles-team-names {
+            color: var(--accent-green);
+        }
+
+        .doubles-team-row.loser .doubles-team-names {
+            color: var(--text-muted);
+        }
+
+        .doubles-set-scores {
+            display: flex;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .doubles-set-score {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            width: 32px;
+            text-align: center;
+            color: var(--text-light);
+            position: relative;
+        }
+
+        .doubles-team-row.loser .doubles-set-score {
+            color: var(--text-muted);
+        }
+
+        .doubles-set-score.set-won {
+            color: var(--accent-yellow);
+        }
+
+        .doubles-set-score .tiebreak-score {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.5rem;
+            color: var(--accent-pink);
+            position: absolute;
+            top: 0px;
+            right: 1px;
+        }
+
+        @media (max-width: 340px) {
+            .doubles-set-score {
+                width: 26px;
+                font-size: 1.1rem;
+            }
+            .doubles-avatar {
+                width: 20px;
+                height: 20px;
+            }
+            .doubles-team-names {
+                font-size: 0.75rem;
+            }
+        }
+
         /* Rat Factor match display */
         .match-item-ratfactor {
             border-left-color: var(--accent-yellow);
@@ -3675,6 +3798,12 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const PLAYERS = ['Rick', 'Ed', 'Tom', 'Jethro'];
+        const PLAYER_PHOTOS = {
+            'Rick': 'rick images/angler.png',
+            'Ed': 'ed images/Gemini_Generated_Image_d8u7cpd8u7cpd8u7.png',
+            'Tom': 'tom images/drdeath.png',
+            'Jethro': 'jethro images/diesel.png'
+        };
 
         // State
         let matches = [];
@@ -4674,32 +4803,27 @@
                         </div>
                     `;
                 } else if (match.match_type === 'doubles') {
-                    const team1 = `${match.player1} & ${match.player2}`;
-                    const team2 = `${match.player3} & ${match.player4}`;
                     const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
-                    const winner = team1Won ? team1 : team2;
-                    const loser = team1Won ? team2 : team1;
 
-                    // Parse sets if available (show from winner's perspective)
-                    let setsDisplay = '';
+                    // Parse sets into array for column display
+                    let setsArr = [];
                     if (match.sets) {
-                        try {
-                            const sets = JSON.parse(match.sets);
-                            setsDisplay = sets.map(s => {
-                                const winnerScore = team1Won ? s.team1 : s.team2;
-                                const loserScore = team1Won ? s.team2 : s.team1;
-                                let scoreStr = `${winnerScore}-${loserScore}`;
-                                if (s.tb1 !== undefined && s.tb2 !== undefined) {
-                                    const winnerTB = team1Won ? s.tb1 : s.tb2;
-                                    const loserTB = team1Won ? s.tb2 : s.tb1;
-                                    scoreStr += ` (${winnerTB}-${loserTB})`;
-                                }
-                                return scoreStr;
-                            }).join(' ');
-                        } catch (e) {
-                            setsDisplay = '';
-                        }
+                        try { setsArr = JSON.parse(match.sets); } catch (e) {}
                     }
+
+                    // Render set score cell for a team
+                    function renderSetCell(teamScore, oppScore, teamTB, hasTB) {
+                        const won = teamScore > oppScore;
+                        // Show tiebreak as superscript on the losing side's score
+                        let tbDisplay = '';
+                        if (hasTB && teamScore < oppScore) {
+                            tbDisplay = `<span class="tiebreak-score">${teamTB}</span>`;
+                        }
+                        return `<span class="doubles-set-score ${won ? 'set-won' : ''}">${teamScore}${tbDisplay}</span>`;
+                    }
+
+                    const team1Sets = setsArr.map(s => renderSetCell(s.team1, s.team2, s.tb1, s.tb1 !== undefined && s.tb2 !== undefined)).join('');
+                    const team2Sets = setsArr.map(s => renderSetCell(s.team2, s.team1, s.tb2, s.tb1 !== undefined && s.tb2 !== undefined)).join('');
 
                     const doublesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
                     return `
@@ -4712,12 +4836,26 @@
                                 ${editBtn}
                             </div>
                             ${doublesLocationDisplay}
-                            <div class="match-result">
-                                <span class="match-winner">${winner}</span>
-                                <span class="match-def">def.</span>
-                                <span class="match-loser">${loser}</span>
+                            <div class="doubles-scoreboard">
+                                <div class="doubles-team-row ${team1Won ? 'winner' : 'loser'}">
+                                    <div class="doubles-win-indicator"></div>
+                                    <div class="doubles-team-avatars">
+                                        <img class="doubles-avatar" src="${PLAYER_PHOTOS[match.player1]}" alt="${match.player1}">
+                                        <img class="doubles-avatar" src="${PLAYER_PHOTOS[match.player2]}" alt="${match.player2}">
+                                    </div>
+                                    <div class="doubles-team-names">${match.player1} & ${match.player2}</div>
+                                    <div class="doubles-set-scores">${team1Sets}</div>
+                                </div>
+                                <div class="doubles-team-row ${team1Won ? 'loser' : 'winner'}">
+                                    <div class="doubles-win-indicator"></div>
+                                    <div class="doubles-team-avatars">
+                                        <img class="doubles-avatar" src="${PLAYER_PHOTOS[match.player3]}" alt="${match.player3}">
+                                        <img class="doubles-avatar" src="${PLAYER_PHOTOS[match.player4]}" alt="${match.player4}">
+                                    </div>
+                                    <div class="doubles-team-names">${match.player3} & ${match.player4}</div>
+                                    <div class="doubles-set-scores">${team2Sets}</div>
+                                </div>
                             </div>
-                            ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
                         </div>
                     `;
                 } else if (match.match_type === 'canadian') {

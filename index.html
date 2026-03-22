@@ -1760,6 +1760,350 @@
             margin-bottom: 10px;
         }
 
+        /* ========== FIGHTERS PAGE (NBA 2K Style) ========== */
+        .fighters-page {
+            position: relative;
+        }
+
+        .fighters-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .fighters-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            color: var(--accent-yellow);
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(240, 225, 48, 0.4), 3px 3px 0 var(--accent-pink);
+        }
+
+        .fighters-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .fighters-roster {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .fighter-profile-card {
+            display: flex;
+            background: linear-gradient(135deg, #16213e 0%, #0f0f1a 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .fighter-profile-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 4px;
+        }
+
+        .fighter-profile-card[data-player="Rick"]::after { background: #ff4444; }
+        .fighter-profile-card[data-player="Ed"]::after { background: #44ff44; }
+        .fighter-profile-card[data-player="Tom"]::after { background: #4444ff; }
+        .fighter-profile-card[data-player="Jethro"]::after { background: #ffff44; }
+
+        .fighter-profile-card:active {
+            transform: scale(0.98);
+        }
+
+        .fighter-profile-media {
+            width: 120px;
+            min-height: 160px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
+        }
+
+        .fighter-profile-img,
+        .fighter-profile-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+        }
+
+        .fighter-profile-video {
+            display: none;
+        }
+
+        .fighter-profile-card.has-video .fighter-profile-video { display: block; }
+        .fighter-profile-card.has-video .fighter-profile-img { display: none; }
+
+        .fighter-profile-info {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .fighter-profile-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--text-light);
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+
+        .fighter-profile-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .fighter-profile-rating {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            text-align: center;
+        }
+
+        .fighter-profile-rating .rating-label {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fighter-profile-rating .rating-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px rgba(240, 225, 48, 0.3);
+            line-height: 1;
+        }
+
+        .fighter-profile-stats-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .fp-stat-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fp-stat-name {
+            width: 55px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.55rem;
+        }
+
+        .fp-stat-bar-track {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .fp-stat-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.8s ease;
+        }
+
+        .fighter-profile-card[data-player="Rick"] .fp-stat-bar-fill { background: #ff4444; }
+        .fighter-profile-card[data-player="Ed"] .fp-stat-bar-fill { background: #44ff44; }
+        .fighter-profile-card[data-player="Tom"] .fp-stat-bar-fill { background: #4444ff; }
+        .fighter-profile-card[data-player="Jethro"] .fp-stat-bar-fill { background: #ffff44; }
+
+        .fp-stat-val {
+            width: 40px;
+            text-align: right;
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 0.6rem;
+        }
+
+        /* Fighter Detail Overlay */
+        .fighter-detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .fighter-detail-overlay.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .fighter-detail-close {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--text-muted);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 3001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fighter-detail-content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        .fighter-detail-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid;
+            padding-bottom: 24px;
+        }
+
+        .fighter-detail-media {
+            width: 200px;
+            height: 260px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #2a2a4e 0%, #1a1a2e 100%);
+        }
+
+        .fighter-detail-img,
+        .fighter-detail-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+        }
+
+        .fighter-detail-name-block {
+            text-align: center;
+            position: relative;
+        }
+
+        .fighter-detail-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--text-light);
+            letter-spacing: 4px;
+            line-height: 1;
+        }
+
+        .fighter-detail-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 4px;
+        }
+
+        .fighter-detail-ovr {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .fighter-detail-ovr .rating-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 6px;
+        }
+
+        .fighter-detail-ovr .rating-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent-yellow);
+            text-shadow: 0 0 15px rgba(240, 225, 48, 0.4);
+            line-height: 1;
+        }
+
+        .fighter-detail-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .fighter-detail-stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .fighter-detail-stat-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .fighter-detail-stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .fighter-detail-section {
+            margin-top: 24px;
+        }
+
+        .fighter-detail-section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            color: var(--accent-yellow);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .fighter-detail-trait {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
         /* Fighter Select Button */
         .btn-fighter-select {
             width: 100%;
@@ -3449,6 +3793,7 @@
             <button class="nav-tab" data-section="h2h">H2H</button>
             <button class="nav-tab" data-section="doubles">Doubles</button>
             <button class="nav-tab" data-section="matchup">Matchup</button>
+            <button class="nav-tab" data-section="fighters">Fighters</button>
         </nav>
 
         <!-- HOME SECTION -->
@@ -3468,6 +3813,11 @@
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
+
+            <button class="btn-fighter-select" onclick="document.querySelector('.nav-tab[data-section=\'fighters\']').click()" style="margin-top: 10px;">
+                <span class="btn-icon">🎮</span>
+                Choose Your Fighter
+            </button>
 
         </section>
 
@@ -3653,6 +4003,24 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- FIGHTERS SECTION -->
+        <section id="fighters" class="section">
+            <div class="fighters-page">
+                <div class="fighters-header">
+                    <h1 class="fighters-title">CHOOSE YOUR FIGHTER</h1>
+                    <p class="fighters-subtitle">Season 2026</p>
+                </div>
+                <div class="fighters-roster" id="fightersRoster">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="fighterDetailOverlay" class="fighter-detail-overlay">
+                <button class="fighter-detail-close" onclick="closeFighterDetail()">&times;</button>
+                <div class="fighter-detail-content" id="fighterDetailContent"></div>
             </div>
         </section>
     </div>
@@ -4521,6 +4889,7 @@
                 renderInsights();
                 renderH2H();
                 renderDoubles();
+                renderFighters();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -6410,6 +6779,7 @@
             if (e.key === 'Escape') {
                 closeFighterSelect();
                 closeFighterCard(e);
+                closeFighterDetail();
             }
         });
 
@@ -6591,6 +6961,201 @@
 
             return stats.map(s => `<div class="fighter-trait-item">• ${s}</div>`).join('')
                 || '<div class="fighter-trait-item">• No stats yet</div>';
+        }
+
+        // ========== FIGHTERS PAGE (NBA 2K Style) ==========
+        const PLAYER_COLORS = {
+            Rick: '#ff4444',
+            Ed: '#44ff44',
+            Tom: '#4444ff',
+            Jethro: '#ffff44'
+        };
+
+        const PLAYER_VIDEOS = {
+            // Phase 2: Add video paths here once clips are processed
+            // Rick: 'rick images/rick-clip.webm',
+            // Ed: 'ed images/ed-clip.webm',
+            // Tom: 'tom images/tom-clip.webm',
+            // Jethro: 'jethro images/jethro-clip.webm'
+        };
+
+        function calculateOverallRating(player) {
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+            const played = singlesMatches.filter(m => m.player1 === player || m.player2 === player).length;
+            const wins = singlesMatches.filter(m => m.winner1 === player).length;
+            if (played === 0) return 70;
+            const winPct = wins / played;
+            return Math.round(60 + (winPct * 39));
+        }
+
+        function renderFighters() {
+            const roster = document.getElementById('fightersRoster');
+            if (!roster) return;
+
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+            const currentYear = new Date().getFullYear();
+            const canadianMatches = matches.filter(m =>
+                m.match_type === 'canadian' &&
+                new Date(m.created_at).getFullYear() === currentYear
+            );
+            const pointsMap = { 0: 3, 1: 1, 2: 0 };
+
+            roster.innerHTML = PLAYERS.map(player => {
+                const data = fighterData[player];
+                const photo = PLAYER_PHOTOS[player];
+                const video = PLAYER_VIDEOS[player];
+
+                const wins = singlesMatches.filter(m => m.winner1 === player).length;
+                const losses = singlesMatches.filter(m =>
+                    (m.player1 === player || m.player2 === player) && m.winner1 !== player
+                ).length;
+                const total = wins + losses;
+                const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+                const rfResults = [];
+                canadianMatches.forEach(match => {
+                    const players = sortCanadianPlayers(match);
+                    const position = players.findIndex(p => p.name === player);
+                    if (position !== -1) rfResults.push(pointsMap[position]);
+                });
+                rfResults.sort((a, b) => b - a);
+                const rfScore = rfResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
+                const maxRF = 30;
+
+                const ovr = calculateOverallRating(player);
+                const hasVideo = !!video;
+
+                return `
+                    <div class="fighter-profile-card ${hasVideo ? 'has-video' : ''}"
+                         data-player="${player}" onclick="openFighterDetail('${player}')">
+                        <div class="fighter-profile-media">
+                            <img src="${photo}" alt="${player}" class="fighter-profile-img">
+                            ${hasVideo ? `<video src="${video}" loop autoplay muted playsinline class="fighter-profile-video"></video>` : ''}
+                        </div>
+                        <div class="fighter-profile-info">
+                            <div class="fighter-profile-name">${player.toUpperCase()}</div>
+                            <div class="fighter-profile-title">${data.title}</div>
+                            <div class="fighter-profile-rating">
+                                <span class="rating-label">OVR</span>
+                                <span class="rating-value">${ovr}</span>
+                            </div>
+                            <div class="fighter-profile-stats-bar">
+                                <div class="fp-stat-row">
+                                    <span class="fp-stat-name">Singles</span>
+                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${winPct}%"></div></div>
+                                    <span class="fp-stat-val">${wins}-${losses}</span>
+                                </div>
+                                <div class="fp-stat-row">
+                                    <span class="fp-stat-name">Win %</span>
+                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${winPct}%"></div></div>
+                                    <span class="fp-stat-val">${winPct}%</span>
+                                </div>
+                                <div class="fp-stat-row">
+                                    <span class="fp-stat-name">RF Pts</span>
+                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${Math.round((rfScore / maxRF) * 100)}%"></div></div>
+                                    <span class="fp-stat-val">${rfScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openFighterDetail(player) {
+            const data = fighterData[player];
+            if (!data) return;
+
+            const photo = PLAYER_PHOTOS[player];
+            const video = PLAYER_VIDEOS[player];
+            const ovr = calculateOverallRating(player);
+            const color = PLAYER_COLORS[player];
+
+            // Calculate detailed stats
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+            const wins = singlesMatches.filter(m => m.winner1 === player).length;
+            const losses = singlesMatches.filter(m =>
+                (m.player1 === player || m.player2 === player) && m.winner1 !== player
+            ).length;
+            const total = wins + losses;
+            const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+            const currentYear = new Date().getFullYear();
+            const canadianMatches = matches.filter(m =>
+                m.match_type === 'canadian' &&
+                new Date(m.created_at).getFullYear() === currentYear
+            );
+            const pointsMap = { 0: 3, 1: 1, 2: 0 };
+            let rfWins = 0, rfPlayed = 0;
+            const rfResults = [];
+            canadianMatches.forEach(match => {
+                const players = sortCanadianPlayers(match);
+                const position = players.findIndex(p => p.name === player);
+                if (position !== -1) {
+                    rfPlayed++;
+                    if (position === 0) rfWins++;
+                    rfResults.push(pointsMap[position]);
+                }
+            });
+            rfResults.sort((a, b) => b - a);
+            const rfScore = rfResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
+
+            const content = document.getElementById('fighterDetailContent');
+            content.innerHTML = `
+                <div class="fighter-detail-hero" style="border-color: ${color}">
+                    <div class="fighter-detail-media">
+                        ${video
+                            ? `<video src="${video}" loop autoplay muted playsinline class="fighter-detail-video"></video>`
+                            : `<img src="${photo}" alt="${player}" class="fighter-detail-img">`
+                        }
+                    </div>
+                    <div class="fighter-detail-name-block">
+                        <div class="fighter-detail-name">${player.toUpperCase()}</div>
+                        <div class="fighter-detail-title" style="color: ${color}">${data.title}</div>
+                        <div class="fighter-detail-ovr">
+                            <span class="rating-label">OVR</span>
+                            <span class="rating-value">${ovr}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fighter-detail-stats-grid">
+                    <div class="fighter-detail-stat-card">
+                        <div class="fighter-detail-stat-label">Record</div>
+                        <div class="fighter-detail-stat-value">${wins}-${losses}</div>
+                    </div>
+                    <div class="fighter-detail-stat-card">
+                        <div class="fighter-detail-stat-label">Win %</div>
+                        <div class="fighter-detail-stat-value">${winPct}%</div>
+                    </div>
+                    <div class="fighter-detail-stat-card">
+                        <div class="fighter-detail-stat-label">RF Score</div>
+                        <div class="fighter-detail-stat-value">${rfScore}</div>
+                    </div>
+                    <div class="fighter-detail-stat-card">
+                        <div class="fighter-detail-stat-label">RF Played</div>
+                        <div class="fighter-detail-stat-value">${rfPlayed}</div>
+                    </div>
+                </div>
+
+                <div class="fighter-detail-section">
+                    <div class="fighter-detail-section-title">STRENGTHS</div>
+                    ${data.strengths.map(s => `<div class="fighter-detail-trait">${s}</div>`).join('')}
+                </div>
+
+                <div class="fighter-detail-section">
+                    <div class="fighter-detail-section-title">WEAKNESSES</div>
+                    ${data.weaknesses.map(w => `<div class="fighter-detail-trait">${w}</div>`).join('')}
+                </div>
+            `;
+
+            document.getElementById('fighterDetailOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFighterDetail() {
+            document.getElementById('fighterDetailOverlay').classList.remove('active');
+            document.body.style.overflow = '';
         }
 
         // External matches data (Jethro vs non-Rat Factor players)

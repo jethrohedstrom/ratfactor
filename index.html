@@ -6979,12 +6979,31 @@
             // Jethro: 'jethro images/jethro-clip.webm'
         };
 
+        function getPlayerDoublesRecord(player) {
+            const dMatches = matches.filter(m => m.match_type === 'doubles');
+            let wins = 0, losses = 0;
+            dMatches.forEach(m => {
+                const onTeam1 = m.player1 === player || m.player2 === player;
+                const onTeam2 = m.player3 === player || m.player4 === player;
+                if (!onTeam1 && !onTeam2) return;
+                const team1Won = m.winner1 === m.player1 || m.winner1 === m.player2;
+                if ((team1Won && onTeam1) || (!team1Won && onTeam2)) wins++;
+                else losses++;
+            });
+            return { wins, losses, played: wins + losses };
+        }
+
         function calculateOverallRating(player) {
             const singlesMatches = matches.filter(m => m.match_type === 'singles');
-            const played = singlesMatches.filter(m => m.player1 === player || m.player2 === player).length;
-            const wins = singlesMatches.filter(m => m.winner1 === player).length;
-            if (played === 0) return 70;
-            const winPct = wins / played;
+            const singlesPlayed = singlesMatches.filter(m => m.player1 === player || m.player2 === player).length;
+            const singlesWins = singlesMatches.filter(m => m.winner1 === player).length;
+
+            const doubles = getPlayerDoublesRecord(player);
+
+            const totalPlayed = singlesPlayed + doubles.played;
+            const totalWins = singlesWins + doubles.wins;
+            if (totalPlayed === 0) return 70;
+            const winPct = totalWins / totalPlayed;
             return Math.round(60 + (winPct * 39));
         }
 
@@ -7011,6 +7030,12 @@
                 ).length;
                 const total = wins + losses;
                 const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+                const doubles = getPlayerDoublesRecord(player);
+                const dWinPct = doubles.played > 0 ? Math.round((doubles.wins / doubles.played) * 100) : 0;
+                const combinedWins = wins + doubles.wins;
+                const combinedTotal = total + doubles.played;
+                const combinedWinPct = combinedTotal > 0 ? Math.round((combinedWins / combinedTotal) * 100) : 0;
 
                 const rfResults = [];
                 canadianMatches.forEach(match => {
@@ -7046,9 +7071,14 @@
                                     <span class="fp-stat-val">${wins}-${losses}</span>
                                 </div>
                                 <div class="fp-stat-row">
+                                    <span class="fp-stat-name">Doubles</span>
+                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${dWinPct}%"></div></div>
+                                    <span class="fp-stat-val">${doubles.wins}-${doubles.losses}</span>
+                                </div>
+                                <div class="fp-stat-row">
                                     <span class="fp-stat-name">Win %</span>
-                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${winPct}%"></div></div>
-                                    <span class="fp-stat-val">${winPct}%</span>
+                                    <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${combinedWinPct}%"></div></div>
+                                    <span class="fp-stat-val">${combinedWinPct}%</span>
                                 </div>
                                 <div class="fp-stat-row">
                                     <span class="fp-stat-name">RF Pts</span>
@@ -7079,6 +7109,11 @@
             ).length;
             const total = wins + losses;
             const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+            const doubles = getPlayerDoublesRecord(player);
+            const combinedWins = wins + doubles.wins;
+            const combinedTotal = total + doubles.played;
+            const combinedWinPct = combinedTotal > 0 ? Math.round((combinedWins / combinedTotal) * 100) : 0;
 
             const currentYear = new Date().getFullYear();
             const canadianMatches = matches.filter(m =>
@@ -7121,12 +7156,16 @@
 
                 <div class="fighter-detail-stats-grid">
                     <div class="fighter-detail-stat-card">
-                        <div class="fighter-detail-stat-label">Record</div>
+                        <div class="fighter-detail-stat-label">Singles</div>
                         <div class="fighter-detail-stat-value">${wins}-${losses}</div>
                     </div>
                     <div class="fighter-detail-stat-card">
+                        <div class="fighter-detail-stat-label">Doubles</div>
+                        <div class="fighter-detail-stat-value">${doubles.wins}-${doubles.losses}</div>
+                    </div>
+                    <div class="fighter-detail-stat-card">
                         <div class="fighter-detail-stat-label">Win %</div>
-                        <div class="fighter-detail-stat-value">${winPct}%</div>
+                        <div class="fighter-detail-stat-value">${combinedWinPct}%</div>
                     </div>
                     <div class="fighter-detail-stat-card">
                         <div class="fighter-detail-stat-label">RF Score</div>

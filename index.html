@@ -5524,6 +5524,36 @@
                 });
             }
 
+            // ========== DOUBLES WIN STREAKS ==========
+            const teamStreaks = {};
+            doublesThisYear.forEach(match => {
+                const team1Key = [match.player1, match.player2].sort().join(' & ');
+                const team2Key = [match.player3, match.player4].sort().join(' & ');
+                const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+
+                [team1Key, team2Key].forEach(team => {
+                    if (!teamStreaks[team]) teamStreaks[team] = { count: 0, done: false };
+                    if (teamStreaks[team].done) return;
+                    const won = (team === team1Key && team1Won) || (team === team2Key && !team1Won);
+                    if (won) {
+                        teamStreaks[team].count++;
+                    } else {
+                        teamStreaks[team].done = true;
+                    }
+                });
+            });
+
+            Object.entries(teamStreaks).forEach(([team, streak]) => {
+                if (streak.count >= 2) {
+                    insights.push({
+                        type: 'doubles',
+                        subcategory: 'doubles-streak',
+                        priority: streak.count >= 3 ? 8 : 7,
+                        text: `🧀 ${team} are on a ${streak.count}-match doubles win streak`
+                    });
+                }
+            });
+
             // ========== SINGLES STREAKS ==========
 
             const playerStreaks = {};
@@ -5770,6 +5800,74 @@
                         text: `🧀 Ice in the veins: ${clutchLeader[0]} has ${clutchLeader[1]} clutch wins in tight Rat Factor games`
                     });
                 }
+            }
+
+            // ========== QUARTERLY TRENDS ==========
+            const quarterLabel = q => `Q${q + 1}`;
+            const getQuarter = date => Math.floor(new Date(date).getMonth() / 3);
+
+            // Quarterly RF performance shift
+            const canadianThisYear = canadianMatches.filter(m => new Date(m.created_at).getFullYear() === currentYear);
+            if (canadianThisYear.length >= 4) {
+                PLAYERS.forEach(player => {
+                    const quarterPts = [[], [], [], []];
+                    canadianThisYear.forEach(match => {
+                        const players = sortCanadianPlayers(match);
+                        const position = players.findIndex(p => p.name === player);
+                        if (position !== -1) {
+                            const q = getQuarter(match.created_at);
+                            const pointsMap = { 0: 3, 1: 1, 2: 0 };
+                            quarterPts[q].push(pointsMap[position]);
+                        }
+                    });
+                    const quarters = quarterPts.map((pts, i) => ({ q: i, pts, avg: pts.length ? pts.reduce((a, b) => a + b, 0) / pts.length : 0 }))
+                        .filter(q => q.pts.length >= 2);
+                    if (quarters.length >= 2) {
+                        const prev = quarters[quarters.length - 2];
+                        const curr = quarters[quarters.length - 1];
+                        const diff = curr.avg - prev.avg;
+                        if (Math.abs(diff) >= 0.5) {
+                            const up = diff > 0;
+                            insights.push({
+                                type: 'stat',
+                                subcategory: 'rf-quarterly',
+                                priority: 6,
+                                text: `${up ? '📈' : '📉'} ${player}'s RF avg: ${prev.avg.toFixed(1)} → ${curr.avg.toFixed(1)} pts (${quarterLabel(prev.q)} → ${quarterLabel(curr.q)})`
+                            });
+                        }
+                    }
+                });
+            }
+
+            // Quarterly singles win rate shift
+            if (singlesThisYear.length >= 4) {
+                PLAYERS.forEach(player => {
+                    const quarterStats = [{w:0,l:0}, {w:0,l:0}, {w:0,l:0}, {w:0,l:0}];
+                    singlesThisYear.forEach(m => {
+                        if (m.player1 !== player && m.player2 !== player) return;
+                        const q = getQuarter(m.created_at);
+                        if (m.winner1 === player) quarterStats[q].w++;
+                        else quarterStats[q].l++;
+                    });
+                    const quarters = quarterStats.map((s, i) => {
+                        const total = s.w + s.l;
+                        return { q: i, total, pct: total ? Math.round((s.w / total) * 100) : 0 };
+                    }).filter(q => q.total >= 2);
+                    if (quarters.length >= 2) {
+                        const prev = quarters[quarters.length - 2];
+                        const curr = quarters[quarters.length - 1];
+                        const diff = curr.pct - prev.pct;
+                        if (Math.abs(diff) >= 20) {
+                            const up = diff > 0;
+                            insights.push({
+                                type: 'stat',
+                                subcategory: 'singles-quarterly',
+                                priority: 6,
+                                text: `${up ? '📈' : '📉'} ${player}'s singles win rate: ${prev.pct}% in ${quarterLabel(prev.q)} → ${curr.pct}% in ${quarterLabel(curr.q)}`
+                            });
+                        }
+                    }
+                });
             }
 
             // ========== OVERALL STATS ==========
@@ -6071,7 +6169,7 @@
                 return selected;
             }
 
-            const selectedInsights = selectDiverseInsights(insights);
+            const selectedInsights = selectDiverseInsights(insights, 5);
 
             // Helper to format insight text with highlighted player names
             function formatInsight(text) {

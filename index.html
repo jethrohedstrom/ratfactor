@@ -1418,6 +1418,77 @@
             letter-spacing: 0.5px;
         }
 
+        /* Quarterly Doubles */
+        .qd-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .qd-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+        }
+        .qd-subtitle {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+        .qd-matchup {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 10px 0;
+        }
+        .qd-team {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+        }
+        .qd-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .qd-player img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+        .qd-player-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+        }
+        .qd-vs {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem;
+            color: var(--accent-pink);
+            letter-spacing: 2px;
+            flex-shrink: 0;
+        }
+        .qd-record {
+            text-align: center;
+            margin-top: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+        .qd-record strong {
+            color: var(--text-primary);
+        }
+
         /* Empty state */
         .empty-state {
             text-align: center;
@@ -3807,6 +3878,10 @@
                 <div id="mobile-breakdown" class="mobile-event-breakdown"></div>
             </div>
 
+            <div class="card" id="quarterlyDoublesCard" style="display:none">
+                <div id="quarterlyDoubles"></div>
+            </div>
+
             <div class="card">
                 <h2 class="card-title">💡 Insights</h2>
                 <div id="insights">
@@ -4172,6 +4247,25 @@
             'Tom': 'tom images/drdeath.png',
             'Jethro': 'jethro images/diesel.png'
         };
+
+        // Quarterly doubles team config — edit pairings here per quarter/year
+        const QUARTERLY_DOUBLES = {
+            2026: {
+                Q1: [['Rick', 'Ed'], ['Tom', 'Jethro']],
+                Q2: [['Rick', 'Tom'], ['Ed', 'Jethro']],
+                Q3: [['Rick', 'Jethro'], ['Ed', 'Tom']],
+                Q4: [['Rick', 'Ed'], ['Tom', 'Jethro']],
+            }
+        };
+
+        function getCurrentQuarterTeams() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const quarter = `Q${Math.floor(now.getMonth() / 3) + 1}`;
+            const yearConfig = QUARTERLY_DOUBLES[year];
+            if (!yearConfig || !yearConfig[quarter]) return null;
+            return { year, quarter, teams: yearConfig[quarter] };
+        }
 
         // State
         let matches = [];
@@ -4885,6 +4979,7 @@
 
                 matches = data || [];
                 renderLeaderboard();
+                renderQuarterlyDoubles();
                 renderHistory();
                 renderInsights();
                 renderH2H();
@@ -4924,6 +5019,76 @@
             });
 
             return players;
+        }
+
+        function renderQuarterlyDoubles() {
+            const card = document.getElementById('quarterlyDoublesCard');
+            const container = document.getElementById('quarterlyDoubles');
+            if (!card || !container) return;
+
+            const qData = getCurrentQuarterTeams();
+            if (!qData) { card.style.display = 'none'; return; }
+
+            card.style.display = '';
+            const { quarter, teams } = qData;
+            const [team1, team2] = teams;
+
+            // Get quarter date range for filtering
+            const year = new Date().getFullYear();
+            const qNum = parseInt(quarter.slice(1)) - 1;
+            const qStart = new Date(year, qNum * 3, 1);
+            const qEnd = new Date(year, qNum * 3 + 3, 0, 23, 59, 59);
+
+            // Count W-L for this team pairing in this quarter
+            const doublesThisQ = matches.filter(m =>
+                m.match_type === 'doubles' &&
+                new Date(m.created_at) >= qStart &&
+                new Date(m.created_at) <= qEnd
+            );
+
+            const team1Key = team1.slice().sort().join(' & ');
+            let t1Wins = 0, t1Losses = 0;
+            doublesThisQ.forEach(m => {
+                const mTeam1 = [m.player1, m.player2].sort().join(' & ');
+                const mTeam2 = [m.player3, m.player4].sort().join(' & ');
+                const team1Won = m.winner1 === m.player1 || m.winner1 === m.player2;
+                if (mTeam1 === team1Key) {
+                    if (team1Won) t1Wins++; else t1Losses++;
+                } else if (mTeam2 === team1Key) {
+                    if (!team1Won) t1Wins++; else t1Losses++;
+                }
+            });
+
+            container.innerHTML = `
+                <div class="qd-header">
+                    <div class="qd-title">🎾 ${quarter} DOUBLES TEAMS</div>
+                    <div class="qd-subtitle">${year} Season</div>
+                </div>
+                <div class="qd-matchup">
+                    <div class="qd-team">
+                        ${team1.map(p => `
+                            <div class="qd-player">
+                                <img src="${PLAYER_PHOTOS[p]}" alt="${p}">
+                                <div class="qd-player-name">${p}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="qd-vs">VS</div>
+                    <div class="qd-team">
+                        ${team2.map(p => `
+                            <div class="qd-player">
+                                <img src="${PLAYER_PHOTOS[p]}" alt="${p}">
+                                <div class="qd-player-name">${p}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ${(t1Wins + t1Losses > 0) ? `
+                    <div class="qd-record">
+                        <strong>${team1.join(' & ')}</strong> ${t1Wins}-${t1Losses} <strong>${team2.join(' & ')}</strong>
+                    </div>
+                ` : `<div class="qd-record">No ${quarter} doubles matches yet</div>`}
+            `;
         }
 
         // Render leaderboard - WSL Championship style with event columns

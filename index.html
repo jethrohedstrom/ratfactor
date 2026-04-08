@@ -480,6 +480,12 @@
             background: var(--bg-dark);
         }
 
+        .match-notes {
+            resize: vertical;
+            min-height: 50px;
+            font-size: 0.85rem;
+        }
+
         /* Player selection grid */
         .player-grid {
             display: grid;
@@ -1004,142 +1010,314 @@
         }
 
         /* Doubles Tab */
-        .doubles-partnership-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+        /* === DOUBLES: STANDINGS TABLE === */
+        .doubles-standings {
+            margin-bottom: 28px;
         }
 
-        .doubles-partnership-card {
-            background: var(--bg-dark);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 15px;
-            transition: all 0.2s ease;
-        }
-
-        .doubles-partnership-card:hover {
-            border-color: var(--accent-yellow);
-            transform: translateY(-2px);
-        }
-
-        .doubles-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .doubles-section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            color: var(--accent-yellow);
             margin-bottom: 12px;
-            padding-bottom: 10px;
+        }
+
+        .standings-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+
+        .standings-table th {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 8px 8px;
+            text-align: center;
             border-bottom: 1px solid var(--border-subtle);
         }
 
-        .doubles-card-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
+        .standings-table th:first-child,
+        .standings-table th:nth-child(2) {
+            text-align: left;
         }
 
-        .doubles-card-record {
+        .standings-table td {
+            padding: 10px 8px;
+            background: var(--bg-dark);
             font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.05rem;
+            letter-spacing: 0.5px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .standings-table tr td:first-child {
+            border-radius: 8px 0 0 8px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            width: 28px;
+        }
+
+        .standings-table tr td:nth-child(2) {
+            text-align: left;
+        }
+
+        .standings-table tr td:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .standings-team-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .standings-avatars {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .standings-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--border-subtle);
+        }
+
+        .standings-avatar:last-child {
+            margin-left: -8px;
+        }
+
+        .standings-team-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .standings-winpct {
             font-size: 1.1rem;
-            letter-spacing: 1px;
         }
 
-        .doubles-card-record.winning { color: var(--accent-green); }
-        .doubles-card-record.losing { color: var(--accent-pink); }
-        .doubles-card-record.tied { color: var(--accent-yellow); }
+        .standings-winpct.good { color: var(--accent-green); }
+        .standings-winpct.bad { color: var(--accent-pink); }
+        .standings-winpct.even { color: var(--accent-yellow); }
 
-        .doubles-opponent-row {
+        .standings-form {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .form-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .form-dot.win { background: var(--accent-green); }
+        .form-dot.loss { background: var(--accent-pink); }
+
+        /* === DOUBLES: RIVALRY CARDS === */
+        .doubles-rivalries {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .rivalry-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 18px 16px;
+            opacity: 0;
+            animation: rivalryFadeIn 0.4s ease forwards;
+        }
+
+        @keyframes rivalryFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rivalry-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 0 8px 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            border-left: 2px solid transparent;
-            cursor: pointer;
-            transition: background 0.15s ease, border-left-color 0.15s ease;
+            margin-bottom: 14px;
         }
 
-        .doubles-opponent-row:last-of-type {
+        .rivalry-team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .rivalry-team-avatars {
+            display: flex;
+        }
+
+        .rivalry-team-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-subtle);
+        }
+
+        .rivalry-team-avatar:last-child {
+            margin-left: -10px;
+        }
+
+        .rivalry-team.leading .rivalry-team-avatar {
+            border-color: var(--accent-green);
+        }
+
+        .rivalry-team-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .rivalry-team.leading .rivalry-team-name {
+            color: var(--text-light);
+        }
+
+        .rivalry-h2h {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 0 12px;
+            flex-shrink: 0;
+        }
+
+        .rivalry-h2h-score {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            color: var(--text-light);
+        }
+
+        .rivalry-h2h-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Dominance bar */
+        .rivalry-dominance {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--accent-pink);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .rivalry-dominance-fill {
+            height: 100%;
+            background: var(--accent-green);
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+
+        /* Recent matches in rivalry card */
+        .rivalry-recent {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .rivalry-recent-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .rivalry-match-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .rivalry-match-row:last-child {
             border-bottom: none;
         }
 
-        .doubles-opponent-row:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-left-color: var(--accent-yellow);
+        .rivalry-match-winner-name {
+            color: var(--accent-green);
+            font-weight: 600;
+            white-space: nowrap;
         }
 
-        .doubles-opponent-label {
-            font-size: 0.8rem;
+        .rivalry-match-def {
             color: var(--text-muted);
-            letter-spacing: 0.5px;
+            font-size: 0.65rem;
         }
 
-        .doubles-opponent-label strong {
-            color: var(--text-light);
+        .rivalry-match-loser-name {
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .rivalry-match-score {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            color: var(--accent-yellow);
             letter-spacing: 1px;
+            margin-left: auto;
         }
 
-        .doubles-opponent-record {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-        }
-
-        .doubles-opponent-record.winning { color: var(--accent-green); }
-        .doubles-opponent-record.losing { color: var(--accent-pink); }
-        .doubles-opponent-record.tied { color: var(--accent-yellow); }
-
-        .doubles-expand-arrow {
+        .rivalry-match-date {
             font-size: 0.6rem;
+            opacity: 0.6;
+            white-space: nowrap;
+        }
+
+        .rivalry-show-more {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
             color: var(--text-muted);
-            margin-left: 8px;
-            display: inline-block;
-            transition: transform 0.2s ease;
+            cursor: pointer;
+            padding: 6px 0 0;
+            text-align: center;
+            transition: color 0.15s;
         }
 
-        .doubles-expand-arrow.open {
-            transform: rotate(90deg);
+        .rivalry-show-more:hover {
+            color: var(--accent-yellow);
         }
 
-        .doubles-opponent-details {
+        .rivalry-extra-matches {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease;
         }
 
-        .doubles-opponent-details.open {
+        .rivalry-extra-matches.open {
             max-height: 500px;
         }
 
-        .doubles-match-detail {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .doubles-match-winner {
-            color: var(--accent-green);
-            font-weight: 600;
-        }
-
-        .doubles-match-scores {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.85rem;
-            color: var(--accent-yellow);
-            letter-spacing: 1px;
-        }
-
-        .doubles-match-date {
-            font-size: 0.6rem;
-            opacity: 0.7;
-        }
-
+        /* === DOUBLES: MATCH HISTORY (collapsible) === */
         .doubles-history-title {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.3rem;
@@ -1148,121 +1326,6 @@
             margin-bottom: 15px;
             padding-top: 15px;
             border-top: 1px solid var(--border-subtle);
-        }
-
-        .doubles-year-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-            color: var(--accent-yellow);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .doubles-year-section {
-            margin-bottom: 30px;
-        }
-
-        .doubles-partnership-card {
-            opacity: 0;
-            animation: doublesFadeIn 0.4s ease forwards;
-        }
-
-        @keyframes doublesFadeIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .doubles-summary-bar {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 20px;
-            padding: 12px 16px;
-            background: var(--bg-dark);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-        }
-
-        .doubles-summary-stat {
-            text-align: center;
-        }
-
-        .doubles-summary-label {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .doubles-summary-value {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
-            color: var(--accent-yellow);
-            letter-spacing: 1px;
-        }
-
-        .doubles-card-stats {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 10px 0 8px 0;
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .doubles-win-ring {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            flex-shrink: 0;
-        }
-
-        .doubles-win-ring svg {
-            transform: rotate(-90deg);
-        }
-
-        .doubles-win-ring-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-
-        .doubles-streak {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.8rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-            display: inline-block;
-            margin-bottom: 4px;
-        }
-
-        .doubles-streak.win-streak {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--accent-green);
-        }
-
-        .doubles-streak.loss-streak {
-            background: rgba(255, 107, 157, 0.15);
-            color: var(--accent-pink);
-        }
-
-        .doubles-matches-played {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-
-        .doubles-matches-played strong {
-            color: var(--text-light);
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.95rem;
         }
 
         .doubles-history-toggle {
@@ -1277,6 +1340,18 @@
             color: var(--accent-green);
         }
 
+        .doubles-expand-arrow {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-left: 8px;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .doubles-expand-arrow.open {
+            transform: rotate(90deg);
+        }
+
         .doubles-history-section {
             max-height: 0;
             overflow: hidden;
@@ -1288,19 +1363,28 @@
         }
 
         @media (max-width: 600px) {
-            .doubles-partnership-grid {
-                grid-template-columns: 1fr;
+            .standings-table th,
+            .standings-table td {
+                padding: 8px 4px;
+                font-size: 0.9rem;
             }
-            .doubles-summary-bar {
-                flex-direction: column;
-                gap: 10px;
+            .standings-team-name {
+                font-size: 0.85rem;
             }
-            .doubles-card-stats {
-                gap: 10px;
+            .standings-avatar {
+                width: 22px;
+                height: 22px;
             }
-            .doubles-win-ring {
-                width: 40px;
-                height: 40px;
+            .rivalry-team-avatar {
+                width: 30px;
+                height: 30px;
+            }
+            .rivalry-h2h-score {
+                font-size: 1.5rem;
+            }
+            .rivalry-match-row {
+                font-size: 0.65rem;
+                flex-wrap: wrap;
             }
         }
 
@@ -4401,6 +4485,10 @@
                         <label class="form-label">Location (optional)</label>
                         <input type="text" id="singlesLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Notes (optional)</label>
+                        <textarea id="singlesNotes" class="form-input match-notes" rows="2" placeholder="Notes for OpenClaw — e.g. epic comeback, windy conditions, Rick was on fire"></textarea>
+                    </div>
                     <button class="btn-submit" onclick="submitSingles()">LOG MATCH</button>
                 `;
             } else if (type === 'doubles') {
@@ -4441,6 +4529,10 @@
                         <label class="form-label">Location (optional)</label>
                         <input type="text" id="doublesLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Notes (optional)</label>
+                        <textarea id="doublesNotes" class="form-input match-notes" rows="2" placeholder="Notes for OpenClaw — e.g. epic comeback, windy conditions, Rick was on fire"></textarea>
+                    </div>
                     <button class="btn-submit" onclick="submitDoubles()">LOG MATCH</button>
                 `;
 
@@ -4473,6 +4565,10 @@
                         <div class="form-group">
                             <label class="form-label">Location (optional)</label>
                             <input type="text" id="canadianLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Match Notes (optional)</label>
+                            <textarea id="canadianNotes" class="form-input match-notes" rows="2" placeholder="Notes for OpenClaw — e.g. epic comeback, windy conditions, Rick was on fire"></textarea>
                         </div>
                     </div>
                     <button class="btn-submit" onclick="submitCanadian()">LOG MATCH</button>
@@ -4799,6 +4895,7 @@
             const winner = p1SetsWon > p2SetsWon ? p1 : p2;
 
             const singlesLocation = document.getElementById('singlesLocation').value.trim() || null;
+            const singlesNotes = document.getElementById('singlesNotes').value.trim() || null;
 
             const match = {
                 match_type: 'singles',
@@ -4806,7 +4903,8 @@
                 player2: p2,
                 winner1: winner,
                 sets: JSON.stringify(sets),
-                location: singlesLocation
+                location: singlesLocation,
+                notes: singlesNotes
             };
 
             await saveMatch(match);
@@ -4875,6 +4973,7 @@
             const winners = team1SetsWon > team2SetsWon ? team1 : team2;
 
             const doublesLocation = document.getElementById('doublesLocation').value.trim() || null;
+            const doublesNotes = document.getElementById('doublesNotes').value.trim() || null;
 
             const match = {
                 match_type: 'doubles',
@@ -4885,7 +4984,8 @@
                 winner1: winners[0],
                 winner2: winners[1],
                 sets: JSON.stringify(sets),
-                location: doublesLocation
+                location: doublesLocation,
+                notes: doublesNotes
             };
 
             await saveMatch(match);
@@ -4932,6 +5032,8 @@
                 }
             }
 
+            const canadianNotes = document.getElementById('canadianNotes').value.trim() || null;
+
             const match = {
                 match_type: 'canadian',
                 player1: selected[0],
@@ -4942,7 +5044,8 @@
                 score_player3: scores[selected[2]],
                 target_score: target,
                 sets: tiebreakData ? JSON.stringify(tiebreakData) : null,
-                location: location
+                location: location,
+                notes: canadianNotes
             };
 
             await saveMatch(match);
@@ -6539,6 +6642,11 @@
                 return [a, b].sort().join(' & ');
             }
 
+            // Get the two player names from a pair key
+            function pairPlayers(key) {
+                return key.split(' & ');
+            }
+
             const partnerships = {};
 
             doublesMatches.forEach(match => {
@@ -6546,9 +6654,8 @@
                 const team2Key = pairKey(match.player3, match.player4);
                 const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
 
-                // Record for team1
-                if (!partnerships[team1Key]) partnerships[team1Key] = { wins: 0, losses: 0, opponents: {} };
-                if (!partnerships[team2Key]) partnerships[team2Key] = { wins: 0, losses: 0, opponents: {} };
+                if (!partnerships[team1Key]) partnerships[team1Key] = { wins: 0, losses: 0, opponents: {}, allMatches: [] };
+                if (!partnerships[team2Key]) partnerships[team2Key] = { wins: 0, losses: 0, opponents: {}, allMatches: [] };
 
                 if (team1Won) {
                     partnerships[team1Key].wins++;
@@ -6558,7 +6665,9 @@
                     partnerships[team2Key].wins++;
                 }
 
-                // Track per-opponent
+                partnerships[team1Key].allMatches.push({ match, won: team1Won });
+                partnerships[team2Key].allMatches.push({ match, won: !team1Won });
+
                 if (!partnerships[team1Key].opponents[team2Key]) partnerships[team1Key].opponents[team2Key] = [];
                 partnerships[team1Key].opponents[team2Key].push({ match, team1Won });
 
@@ -6566,106 +6675,178 @@
                 partnerships[team2Key].opponents[team1Key].push({ match, team1Won: !team1Won });
             });
 
-            // Sort partnerships by most matches played
+            // Sort by win%, then wins
             const sortedPairs = Object.entries(partnerships).sort((a, b) => {
-                const totalA = a[1].wins + a[1].losses;
-                const totalB = b[1].wins + b[1].losses;
-                return totalB - totalA || b[1].wins - a[1].wins;
+                const pctA = (a[1].wins + a[1].losses) > 0 ? a[1].wins / (a[1].wins + a[1].losses) : 0;
+                const pctB = (b[1].wins + b[1].losses) > 0 ? b[1].wins / (b[1].wins + b[1].losses) : 0;
+                return pctB - pctA || b[1].wins - a[1].wins;
             });
 
-            // Partnership cards
-            const cardsHTML = sortedPairs.map(([pair, data], index) => {
-                const recordClass = data.wins > data.losses ? 'winning' : data.wins < data.losses ? 'losing' : 'tied';
-                const totalMatches = data.wins + data.losses;
-                const winPct = totalMatches > 0 ? Math.round((data.wins / totalMatches) * 100) : 0;
+            // === SECTION 1: STANDINGS TABLE ===
+            const standingsRows = sortedPairs.map(([pair, data], index) => {
+                const players = pairPlayers(pair);
+                const total = data.wins + data.losses;
+                const winPct = total > 0 ? Math.round((data.wins / total) * 100) : 0;
+                const pctClass = winPct > 50 ? 'good' : winPct < 50 ? 'bad' : 'even';
 
-                // Streak calculation
-                const allPartnershipMatches = Object.values(data.opponents)
-                    .flat()
-                    .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at));
-                let streakType = allPartnershipMatches.length > 0 ? (allPartnershipMatches[0].team1Won ? 'W' : 'L') : null;
-                let streakCount = 0;
-                for (const m of allPartnershipMatches) {
-                    const result = m.team1Won ? 'W' : 'L';
-                    if (result === streakType) streakCount++;
-                    else break;
-                }
-
-                // SVG win ring
-                const circumference = 2 * Math.PI * 20;
-                const offset = circumference * (1 - winPct / 100);
-                const ringColor = winPct >= 50 ? 'var(--accent-green)' : 'var(--accent-pink)';
-                const ringSize = 48;
-                const ringHTML = `
-                    <div class="doubles-win-ring">
-                        <svg width="${ringSize}" height="${ringSize}" viewBox="0 0 ${ringSize} ${ringSize}">
-                            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
-                            <circle cx="24" cy="24" r="20" fill="none" stroke="${ringColor}" stroke-width="3"
-                                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-                                stroke-linecap="round"/>
-                        </svg>
-                        <span class="doubles-win-ring-label" style="color:${ringColor}">${winPct}%</span>
-                    </div>`;
-
-                // Streak badge (only show for streaks >= 2)
-                const streakHTML = streakCount >= 2
-                    ? `<span class="doubles-streak ${streakType === 'W' ? 'win-streak' : 'loss-streak'}">${streakType === 'W' ? '🔥' : '❄️'} ${streakType}${streakCount}</span>`
-                    : '';
-
-                const opponentRowsHTML = Object.entries(data.opponents).map(([oppPair, matchList]) => {
-                    const wins = matchList.filter(m => m.team1Won).length;
-                    const losses = matchList.length - wins;
-                    const oppRecordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
-
-                    const matchDetailsHTML = matchList
-                        .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at))
-                        .map(({ match, team1Won: thisTeamWon }) => {
-                            const t1 = `${match.player1} & ${match.player2}`;
-                            const t2 = `${match.player3} & ${match.player4}`;
-                            const matchT1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
-                            const winner = matchT1Won ? t1 : t2;
-                            const scores = formatDoublesMatchScores(match, matchT1Won);
-                            const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
-                            return `
-                                <div class="doubles-match-detail">
-                                    <span class="doubles-match-winner">${winner}</span>
-                                    <span class="doubles-match-scores">${scores}</span>
-                                    <span class="doubles-match-date">${matchDate}</span>
-                                </div>
-                            `;
-                        }).join('');
-
-                    return `
-                        <div class="doubles-opponent-row" data-doubles-toggle>
-                            <span class="doubles-opponent-label">vs <strong>${oppPair}</strong></span>
-                            <span>
-                                <span class="doubles-opponent-record ${oppRecordClass}">${wins}-${losses}</span>
-                                <span class="doubles-expand-arrow">&#9654;</span>
-                            </span>
-                        </div>
-                        <div class="doubles-opponent-details">${matchDetailsHTML}</div>
-                    `;
-                }).join('');
+                // Form guide: last 5 results
+                const recentMatches = data.allMatches
+                    .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at))
+                    .slice(0, 5);
+                const formDots = recentMatches.map(m =>
+                    `<span class="form-dot ${m.won ? 'win' : 'loss'}"></span>`
+                ).join('');
 
                 return `
-                    <div class="doubles-partnership-card" style="animation-delay: ${index * 0.08}s">
-                        <div class="doubles-card-header">
-                            <span class="doubles-card-name">${pair}</span>
-                            <span class="doubles-card-record ${recordClass}">${data.wins}W - ${data.losses}L</span>
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="standings-team-cell">
+                                <div class="standings-avatars">
+                                    <img class="standings-avatar" src="${PLAYER_PHOTOS[players[0]]}" alt="${players[0]}">
+                                    <img class="standings-avatar" src="${PLAYER_PHOTOS[players[1]]}" alt="${players[1]}">
+                                </div>
+                                <span class="standings-team-name">${pair}</span>
+                            </div>
+                        </td>
+                        <td>${total}</td>
+                        <td style="color:var(--accent-green)">${data.wins}</td>
+                        <td style="color:var(--accent-pink)">${data.losses}</td>
+                        <td><span class="standings-winpct ${pctClass}">${winPct}%</span></td>
+                        <td><div class="standings-form">${formDots}</div></td>
+                    </tr>
+                `;
+            }).join('');
+
+            const standingsHTML = `
+                <div class="doubles-standings">
+                    <div class="doubles-section-title">Standings</div>
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Team</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>L</th>
+                                <th>Win%</th>
+                                <th>Form</th>
+                            </tr>
+                        </thead>
+                        <tbody>${standingsRows}</tbody>
+                    </table>
+                </div>
+            `;
+
+            // === SECTION 2: RIVALRY CARDS ===
+            // Build unique matchups (deduplicate: A vs B is same as B vs A)
+            const matchupsSeen = new Set();
+            const matchups = [];
+
+            for (const [pair, data] of sortedPairs) {
+                for (const [oppPair, matchList] of Object.entries(data.opponents)) {
+                    const matchupKey = [pair, oppPair].sort().join(' vs ');
+                    if (matchupsSeen.has(matchupKey)) continue;
+                    matchupsSeen.add(matchupKey);
+
+                    const team1Wins = matchList.filter(m => m.team1Won).length;
+                    const team2Wins = matchList.length - team1Wins;
+
+                    matchups.push({
+                        team1: pair,
+                        team2: oppPair,
+                        team1Wins,
+                        team2Wins,
+                        matches: matchList
+                    });
+                }
+            }
+
+            // Sort by most matches played
+            matchups.sort((a, b) => (b.team1Wins + b.team2Wins) - (a.team1Wins + a.team2Wins));
+
+            const rivalryCardsHTML = matchups.map((mu, index) => {
+                const t1Players = pairPlayers(mu.team1);
+                const t2Players = pairPlayers(mu.team2);
+                const totalPlayed = mu.team1Wins + mu.team2Wins;
+                const dominancePct = totalPlayed > 0 ? Math.round((mu.team1Wins / totalPlayed) * 100) : 50;
+                const t1Leading = mu.team1Wins > mu.team2Wins ? 'leading' : '';
+                const t2Leading = mu.team2Wins > mu.team1Wins ? 'leading' : '';
+
+                // Recent matches sorted by date
+                const sortedMatches = mu.matches
+                    .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at));
+
+                const INITIAL_SHOW = 3;
+
+                function renderMatchRow(m) {
+                    const match = m.match;
+                    const t1 = `${match.player1} & ${match.player2}`;
+                    const t2 = `${match.player3} & ${match.player4}`;
+                    const matchT1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                    const winner = matchT1Won ? t1 : t2;
+                    const loser = matchT1Won ? t2 : t1;
+                    const scores = formatDoublesMatchScores(match, matchT1Won);
+                    const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+
+                    return `
+                        <div class="rivalry-match-row">
+                            <span class="rivalry-match-winner-name">${winner}</span>
+                            <span class="rivalry-match-def">def.</span>
+                            <span class="rivalry-match-loser-name">${loser}</span>
+                            <span class="rivalry-match-score">${scores}</span>
+                            <span class="rivalry-match-date">${matchDate}</span>
                         </div>
-                        <div class="doubles-card-stats">
-                            ${ringHTML}
-                            <div>
-                                ${streakHTML}
-                                <div class="doubles-matches-played"><strong>${totalMatches}</strong> matches</div>
+                    `;
+                }
+
+                const initialMatchesHTML = sortedMatches.slice(0, INITIAL_SHOW).map(renderMatchRow).join('');
+                const extraMatches = sortedMatches.slice(INITIAL_SHOW);
+                const extraMatchesHTML = extraMatches.length > 0
+                    ? `<div class="rivalry-extra-matches">${extraMatches.map(renderMatchRow).join('')}</div>
+                       <div class="rivalry-show-more" data-rivalry-toggle>Show ${extraMatches.length} more</div>`
+                    : '';
+
+                return `
+                    <div class="rivalry-card" style="animation-delay: ${index * 0.1}s">
+                        <div class="rivalry-header">
+                            <div class="rivalry-team ${t1Leading}">
+                                <div class="rivalry-team-avatars">
+                                    <img class="rivalry-team-avatar" src="${PLAYER_PHOTOS[t1Players[0]]}" alt="${t1Players[0]}">
+                                    <img class="rivalry-team-avatar" src="${PLAYER_PHOTOS[t1Players[1]]}" alt="${t1Players[1]}">
+                                </div>
+                                <div class="rivalry-team-name">${mu.team1}</div>
+                            </div>
+                            <div class="rivalry-h2h">
+                                <div class="rivalry-h2h-score">${mu.team1Wins} - ${mu.team2Wins}</div>
+                                <div class="rivalry-h2h-label">H2H</div>
+                            </div>
+                            <div class="rivalry-team ${t2Leading}">
+                                <div class="rivalry-team-avatars">
+                                    <img class="rivalry-team-avatar" src="${PLAYER_PHOTOS[t2Players[0]]}" alt="${t2Players[0]}">
+                                    <img class="rivalry-team-avatar" src="${PLAYER_PHOTOS[t2Players[1]]}" alt="${t2Players[1]}">
+                                </div>
+                                <div class="rivalry-team-name">${mu.team2}</div>
                             </div>
                         </div>
-                        ${opponentRowsHTML}
+                        <div class="rivalry-dominance">
+                            <div class="rivalry-dominance-fill" style="width: ${dominancePct}%"></div>
+                        </div>
+                        <div class="rivalry-recent">
+                            <div class="rivalry-recent-label">Recent</div>
+                            ${initialMatchesHTML}
+                            ${extraMatchesHTML}
+                        </div>
                     </div>
                 `;
             }).join('');
 
-            // Match history list
+            const rivalriesHTML = `
+                <div class="doubles-section-title">Matchups</div>
+                <div class="doubles-rivalries">${rivalryCardsHTML}</div>
+            `;
+
+            // === SECTION 3: MATCH HISTORY (collapsible) ===
             const historyHTML = doublesMatches
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .map(match => {
@@ -6697,39 +6878,10 @@
                     `;
                 }).join('');
 
-            // Summary stats
-            const totalDoublesMatches = doublesMatches.length;
-            const bestPair = sortedPairs[0];
-            const bestPairName = bestPair ? bestPair[0] : '-';
-            const bestWinPct = bestPair ? (bestPair[1].wins + bestPair[1].losses > 0 ? Math.round((bestPair[1].wins / (bestPair[1].wins + bestPair[1].losses)) * 100) : 0) : 0;
-
-            // Find highest win% partnership (min 2 matches)
-            const topPair = sortedPairs
-                .filter(([, d]) => d.wins + d.losses >= 2)
-                .sort((a, b) => {
-                    const pctA = a[1].wins / (a[1].wins + a[1].losses);
-                    const pctB = b[1].wins / (b[1].wins + b[1].losses);
-                    return pctB - pctA;
-                })[0];
-            const topPairName = topPair ? topPair[0] : bestPairName;
-            const topPairPct = topPair ? Math.round((topPair[1].wins / (topPair[1].wins + topPair[1].losses)) * 100) : 0;
-
+            // === ASSEMBLE ===
             container.innerHTML = `
-                <div class="doubles-summary-bar">
-                    <div class="doubles-summary-stat">
-                        <div class="doubles-summary-value">${totalDoublesMatches}</div>
-                        <div class="doubles-summary-label">Total Matches</div>
-                    </div>
-                    <div class="doubles-summary-stat">
-                        <div class="doubles-summary-value">${sortedPairs.length}</div>
-                        <div class="doubles-summary-label">Partnerships</div>
-                    </div>
-                    <div class="doubles-summary-stat">
-                        <div class="doubles-summary-value">${topPairName}</div>
-                        <div class="doubles-summary-label">Best Win% (${topPairPct}%)</div>
-                    </div>
-                </div>
-                <div class="doubles-partnership-grid">${cardsHTML}</div>
+                ${standingsHTML}
+                ${rivalriesHTML}
                 <div class="doubles-history-title doubles-history-toggle" data-doubles-history-toggle>
                     Match History <span class="doubles-expand-arrow">&#9654;</span>
                 </div>
@@ -6746,6 +6898,15 @@
                     arrow.classList.toggle('open');
                 });
             }
+
+            // Rivalry "show more" toggle listeners
+            container.querySelectorAll('[data-rivalry-toggle]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const extra = this.previousElementSibling;
+                    extra.classList.toggle('open');
+                    this.textContent = extra.classList.contains('open') ? 'Show less' : this.textContent;
+                });
+            });
         }
 
         // Toast notification

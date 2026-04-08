@@ -206,6 +206,51 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Sub-tabs within composite sections */
+        .sub-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 18px;
+            padding: 4px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .sub-tab {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .sub-tab:hover {
+            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sub-tab.active {
+            background: var(--accent-yellow);
+            color: var(--bg-dark);
+            font-weight: 700;
+        }
+
+        .sub-section {
+            display: none;
+        }
+
+        .sub-section.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
         /* Cards */
         .card {
             background: var(--bg-card);
@@ -3944,11 +3989,9 @@
         <nav class="nav-tabs">
             <button class="nav-tab active" data-section="home">Home</button>
             <button class="nav-tab" data-section="log">Log Match</button>
-            <button class="nav-tab" data-section="history">History</button>
-            <button class="nav-tab" data-section="h2h">H2H</button>
+            <button class="nav-tab" data-section="singles">Singles</button>
+            <button class="nav-tab" data-section="ratfactor">Rat Factor</button>
             <button class="nav-tab" data-section="doubles">Doubles</button>
-            <button class="nav-tab" data-section="matchup">Matchup</button>
-            <button class="nav-tab" data-section="fighters">Fighters</button>
         </nav>
 
         <!-- HOME SECTION -->
@@ -3973,7 +4016,7 @@
                 </div>
             </div>
 
-            <button class="btn-fighter-select" onclick="document.querySelector('.nav-tab[data-section=\'fighters\']').click()" style="margin-top: 10px;">
+            <button class="btn-fighter-select" onclick="navigateToSubTab('singles', 'singles-fighters')" style="margin-top: 10px;">
                 <span class="btn-icon">🎮</span>
                 Choose Your Fighter
             </button>
@@ -3991,7 +4034,6 @@
                         <option value="">Select type...</option>
                         <option value="singles">Singles (1v1)</option>
                         <option value="doubles">Doubles (2v2)</option>
-                        <option value="canadian">Rat Factor (3 players)</option>
                     </select>
                 </div>
 
@@ -3999,187 +4041,218 @@
             </div>
         </section>
 
-        <!-- HISTORY SECTION -->
-        <section id="history" class="section">
+        <!-- SINGLES SECTION (composite: H2H + History + Fighters) -->
+        <section id="singles" class="section">
             <div class="card">
-                <h2 class="card-title">📜 Match History</h2>
-                <div id="matchHistory">
-                    <div class="loading"><div class="spinner"></div></div>
+                <h2 class="card-title">🎾 Singles</h2>
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="singles-h2h">H2H</button>
+                    <button class="sub-tab" data-subtab="singles-history">History</button>
+                    <button class="sub-tab" data-subtab="singles-fighters">Fighters</button>
+                </div>
+
+                <div id="singles-h2h" class="sub-section active">
+                    <div id="h2hGrid">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                    <button class="btn-fighter-select" onclick="openFighterSelect()" style="margin-top: 10px;">
+                        <span class="btn-icon">🎮</span>
+                        Fighter Select
+                    </button>
+                </div>
+
+                <div id="singles-history" class="sub-section">
+                    <div id="singlesMatchHistory">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
+
+                <div id="singles-fighters" class="sub-section">
+                    <div class="fighters-page">
+                        <div class="fighters-header">
+                            <h1 class="fighters-title">CHOOSE YOUR FIGHTER</h1>
+                            <p class="fighters-subtitle">Season 2026</p>
+                        </div>
+                        <div class="fighters-roster" id="fightersRoster">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div id="fighterDetailOverlay" class="fighter-detail-overlay">
+                        <button class="fighter-detail-close" onclick="closeFighterDetail()">&times;</button>
+                        <div class="fighter-detail-content" id="fighterDetailContent"></div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- HEAD TO HEAD SECTION -->
-        <section id="h2h" class="section">
+        <!-- RAT FACTOR SECTION (composite: Championship + History + Log Match) -->
+        <section id="ratfactor" class="section">
             <div class="card">
-                <h2 class="card-title">⚔️ Head to Head</h2>
-                <div id="h2hGrid">
-                    <div class="loading"><div class="spinner"></div></div>
+                <h2 class="card-title">🐀 Rat Factor</h2>
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="rf-championship">Championship</button>
+                    <button class="sub-tab" data-subtab="rf-history">History</button>
+                    <button class="sub-tab" data-subtab="rf-log">Log Match</button>
+                </div>
+
+                <div id="rf-championship" class="sub-section active">
+                    <div id="rfLeaderboard">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
+
+                <div id="rf-history" class="sub-section">
+                    <div id="ratfactorMatchHistory">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
+
+                <div id="rf-log" class="sub-section">
+                    <div id="ratfactorForm"></div>
                 </div>
             </div>
-
-            <button class="btn-fighter-select" onclick="openFighterSelect()">
-                <span class="btn-icon">🎮</span>
-                Fighter Select
-            </button>
         </section>
 
-        <!-- DOUBLES SECTION -->
+        <!-- DOUBLES SECTION (composite: Standings + Matchup Wheel) -->
         <section id="doubles" class="section">
             <div class="card">
                 <h2 class="card-title">🎾 Doubles</h2>
-                <div id="doublesStats">
-                    <div class="loading"><div class="spinner"></div></div>
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="doubles-standings">Standings</button>
+                    <button class="sub-tab" data-subtab="doubles-matchup">Matchup Wheel</button>
                 </div>
-            </div>
-        </section>
 
-        <!-- MATCHUP SECTION -->
-        <section id="matchup" class="section">
-            <div class="card">
-                <h2 class="card-title">🎲 Doubles Matchup</h2>
-
-                <!-- Phase 1: Player Selection -->
-                <div id="wheelPhase1" class="wheel-phase active">
-                    <p class="matchup-description">Who are you?</p>
-                    <div id="wheelPlayerSelect" class="wheel-player-select">
-                        <!-- Buttons generated by JS -->
+                <div id="doubles-standings" class="sub-section active">
+                    <div id="doublesStats">
+                        <div class="loading"><div class="spinner"></div></div>
                     </div>
                 </div>
 
-                <!-- Phase 2: Wheel Spin -->
-                <div id="wheelPhase2" class="wheel-phase">
-                    <div class="wheel-selected-player">Playing as: <span id="wheelSelectedName"></span></div>
-                    <div class="wheel-container" id="wheelContainer">
-                        <canvas id="wheelCanvas" class="wheel-canvas"></canvas>
-                        <div class="wheel-pointer"></div>
-                    </div>
-                    <p class="wheel-instruction" id="wheelInstruction">Swipe or drag to spin!</p>
-                    <button class="btn-change-player" onclick="showWheelPhase(1)">Change Player</button>
-                </div>
+                <div id="doubles-matchup" class="sub-section">
+                    <h3 class="card-title" style="font-size: 1.2rem;">🎲 Doubles Matchup</h3>
 
-                <!-- Phase 3: Result Display -->
-                <div id="wheelPhase3" class="wheel-phase">
-                    <div id="matchupResult" class="matchup-result">
-                        <div class="matchup-teams">
-                            <div class="matchup-team team-1">
-                                <div class="team-label">TEAM 1</div>
-                                <div class="team-players">
-                                    <span class="team-player" id="team1Player1"></span>
-                                    <span class="team-ampersand">&</span>
-                                    <span class="team-player" id="team1Player2"></span>
-                                </div>
-                            </div>
-                            <div class="matchup-vs">VS</div>
-                            <div class="matchup-team team-2">
-                                <div class="team-label">TEAM 2</div>
-                                <div class="team-players">
-                                    <span class="team-player" id="team2Player1"></span>
-                                    <span class="team-ampersand">&</span>
-                                    <span class="team-player" id="team2Player2"></span>
-                                </div>
-                            </div>
+                    <!-- Phase 1: Player Selection -->
+                    <div id="wheelPhase1" class="wheel-phase active">
+                        <p class="matchup-description">Who are you?</p>
+                        <div id="wheelPlayerSelect" class="wheel-player-select"></div>
+                    </div>
+
+                    <!-- Phase 2: Wheel Spin -->
+                    <div id="wheelPhase2" class="wheel-phase">
+                        <div class="wheel-selected-player">Playing as: <span id="wheelSelectedName"></span></div>
+                        <div class="wheel-container" id="wheelContainer">
+                            <canvas id="wheelCanvas" class="wheel-canvas"></canvas>
+                            <div class="wheel-pointer"></div>
                         </div>
-                        <div class="result-buttons">
-                            <div class="result-buttons-row">
-                                <button class="btn-spin-again" onclick="resetWheelForSpin()">
-                                    <span class="btn-icon">🔄</span>
-                                    Spin Again
+                        <p class="wheel-instruction" id="wheelInstruction">Swipe or drag to spin!</p>
+                        <button class="btn-change-player" onclick="showWheelPhase(1)">Change Player</button>
+                    </div>
+
+                    <!-- Phase 3: Result Display -->
+                    <div id="wheelPhase3" class="wheel-phase">
+                        <div id="matchupResult" class="matchup-result">
+                            <div class="matchup-teams">
+                                <div class="matchup-team team-1">
+                                    <div class="team-label">TEAM 1</div>
+                                    <div class="team-players">
+                                        <span class="team-player" id="team1Player1"></span>
+                                        <span class="team-ampersand">&</span>
+                                        <span class="team-player" id="team1Player2"></span>
+                                    </div>
+                                </div>
+                                <div class="matchup-vs">VS</div>
+                                <div class="matchup-team team-2">
+                                    <div class="team-label">TEAM 2</div>
+                                    <div class="team-players">
+                                        <span class="team-player" id="team2Player1"></span>
+                                        <span class="team-ampersand">&</span>
+                                        <span class="team-player" id="team2Player2"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="result-buttons">
+                                <div class="result-buttons-row">
+                                    <button class="btn-spin-again" onclick="resetWheelForSpin()">
+                                        <span class="btn-icon">🔄</span>
+                                        Spin Again
+                                    </button>
+                                    <button class="btn-change-player" onclick="showWheelPhase(1)">
+                                        Change Player
+                                    </button>
+                                </div>
+                                <button class="btn-who-serves" onclick="startRacketSpin()">
+                                    🎾 Who Serves First?
                                 </button>
-                                <button class="btn-change-player" onclick="showWheelPhase(1)">
-                                    Change Player
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phase 4: Who Serves First (Racket Spin) -->
+                    <div id="wheelPhase4" class="wheel-phase">
+                        <div class="racket-spin-container">
+                            <h2 class="serve-prompt" id="servePrompt">Rick, call it!</h2>
+                            <div class="serve-call-buttons" id="serveCallButtons">
+                                <button class="btn-serve-call" onclick="onServeCall('UP')">
+                                    <span class="call-arrow">▲</span>
+                                    UP
+                                </button>
+                                <button class="btn-serve-call" onclick="onServeCall('DOWN')">
+                                    <span class="call-arrow">▼</span>
+                                    DOWN
                                 </button>
                             </div>
-                            <button class="btn-who-serves" onclick="startRacketSpin()">
-                                🎾 Who Serves First?
+                            <div class="racket-viewport" id="racketViewport">
+                                <div class="racket" id="racketElement">
+                                    <div class="racket-face racket-front">
+                                        <div class="racket-head">
+                                            <div class="racket-bumper"></div>
+                                            <div class="racket-strings"></div>
+                                            <div class="racket-logo">W</div>
+                                        </div>
+                                        <div class="racket-throat">
+                                            <div class="throat-left"></div>
+                                            <div class="throat-right"></div>
+                                        </div>
+                                        <div class="racket-shaft"></div>
+                                        <div class="racket-collar"></div>
+                                        <div class="racket-handle">
+                                            <div class="grip-wrap"></div>
+                                        </div>
+                                        <div class="racket-butt-cap">▲ UP</div>
+                                    </div>
+                                    <div class="racket-face racket-back">
+                                        <div class="racket-head racket-head-back">
+                                            <div class="racket-bumper"></div>
+                                            <div class="racket-strings"></div>
+                                            <div class="racket-logo">W</div>
+                                        </div>
+                                        <div class="racket-throat">
+                                            <div class="throat-left"></div>
+                                            <div class="throat-right"></div>
+                                        </div>
+                                        <div class="racket-shaft"></div>
+                                        <div class="racket-collar"></div>
+                                        <div class="racket-handle">
+                                            <div class="grip-wrap"></div>
+                                        </div>
+                                        <div class="racket-butt-cap butt-cap-down">▼ DOWN</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="serve-result" id="serveResult">
+                                <div class="serve-result-label" id="serveResultLabel">UP!</div>
+                                <div class="serve-winner" id="serveWinner">Rick serves first</div>
+                                <div class="tennis-fact" id="tennisFact">
+                                    <span class="fact-label">Tennis Fact:</span>
+                                    <span class="fact-text" id="tennisFactText"></span>
+                                </div>
+                            </div>
+                            <button class="btn-change-player" onclick="showWheelPhase(3)" id="serveBackBtn">
+                                ← Back to Matchup
                             </button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Phase 4: Who Serves First (Racket Spin) -->
-                <div id="wheelPhase4" class="wheel-phase">
-                    <div class="racket-spin-container">
-                        <h2 class="serve-prompt" id="servePrompt">Rick, call it!</h2>
-                        <div class="serve-call-buttons" id="serveCallButtons">
-                            <button class="btn-serve-call" onclick="onServeCall('UP')">
-                                <span class="call-arrow">▲</span>
-                                UP
-                            </button>
-                            <button class="btn-serve-call" onclick="onServeCall('DOWN')">
-                                <span class="call-arrow">▼</span>
-                                DOWN
-                            </button>
-                        </div>
-                        <div class="racket-viewport" id="racketViewport">
-                            <div class="racket" id="racketElement">
-                                <div class="racket-face racket-front">
-                                    <div class="racket-head">
-                                        <div class="racket-bumper"></div>
-                                        <div class="racket-strings"></div>
-                                        <div class="racket-logo">W</div>
-                                    </div>
-                                    <div class="racket-throat">
-                                        <div class="throat-left"></div>
-                                        <div class="throat-right"></div>
-                                    </div>
-                                    <div class="racket-shaft"></div>
-                                    <div class="racket-collar"></div>
-                                    <div class="racket-handle">
-                                        <div class="grip-wrap"></div>
-                                    </div>
-                                    <div class="racket-butt-cap">▲ UP</div>
-                                </div>
-                                <div class="racket-face racket-back">
-                                    <div class="racket-head racket-head-back">
-                                        <div class="racket-bumper"></div>
-                                        <div class="racket-strings"></div>
-                                        <div class="racket-logo">W</div>
-                                    </div>
-                                    <div class="racket-throat">
-                                        <div class="throat-left"></div>
-                                        <div class="throat-right"></div>
-                                    </div>
-                                    <div class="racket-shaft"></div>
-                                    <div class="racket-collar"></div>
-                                    <div class="racket-handle">
-                                        <div class="grip-wrap"></div>
-                                    </div>
-                                    <div class="racket-butt-cap butt-cap-down">▼ DOWN</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="serve-result" id="serveResult">
-                            <div class="serve-result-label" id="serveResultLabel">UP!</div>
-                            <div class="serve-winner" id="serveWinner">Rick serves first</div>
-                            <div class="tennis-fact" id="tennisFact">
-                                <span class="fact-label">Tennis Fact:</span>
-                                <span class="fact-text" id="tennisFactText"></span>
-                            </div>
-                        </div>
-                        <button class="btn-change-player" onclick="showWheelPhase(3)" id="serveBackBtn">
-                            ← Back to Matchup
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FIGHTERS SECTION -->
-        <section id="fighters" class="section">
-            <div class="fighters-page">
-                <div class="fighters-header">
-                    <h1 class="fighters-title">CHOOSE YOUR FIGHTER</h1>
-                    <p class="fighters-subtitle">Season 2026</p>
-                </div>
-                <div class="fighters-roster" id="fightersRoster">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
-            </div>
-
-            <div id="fighterDetailOverlay" class="fighter-detail-overlay">
-                <button class="fighter-detail-close" onclick="closeFighterDetail()">&times;</button>
-                <div class="fighter-detail-content" id="fighterDetailContent"></div>
             </div>
         </section>
     </div>
@@ -4357,6 +4430,7 @@
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
             initNavigation();
+            initSubTabs();
             initMatchTypeSelector();
             loadMatches();
 
@@ -4425,6 +4499,39 @@
                     document.getElementById(tab.dataset.section).classList.add('active');
                 });
             });
+        }
+
+        // Sub-tab switching within composite sections
+        function initSubTabs() {
+            document.querySelectorAll('.sub-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const section = tab.closest('.section');
+                    section.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+                    section.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.subtab).classList.add('active');
+                });
+            });
+        }
+
+        // Programmatic navigation to a specific sub-tab
+        function navigateToSubTab(sectionId, subtabId) {
+            // Activate main tab
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            const mainTab = document.querySelector(`.nav-tab[data-section="${sectionId}"]`);
+            if (mainTab) mainTab.classList.add('active');
+            document.getElementById(sectionId).classList.add('active');
+
+            // Activate sub-tab
+            const section = document.getElementById(sectionId);
+            section.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+            section.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
+            const subTab = section.querySelector(`.sub-tab[data-subtab="${subtabId}"]`);
+            if (subTab) subTab.classList.add('active');
+            document.getElementById(subtabId).classList.add('active');
+
+            window.scrollTo(0, 0);
         }
 
         // Match type selector
@@ -5083,11 +5190,14 @@
                 matches = data || [];
                 renderLeaderboard();
                 renderQuarterlyDoubles();
-                renderHistory();
                 renderInsights();
                 renderH2H();
                 renderDoubles();
                 renderFighters();
+                renderSinglesHistory();
+                renderRatFactorHistory();
+                renderRFLeaderboard();
+                renderRatFactorForm();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -5364,6 +5474,329 @@
         }
 
         // Render history
+        // Render singles-only match history for the Singles tab
+        function renderSinglesHistory() {
+            const container = document.getElementById('singlesMatchHistory');
+            if (!container) return;
+            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+
+            if (singlesMatches.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No singles matches yet</div>';
+                return;
+            }
+
+            container.innerHTML = singlesMatches.slice(0, 20).map(match => {
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
+                const winner = match.winner1;
+                const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
+                const winnerIsP1 = match.winner1 === match.player1;
+                const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+                let setsDisplay = '';
+                if (match.sets) {
+                    try {
+                        const sets = JSON.parse(match.sets);
+                        setsDisplay = sets.map(s => {
+                            const winnerScore = winnerIsP1 ? s.p1 : s.p2;
+                            const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                            let scoreStr = `${winnerScore}-${loserScore}`;
+                            if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
+                                const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                                scoreStr += ` (${winnerTB}-${loserTB})`;
+                            } else if (s.tiebreak !== undefined) {
+                                const loserTB = s.tiebreak;
+                                const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
+                                scoreStr += ` (${winnerTB}-${loserTB})`;
+                            }
+                            return scoreStr;
+                        }).join(' ');
+                    } catch (e) { setsDisplay = ''; }
+                }
+
+                return `
+                    <div class="match-item">
+                        <div class="match-header">
+                            <div class="match-header-left">
+                                <div class="match-type">Singles</div>
+                                <div class="match-date">${date}</div>
+                            </div>
+                            ${editBtn}
+                        </div>
+                        ${locationDisplay}
+                        <div class="match-result">
+                            <span class="match-winner">${winner}</span>
+                            <span class="match-def">def.</span>
+                            <span class="match-loser">${loser}</span>
+                        </div>
+                        ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render rat factor match history for the Rat Factor tab
+        function renderRatFactorHistory() {
+            const container = document.getElementById('ratfactorMatchHistory');
+            if (!container) return;
+            const rfMatches = matches.filter(m => m.match_type === 'canadian');
+
+            if (rfMatches.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet</div>';
+                return;
+            }
+
+            container.innerHTML = rfMatches.slice(0, 20).map(match => {
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
+                const players = sortCanadianPlayers(match);
+                const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+                let tbDisplay = '';
+                if (match.sets) {
+                    try {
+                        const tb = JSON.parse(match.sets);
+                        if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
+                            const tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
+                            const tbLoser = tb.score1 > tb.score2 ? tb.player2 : tb.player1;
+                            const tbWinScore = Math.max(tb.score1, tb.score2);
+                            const tbLoseScore = Math.min(tb.score1, tb.score2);
+                            tbDisplay = `<div class="ratfactor-tiebreak">TB: ${tbWinner} ${tbWinScore} - ${tbLoser} ${tbLoseScore}</div>`;
+                        }
+                    } catch (e) {}
+                }
+
+                return `
+                    <div class="match-item match-item-ratfactor">
+                        <div class="match-header">
+                            <div class="match-header-left">
+                                <div class="match-type">Rat Factor</div>
+                                <div class="match-date">${date}</div>
+                            </div>
+                            ${editBtn}
+                        </div>
+                        ${locationDisplay}
+                        <div class="ratfactor-scores">
+                            <div class="ratfactor-player first">
+                                <span class="ratfactor-rank">1st</span>
+                                <span class="ratfactor-name">${players[0].name}</span>
+                                <span class="ratfactor-score">${players[0].score}</span>
+                            </div>
+                            <div class="ratfactor-player second">
+                                <span class="ratfactor-rank">2nd</span>
+                                <span class="ratfactor-name">${players[1].name}</span>
+                                <span class="ratfactor-score">${players[1].score}</span>
+                            </div>
+                            <div class="ratfactor-player third">
+                                <span class="ratfactor-rank">3rd</span>
+                                <span class="ratfactor-name">${players[2].name}</span>
+                                <span class="ratfactor-score">${players[2].score}</span>
+                            </div>
+                        </div>
+                        ${tbDisplay}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render RF leaderboard on the Rat Factor tab (reuses renderLeaderboard logic)
+        function renderRFLeaderboard() {
+            const container = document.getElementById('rfLeaderboard');
+            if (!container) return;
+
+            // Clone the leaderboard from Home into RF tab
+            const homeLeaderboard = document.getElementById('leaderboard');
+            const homeFooter = document.getElementById('championship-footer');
+            const homeMobileBreakdown = document.getElementById('mobile-breakdown');
+
+            if (homeLeaderboard) {
+                container.innerHTML = homeLeaderboard.innerHTML;
+                if (homeFooter) container.innerHTML += homeFooter.innerHTML;
+                if (homeMobileBreakdown) container.innerHTML += homeMobileBreakdown.innerHTML;
+            }
+        }
+
+        // Render rat factor log form in the RF tab
+        function renderRatFactorForm() {
+            const container = document.getElementById('ratfactorForm');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="form-group">
+                    <label class="form-label">Select 3 Players</label>
+                    <div class="player-grid">
+                        ${PLAYERS.map(p => `<button class="player-toggle canadian-toggle rf-toggle" data-player="${p}">${p}</button>`).join('')}
+                    </div>
+                </div>
+                <div id="rfCanadianScores" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Final Scores</label>
+                        <div class="canadian-players" id="rfCanadianPlayerScores"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-check-label">
+                            <input type="checkbox" id="rfCanadianTiebreak" class="form-checkbox">
+                            Tiebreak <span style="color: var(--text-muted); font-size: 0.75rem;">(if applicable)</span>
+                        </label>
+                        <div id="rfCanadianTiebreakScores" style="display: none; margin-top: 10px;">
+                            <div class="canadian-players" id="rfCanadianTBInputs"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location (optional)</label>
+                        <input type="text" id="rfCanadianLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Match Notes (optional)</label>
+                        <textarea id="rfCanadianNotes" class="form-input match-notes" rows="2" placeholder="Notes for OpenClaw — e.g. epic comeback, windy conditions, Rick was on fire"></textarea>
+                    </div>
+                </div>
+                <button class="btn-submit" onclick="submitRFCanadian()">LOG MATCH</button>
+            `;
+
+            // Player toggle logic for RF form
+            container.querySelectorAll('.rf-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const selected = container.querySelectorAll('.rf-toggle.selected');
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                    } else if (selected.length < 3) {
+                        this.classList.add('selected');
+                    }
+
+                    const currentSelected = Array.from(container.querySelectorAll('.rf-toggle.selected')).map(b => b.dataset.player);
+                    const scoresDiv = document.getElementById('rfCanadianScores');
+                    if (currentSelected.length === 3) {
+                        scoresDiv.style.display = 'block';
+                        document.getElementById('rfCanadianPlayerScores').innerHTML = currentSelected.map(p => `
+                            <div class="canadian-player-row">
+                                <span class="canadian-player-name">${p}</span>
+                                <div class="canadian-player-score">
+                                    <input type="number" id="rf_score_${p}" min="0" placeholder="0">
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        scoresDiv.style.display = 'none';
+                    }
+                });
+            });
+
+            // Tiebreak checkbox
+            const tbCheckbox = document.getElementById('rfCanadianTiebreak');
+            if (tbCheckbox) {
+                tbCheckbox.addEventListener('change', function() {
+                    const tbContainer = document.getElementById('rfCanadianTiebreakScores');
+                    const tbInputs = document.getElementById('rfCanadianTBInputs');
+                    if (this.checked) {
+                        const selected = Array.from(container.querySelectorAll('.rf-toggle.selected')).map(b => b.dataset.player);
+                        const playerScores = selected.map(p => ({
+                            name: p,
+                            score: parseInt(document.getElementById(`rf_score_${p}`)?.value) || 0
+                        })).sort((a, b) => b.score - a.score);
+
+                        let tbPlayers;
+                        if (playerScores.length >= 2 && playerScores[0].score === playerScores[1].score) {
+                            tbPlayers = [playerScores[0].name, playerScores[1].name];
+                        } else if (playerScores.length >= 3 && playerScores[1].score === playerScores[2].score) {
+                            tbPlayers = [playerScores[1].name, playerScores[2].name];
+                        } else {
+                            tbPlayers = playerScores.slice(0, 2).map(p => p.name);
+                        }
+
+                        tbInputs.innerHTML = `
+                            <div class="canadian-player-row" style="justify-content: center; gap: 10px;">
+                                <span class="canadian-player-name" style="text-align: right;">${tbPlayers[0]}</span>
+                                <div class="canadian-player-score">
+                                    <input type="number" data-player="${tbPlayers[0]}" min="0" placeholder="0">
+                                </div>
+                                <span style="color: var(--text-muted); font-size: 0.9rem;">-</span>
+                                <div class="canadian-player-score">
+                                    <input type="number" data-player="${tbPlayers[1]}" min="0" placeholder="0">
+                                </div>
+                                <span class="canadian-player-name">${tbPlayers[1]}</span>
+                            </div>
+                        `;
+                        tbContainer.style.display = 'block';
+                    } else {
+                        tbContainer.style.display = 'none';
+                        tbInputs.innerHTML = '';
+                    }
+                });
+            }
+        }
+
+        // Submit RF canadian match (from the Rat Factor tab form)
+        async function submitRFCanadian() {
+            const container = document.getElementById('ratfactorForm');
+            const selected = Array.from(container.querySelectorAll('.rf-toggle.selected')).map(b => b.dataset.player);
+
+            if (selected.length !== 3) {
+                showToast('Please select exactly 3 players', true);
+                return;
+            }
+
+            const scores = {};
+            let hasScores = true;
+            selected.forEach(player => {
+                const scoreInput = document.getElementById(`rf_score_${player}`);
+                const score = parseInt(scoreInput.value);
+                if (isNaN(score)) hasScores = false;
+                scores[player] = score;
+            });
+
+            if (!hasScores) {
+                showToast('Please enter all scores', true);
+                return;
+            }
+
+            const tiebreak = document.getElementById('rfCanadianTiebreak').checked;
+            const location = document.getElementById('rfCanadianLocation').value.trim() || null;
+            const notes = document.getElementById('rfCanadianNotes').value.trim() || null;
+
+            let target = null;
+            let tiebreakData = null;
+
+            if (tiebreak) {
+                target = 0;
+                const tbInputs = document.querySelectorAll('#rfCanadianTBInputs input[type="number"]');
+                if (tbInputs.length === 2) {
+                    tiebreakData = {
+                        player1: tbInputs[0].dataset.player,
+                        score1: parseInt(tbInputs[0].value) || 0,
+                        player2: tbInputs[1].dataset.player,
+                        score2: parseInt(tbInputs[1].value) || 0
+                    };
+                }
+            }
+
+            const match = {
+                match_type: 'canadian',
+                player1: selected[0],
+                player2: selected[1],
+                player3: selected[2],
+                score_player1: scores[selected[0]],
+                score_player2: scores[selected[1]],
+                score_player3: scores[selected[2]],
+                target_score: target,
+                sets: tiebreakData ? JSON.stringify(tiebreakData) : null,
+                location: location,
+                notes: notes
+            };
+
+            try {
+                const { error } = await db.from('matches').insert([match]);
+                if (error) throw error;
+                showToast('Match logged! 🐀');
+                loadMatches();
+                navigateToSubTab('ratfactor', 'rf-championship');
+            } catch (err) {
+                console.error('Error saving match:', err);
+                showToast('Error saving match', true);
+            }
+        }
+
         function renderHistory() {
             const container = document.getElementById('matchHistory');
 

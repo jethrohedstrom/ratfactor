@@ -3992,6 +3992,7 @@
             <button class="nav-tab" data-section="singles">Singles</button>
             <button class="nav-tab" data-section="ratfactor">Rat Factor</button>
             <button class="nav-tab" data-section="doubles">Doubles</button>
+            <button class="nav-tab" data-section="dmac">DMAC</button>
         </nav>
 
         <!-- HOME SECTION -->
@@ -4255,6 +4256,23 @@
                 </div>
             </div>
         </section>
+
+        <!-- DMAC SECTION -->
+        <section id="dmac" class="section">
+            <div class="card">
+                <h2 class="card-title">🎾 Jethro vs DMAC</h2>
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="dmac-record">Record</button>
+                    <button class="sub-tab" data-subtab="dmac-log">Match Log</button>
+                </div>
+                <div id="dmac-record" class="sub-section active">
+                    <div id="dmacRecordCard"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+                <div id="dmac-log" class="sub-section">
+                    <div id="dmacMatchLog"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Fighter Select Overlay -->
@@ -4405,6 +4423,11 @@
             'Jethro': 'jethro images/diesel.png'
         };
 
+        const ALL_PLAYERS = [...PLAYERS, 'DMAC'];
+        const isDMACMatch = (m) =>
+            m.player1 === 'DMAC' || m.player2 === 'DMAC' ||
+            m.player3 === 'DMAC' || m.player4 === 'DMAC';
+
         // Quarterly doubles team config — edit pairings here per quarter/year
         const QUARTERLY_DOUBLES = {
             2026: {
@@ -4426,6 +4449,7 @@
 
         // State
         let matches = [];
+        let dmacMatches = [];
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
@@ -4558,14 +4582,14 @@
                         <label class="form-label">Player 1</label>
                         <select id="singlesP1" class="form-select">
                             <option value="">Select player...</option>
-                            ${PLAYERS.map(p => `<option value="${p}">${p}</option>`).join('')}
+                            ${ALL_PLAYERS.map(p => `<option value="${p}">${p}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Player 2</label>
                         <select id="singlesP2" class="form-select">
                             <option value="">Select player...</option>
-                            ${PLAYERS.map(p => `<option value="${p}">${p}</option>`).join('')}
+                            ${ALL_PLAYERS.map(p => `<option value="${p}">${p}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group">
@@ -4603,13 +4627,13 @@
                     <div class="team-section">
                         <div class="team-label">TEAM 1</div>
                         <div class="player-grid">
-                            ${PLAYERS.map(p => `<button class="player-toggle" data-team="1" data-player="${p}">${p}</button>`).join('')}
+                            ${ALL_PLAYERS.map(p => `<button class="player-toggle" data-team="1" data-player="${p}">${p}</button>`).join('')}
                         </div>
                     </div>
                     <div class="team-section">
                         <div class="team-label">TEAM 2</div>
                         <div class="player-grid">
-                            ${PLAYERS.map(p => `<button class="player-toggle" data-team="2" data-player="${p}">${p}</button>`).join('')}
+                            ${ALL_PLAYERS.map(p => `<button class="player-toggle" data-team="2" data-player="${p}">${p}</button>`).join('')}
                         </div>
                     </div>
                     <div class="form-group">
@@ -5187,7 +5211,9 @@
 
                 if (error) throw error;
 
-                matches = data || [];
+                const all = data || [];
+                dmacMatches = all.filter(isDMACMatch);
+                matches = all.filter(m => !isDMACMatch(m));
                 renderLeaderboard();
                 renderQuarterlyDoubles();
                 renderInsights();
@@ -5198,6 +5224,7 @@
                 renderRatFactorHistory();
                 renderRFLeaderboard();
                 renderRatFactorForm();
+                renderDMAC();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -7039,6 +7066,138 @@
             }).join('');
 
             container.innerHTML = yearSections;
+        }
+
+        function renderDMAC() {
+            const recordEl = document.getElementById('dmacRecordCard');
+            const logEl = document.getElementById('dmacMatchLog');
+            if (!recordEl || !logEl) return;
+
+            if (!dmacMatches.length) {
+                recordEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No DMAC matches yet. Log one from the Log Match tab.</div>';
+                logEl.innerHTML = '';
+                return;
+            }
+
+            const sorted = [...dmacMatches].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const jethroWon = (m) => m.winner1 === 'Jethro' || m.winner2 === 'Jethro';
+
+            let wins = 0, losses = 0;
+            for (const m of sorted) jethroWon(m) ? wins++ : losses++;
+            const recordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
+            const last5 = sorted.slice(0, 5).map(m => jethroWon(m) ? 'W' : 'L').join(' ');
+
+            recordEl.innerHTML = `
+                <div class="h2h-player-card">
+                    <div class="h2h-card-header">
+                        <span class="h2h-card-name">Jethro vs DMAC</span>
+                        <span class="h2h-card-overall ${recordClass}">${wins}W - ${losses}L</span>
+                    </div>
+                    <div class="h2h-opponent-row no-matches">
+                        <span class="h2h-opponent-label">Recent</span>
+                        <span class="h2h-no-matches">${last5}</span>
+                    </div>
+                </div>
+            `;
+
+            logEl.innerHTML = sorted.map(m => renderDMACMatchCard(m)).join('');
+        }
+
+        function renderDMACMatchCard(match) {
+            const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+
+            if (match.match_type === 'singles') {
+                const winner = match.winner1;
+                const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
+                const winnerIsP1 = match.winner1 === match.player1;
+
+                let setsDisplay = '';
+                if (match.sets) {
+                    try {
+                        const sets = JSON.parse(match.sets);
+                        setsDisplay = sets.map(s => {
+                            const winnerScore = winnerIsP1 ? s.p1 : s.p2;
+                            const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                            let scoreStr = `${winnerScore}-${loserScore}`;
+                            if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
+                                const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                                scoreStr += ` (${winnerTB}-${loserTB})`;
+                            } else if (s.tiebreak !== undefined) {
+                                const loserTB = s.tiebreak;
+                                const winnerTB = loserTB >= 5 ? loserTB + 2 : 7;
+                                scoreStr += ` (${winnerTB}-${loserTB})`;
+                            }
+                            return scoreStr;
+                        }).join(' ');
+                    } catch (e) { setsDisplay = ''; }
+                }
+
+                return `
+                    <div class="match-item">
+                        <div class="match-header">
+                            <div class="match-header-left">
+                                <div class="match-type">Singles</div>
+                                <div class="match-date">${date}</div>
+                            </div>
+                        </div>
+                        ${locationDisplay}
+                        <div class="match-result">
+                            <span class="match-winner">${winner}</span>
+                            <span class="match-def">def.</span>
+                            <span class="match-loser">${loser}</span>
+                        </div>
+                        ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            if (match.match_type === 'doubles') {
+                const team1 = [match.player1, match.player2].filter(Boolean);
+                const team2 = [match.player3, match.player4].filter(Boolean);
+                const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
+                const winners = team1Won ? team1 : team2;
+                const losers = team1Won ? team2 : team1;
+
+                let setsDisplay = '';
+                if (match.sets) {
+                    try {
+                        const sets = JSON.parse(match.sets);
+                        setsDisplay = sets.map(s => {
+                            const winnerScore = team1Won ? s.team1 : s.team2;
+                            const loserScore = team1Won ? s.team2 : s.team1;
+                            let scoreStr = `${winnerScore}-${loserScore}`;
+                            if (s.tb1 !== undefined && s.tb2 !== undefined) {
+                                const winnerTB = team1Won ? s.tb1 : s.tb2;
+                                const loserTB = team1Won ? s.tb2 : s.tb1;
+                                scoreStr += ` (${winnerTB}-${loserTB})`;
+                            }
+                            return scoreStr;
+                        }).join(' ');
+                    } catch (e) { setsDisplay = ''; }
+                }
+
+                return `
+                    <div class="match-item">
+                        <div class="match-header">
+                            <div class="match-header-left">
+                                <div class="match-type">Doubles</div>
+                                <div class="match-date">${date}</div>
+                            </div>
+                        </div>
+                        ${locationDisplay}
+                        <div class="match-result">
+                            <span class="match-winner">${winners.join(' & ')}</span>
+                            <span class="match-def">def.</span>
+                            <span class="match-loser">${losers.join(' & ')}</span>
+                        </div>
+                        ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            return '';
         }
 
         function formatDoublesMatchScores(match, team1Won) {

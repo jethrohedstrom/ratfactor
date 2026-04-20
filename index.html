@@ -708,9 +708,18 @@
         }
 
         .match-date {
-            font-size: 0.7rem;
+            font-size: 0.95rem;
+            font-weight: 600;
             color: var(--text-muted);
-            opacity: 0.7;
+            opacity: 1;
+        }
+
+        .dmac-banner {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 16px;
         }
 
         /* Doubles scoreboard layout */
@@ -4260,7 +4269,7 @@
         <!-- DMAC SECTION -->
         <section id="dmac" class="section">
             <div class="card">
-                <h2 class="card-title">🎾 Jethro vs DMAC</h2>
+                <img src="dmac%20matchup%20image.jpg" alt="Dave Macaulay vs Jethro Hedstrom head-to-head" class="dmac-banner">
                 <div class="sub-tabs">
                     <button class="sub-tab active" data-subtab="dmac-record">Record</button>
                     <button class="sub-tab" data-subtab="dmac-log">Match Log</button>
@@ -5513,7 +5522,7 @@
             }
 
             container.innerHTML = singlesMatches.slice(0, 20).map(match => {
-                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
                 const winner = match.winner1;
                 const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
@@ -5575,7 +5584,7 @@
             }
 
             container.innerHTML = rfMatches.slice(0, 20).map(match => {
-                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
                 const players = sortCanadianPlayers(match);
                 const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
@@ -5836,6 +5845,7 @@
                 const date = new Date(match.created_at).toLocaleDateString('en-AU', {
                     day: 'numeric',
                     month: 'short',
+                    year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
                 });
@@ -6830,7 +6840,7 @@
 
                 Object.entries(winCounts).forEach(([player, wins]) => {
                     if (wins >= 3 && wins === dayMatches.length) {
-                        const displayDate = new Date(date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+                        const displayDate = new Date(date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
                         insights.push({
                             type: 'dominance',
                             subcategory: 'fun-session',
@@ -7104,7 +7114,7 @@
         }
 
         function renderDMACMatchCard(match) {
-            const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
 
             if (match.match_type === 'singles') {
@@ -7379,7 +7389,7 @@
                     const winner = matchT1Won ? t1 : t2;
                     const loser = matchT1Won ? t2 : t1;
                     const scores = formatDoublesMatchScores(match, matchT1Won);
-                    const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+                    const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
 
                     return `
                         <div class="rivalry-match-row">

@@ -671,6 +671,9 @@
             padding: 3px 8px;
             border-radius: 4px;
         }
+        .match-type.match-type-half {
+            background: var(--accent-yellow);
+        }
 
         .match-players {
             font-size: 0.95rem;
@@ -721,6 +724,78 @@
             border-radius: 12px;
             margin-bottom: 16px;
         }
+
+        .dmac-scoreboard {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px 16px;
+        }
+        .dmac-score-side {
+            text-align: center;
+            opacity: 0.55;
+        }
+        .dmac-score-side.dmac-side-winner { opacity: 1; }
+        .dmac-score-side.dmac-side-loser { opacity: 0.45; }
+        .dmac-player-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.05em;
+            line-height: 1;
+        }
+        .dmac-player-sub {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .dmac-score-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            line-height: 1;
+            margin-top: 6px;
+        }
+        .dmac-side-winner .dmac-score-num { color: var(--accent-green); }
+        .dmac-side-loser .dmac-score-num { color: var(--accent-pink); }
+        .dmac-score-divider {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--text-muted);
+            padding: 0 4px;
+        }
+        .dmac-form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding: 0 4px;
+        }
+        .dmac-form-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .dmac-form-pills { display: flex; gap: 6px; }
+        .dmac-form-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.95rem;
+            color: var(--bg-dark);
+            font-weight: 700;
+        }
+        .dmac-form-W { background: var(--accent-green); }
+        .dmac-form-L { background: var(--accent-pink); }
 
         /* Doubles scoreboard layout */
         .doubles-scoreboard {
@@ -5522,7 +5597,7 @@
             }
 
             container.innerHTML = singlesMatches.slice(0, 20).map(match => {
-                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
                 const winner = match.winner1;
                 const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
@@ -5584,7 +5659,7 @@
             }
 
             container.innerHTML = rfMatches.slice(0, 20).map(match => {
-                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
                 const players = sortCanadianPlayers(match);
                 const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
@@ -5845,9 +5920,7 @@
                 const date = new Date(match.created_at).toLocaleDateString('en-AU', {
                     day: 'numeric',
                     month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    year: 'numeric'
                 });
 
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
@@ -7092,21 +7165,32 @@
             const sorted = [...dmacMatches].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             const jethroWon = (m) => m.winner1 === 'Jethro' || m.winner2 === 'Jethro';
 
-            let wins = 0, losses = 0;
-            for (const m of sorted) jethroWon(m) ? wins++ : losses++;
-            const recordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
-            const last5 = sorted.slice(0, 5).map(m => jethroWon(m) ? 'W' : 'L').join(' ');
+            let jethroWins = 0, dmacWins = 0;
+            for (const m of sorted) jethroWon(m) ? jethroWins++ : dmacWins++;
+            const daveLeading = dmacWins > jethroWins;
+            const jethroLeading = jethroWins > dmacWins;
+            const last5Pills = sorted.slice(0, 5).reverse().map(m => {
+                const w = jethroWon(m) ? 'W' : 'L';
+                return `<span class="dmac-form-pill dmac-form-${w}">${w}</span>`;
+            }).join('');
 
             recordEl.innerHTML = `
-                <div class="h2h-player-card">
-                    <div class="h2h-card-header">
-                        <span class="h2h-card-name">Jethro vs DMAC</span>
-                        <span class="h2h-card-overall ${recordClass}">${wins}W - ${losses}L</span>
+                <div class="dmac-scoreboard">
+                    <div class="dmac-score-side ${daveLeading ? 'dmac-side-winner' : jethroLeading ? 'dmac-side-loser' : ''}">
+                        <div class="dmac-player-name">DAVE</div>
+                        <div class="dmac-player-sub">MACAULAY</div>
+                        <div class="dmac-score-num">${dmacWins}</div>
                     </div>
-                    <div class="h2h-opponent-row no-matches">
-                        <span class="h2h-opponent-label">Recent</span>
-                        <span class="h2h-no-matches">${last5}</span>
+                    <div class="dmac-score-divider">–</div>
+                    <div class="dmac-score-side ${jethroLeading ? 'dmac-side-winner' : daveLeading ? 'dmac-side-loser' : ''}">
+                        <div class="dmac-player-name">JETHRO</div>
+                        <div class="dmac-player-sub">HEDSTROM</div>
+                        <div class="dmac-score-num">${jethroWins}</div>
                     </div>
+                </div>
+                <div class="dmac-form-row">
+                    <span class="dmac-form-label">LAST 5 (JETHRO)</span>
+                    <div class="dmac-form-pills">${last5Pills}</div>
                 </div>
             `;
 
@@ -7114,10 +7198,13 @@
         }
 
         function renderDMACMatchCard(match) {
-            const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
             const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
 
-            if (match.match_type === 'singles') {
+            if (match.match_type === 'singles' || match.match_type === 'half-court') {
+                const isHalfCourt = match.match_type === 'half-court';
+                const typeLabel = isHalfCourt ? 'Half Court' : 'Singles';
+                const typeClass = isHalfCourt ? 'match-type match-type-half' : 'match-type';
                 const winner = match.winner1;
                 const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
                 const winnerIsP1 = match.winner1 === match.player1;
@@ -7148,7 +7235,7 @@
                     <div class="match-item">
                         <div class="match-header">
                             <div class="match-header-left">
-                                <div class="match-type">Singles</div>
+                                <div class="${typeClass}">${typeLabel}</div>
                                 <div class="match-date">${date}</div>
                             </div>
                         </div>

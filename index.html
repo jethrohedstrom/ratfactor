@@ -4118,6 +4118,7 @@
                     <select id="matchType" class="form-select">
                         <option value="">Select type...</option>
                         <option value="singles">Singles (1v1)</option>
+                        <option value="half-court">Half Court (1v1)</option>
                         <option value="doubles">Doubles (2v2)</option>
                     </select>
                 </div>
@@ -4660,7 +4661,7 @@
 
             container.style.display = 'block';
 
-            if (type === 'singles') {
+            if (type === 'singles' || type === 'half-court') {
                 container.innerHTML = `
                     <div class="form-group">
                         <label class="form-label">Player 1</label>
@@ -4704,7 +4705,7 @@
                         <label class="form-label">Match Notes (optional)</label>
                         <textarea id="singlesNotes" class="form-input match-notes" rows="2" placeholder="Notes for OpenClaw — e.g. epic comeback, windy conditions, Rick was on fire"></textarea>
                     </div>
-                    <button class="btn-submit" onclick="submitSingles()">LOG MATCH</button>
+                    <button class="btn-submit" onclick="submitSingles('${type}')">LOG MATCH</button>
                 `;
             } else if (type === 'doubles') {
                 container.innerHTML = `
@@ -5043,7 +5044,7 @@
         }
 
         // Submit functions
-        async function submitSingles() {
+        async function submitSingles(matchType = 'singles') {
             const p1 = document.getElementById('singlesP1').value;
             const p2 = document.getElementById('singlesP2').value;
 
@@ -5113,7 +5114,7 @@
             const singlesNotes = document.getElementById('singlesNotes').value.trim() || null;
 
             const match = {
-                match_type: 'singles',
+                match_type: matchType,
                 player1: p1,
                 player2: p2,
                 winner1: winner,

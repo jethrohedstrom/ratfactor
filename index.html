@@ -4077,6 +4077,7 @@
             <button class="nav-tab" data-section="ratfactor">Rat Factor</button>
             <button class="nav-tab" data-section="doubles">Doubles</button>
             <button class="nav-tab" data-section="dmac">DMAC</button>
+            <button class="nav-tab" data-section="beck">BECK</button>
         </nav>
 
         <!-- HOME SECTION -->
@@ -4358,6 +4359,22 @@
                 </div>
             </div>
         </section>
+
+        <!-- BECK SECTION -->
+        <section id="beck" class="section">
+            <div class="card">
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="beck-record">Record</button>
+                    <button class="sub-tab" data-subtab="beck-log">Match Log</button>
+                </div>
+                <div id="beck-record" class="sub-section active">
+                    <div id="beckRecordCard"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+                <div id="beck-log" class="sub-section">
+                    <div id="beckMatchLog"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- Fighter Select Overlay -->
@@ -4508,10 +4525,13 @@
             'Jethro': 'jethro images/diesel.png'
         };
 
-        const ALL_PLAYERS = [...PLAYERS, 'DMAC'];
+        const ALL_PLAYERS = [...PLAYERS, 'DMAC', 'BECK'];
         const isDMACMatch = (m) =>
             m.player1 === 'DMAC' || m.player2 === 'DMAC' ||
             m.player3 === 'DMAC' || m.player4 === 'DMAC';
+        const isBeckMatch = (m) =>
+            m.player1 === 'BECK' || m.player2 === 'BECK' ||
+            m.player3 === 'BECK' || m.player4 === 'BECK';
 
         // Quarterly doubles team config — edit pairings here per quarter/year
         const QUARTERLY_DOUBLES = {
@@ -4535,6 +4555,7 @@
         // State
         let matches = [];
         let dmacMatches = [];
+        let beckMatches = [];
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
@@ -5298,7 +5319,8 @@
 
                 const all = data || [];
                 dmacMatches = all.filter(isDMACMatch);
-                matches = all.filter(m => !isDMACMatch(m));
+                beckMatches = all.filter(isBeckMatch);
+                matches = all.filter(m => !isDMACMatch(m) && !isBeckMatch(m));
                 renderLeaderboard();
                 renderQuarterlyDoubles();
                 renderInsights();
@@ -5310,6 +5332,7 @@
                 renderRFLeaderboard();
                 renderRatFactorForm();
                 renderDMAC();
+                renderBeck();
             } catch (err) {
                 console.error('Error loading matches:', err);
                 document.getElementById('leaderboard').innerHTML = '<div class="empty-state">Error loading data</div>';
@@ -7296,6 +7319,52 @@
             }
 
             return '';
+        }
+
+        function renderBeck() {
+            const recordEl = document.getElementById('beckRecordCard');
+            const logEl = document.getElementById('beckMatchLog');
+            if (!recordEl || !logEl) return;
+
+            if (!beckMatches.length) {
+                recordEl.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No BECK matches yet. Log one from the Log Match tab.</div>';
+                logEl.innerHTML = '';
+                return;
+            }
+
+            const sorted = [...beckMatches].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const jethroWon = (m) => m.winner1 === 'Jethro' || m.winner2 === 'Jethro';
+
+            let jethroWins = 0, beckWins = 0;
+            for (const m of sorted) jethroWon(m) ? jethroWins++ : beckWins++;
+            const beckLeading = beckWins > jethroWins;
+            const jethroLeading = jethroWins > beckWins;
+            const last5Pills = sorted.slice(0, 5).reverse().map(m => {
+                const w = jethroWon(m) ? 'W' : 'L';
+                return `<span class="dmac-form-pill dmac-form-${w}">${w}</span>`;
+            }).join('');
+
+            recordEl.innerHTML = `
+                <div class="dmac-scoreboard">
+                    <div class="dmac-score-side ${beckLeading ? 'dmac-side-winner' : jethroLeading ? 'dmac-side-loser' : ''}">
+                        <div class="dmac-player-name">BECK</div>
+                        <div class="dmac-player-sub">WILSON</div>
+                        <div class="dmac-score-num">${beckWins}</div>
+                    </div>
+                    <div class="dmac-score-divider">–</div>
+                    <div class="dmac-score-side ${jethroLeading ? 'dmac-side-winner' : beckLeading ? 'dmac-side-loser' : ''}">
+                        <div class="dmac-player-name">JETHRO</div>
+                        <div class="dmac-player-sub">HEDSTROM</div>
+                        <div class="dmac-score-num">${jethroWins}</div>
+                    </div>
+                </div>
+                <div class="dmac-form-row">
+                    <span class="dmac-form-label">LAST 5 (JETHRO)</span>
+                    <div class="dmac-form-pills">${last5Pills}</div>
+                </div>
+            `;
+
+            logEl.innerHTML = sorted.map(m => renderDMACMatchCard(m)).join('');
         }
 
         function formatDoublesMatchScores(match, team1Won) {

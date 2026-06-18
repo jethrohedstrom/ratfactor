@@ -251,6 +251,97 @@
             animation: fadeIn 0.2s ease;
         }
 
+        /* Rat Factor rulebook */
+        .rf-rules {
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+        .rf-rules-intro {
+            color: var(--text-light);
+            margin-bottom: 18px;
+        }
+        .rf-rules-intro strong {
+            color: var(--accent-yellow);
+        }
+        .rf-rule-block {
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .rf-rule-block:last-of-type {
+            border-bottom: none;
+        }
+        .rf-rule-block h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            font-size: 1.15rem;
+            color: var(--accent-green);
+            margin-bottom: 8px;
+        }
+        .rf-rule-block ul {
+            list-style: none;
+            padding: 0;
+        }
+        .rf-rule-block li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+        .rf-rule-block li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+        .rf-rule-block li strong,
+        .rf-rule-block li em {
+            color: var(--text-light);
+            font-style: normal;
+        }
+        .rf-house {
+            color: var(--accent-pink);
+            font-size: 0.78rem;
+        }
+        .rf-rule-highlight {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .rf-points {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .rf-point-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-light);
+        }
+        .rf-place {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
+            font-size: 1rem;
+            min-width: 42px;
+            text-align: center;
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: var(--bg-dark);
+        }
+        .rf-place-1 { background: var(--accent-yellow); }
+        .rf-place-2 { background: var(--text-muted); }
+        .rf-place-3 { background: var(--border-subtle); color: var(--text-light); }
+        .rf-rules-footer {
+            margin-top: 16px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-style: italic;
+        }
+
         /* Cards */
         .card {
             background: var(--bg-card);
@@ -4120,6 +4211,7 @@
                         <option value="singles">Singles (1v1)</option>
                         <option value="half-court">Half Court (1v1)</option>
                         <option value="doubles">Doubles (2v2)</option>
+                        <option value="canadian">Rat Factor (3 players)</option>
                     </select>
                 </div>
 
@@ -4179,6 +4271,7 @@
                     <button class="sub-tab active" data-subtab="rf-championship">Championship</button>
                     <button class="sub-tab" data-subtab="rf-history">History</button>
                     <button class="sub-tab" data-subtab="rf-log">Log Match</button>
+                    <button class="sub-tab" data-subtab="rf-rules">Rules</button>
                 </div>
 
                 <div id="rf-championship" class="sub-section active">
@@ -4195,6 +4288,77 @@
 
                 <div id="rf-log" class="sub-section">
                     <div id="ratfactorForm"></div>
+                </div>
+
+                <div id="rf-rules" class="sub-section">
+                    <div class="rf-rules">
+                        <p class="rf-rules-intro">
+                            <strong>Rat Factor</strong> is Canadian doubles — three players, every rat for themselves.
+                            One player takes on the other two, the matchup rotates, and everyone keeps their own score.
+                        </p>
+
+                        <div class="rf-rule-block">
+                            <h3>🎾 The Setup</h3>
+                            <ul>
+                                <li>3 players on court — it's <em>1 vs 2</em>, rotating.</li>
+                                <li>There are no teams. You're playing for yourself the whole way through.</li>
+                                <li>Every player tracks their own running score.</li>
+                            </ul>
+                        </div>
+
+                        <div class="rf-rule-block">
+                            <h3>📐 The Court</h3>
+                            <ul>
+                                <li>The solo player gets the <em>full singles court</em> to aim at.</li>
+                                <li>The pair defend the <em>doubles court</em>, each covering their half.</li>
+                                <li><span class="rf-house">House rule — adjust the boundaries to taste.</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="rf-rule-block">
+                            <h3>🔁 Serving</h3>
+                            <ul>
+                                <li>The serve rotates so everyone serves an equal share against the others.</li>
+                                <li>After each rotation the solo spot passes to the next player.</li>
+                            </ul>
+                        </div>
+
+                        <div class="rf-rule-block">
+                            <h3>🏁 Scoring a Match</h3>
+                            <ul>
+                                <li>Play to a target — usually <strong>7</strong> or <strong>11</strong>, win by 2.</li>
+                                <li>Each player banks points as they win them.</li>
+                                <li>When the match ends, finishing order is <strong>1st / 2nd / 3rd</strong>.</li>
+                                <li><span class="rf-house">House rule — pick your target before you start.</span></li>
+                            </ul>
+                        </div>
+
+                        <div class="rf-rule-block">
+                            <h3>⚖️ Tiebreak</h3>
+                            <ul>
+                                <li>If two players finish level, play a short tiebreak to settle the spot.</li>
+                                <li>When logging, tick the <strong>Tiebreak</strong> box — the two tied players are auto-selected so you can record the result.</li>
+                            </ul>
+                        </div>
+
+                        <div class="rf-rule-block rf-rule-highlight">
+                            <h3>🏆 Championship Points</h3>
+                            <div class="rf-points">
+                                <div class="rf-point-row"><span class="rf-place rf-place-1">1st</span><span>3 points</span></div>
+                                <div class="rf-point-row"><span class="rf-place rf-place-2">2nd</span><span>1 point</span></div>
+                                <div class="rf-point-row"><span class="rf-place rf-place-3">3rd</span><span>0 points</span></div>
+                            </div>
+                            <ul>
+                                <li>Play as many matches as you like all season.</li>
+                                <li>Only your <strong>best 10 results</strong> count toward the year-end leaderboard.</li>
+                                <li>Ties are broken by number of <strong>1st-place finishes</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <p class="rf-rules-footer">
+                            House rules — tweak as you like. Court sizes, serving order and targets are the group's conventions, not gospel.
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>

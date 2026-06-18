@@ -364,14 +364,31 @@
         }
 
         /* Leaderboard - WSL Championship style */
-        #leaderboard {
-            display: flex;
-            flex-direction: column;
+        #leaderboard,
+        #rfLeaderboard {
+            display: block;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Thin, themed scrollbar for the leaderboard scrollers */
+        #leaderboard::-webkit-scrollbar,
+        #rfLeaderboard::-webkit-scrollbar {
+            height: 6px;
+        }
+        #leaderboard::-webkit-scrollbar-thumb,
+        #rfLeaderboard::-webkit-scrollbar-thumb {
+            background: var(--border-subtle);
+            border-radius: 3px;
+        }
+        #leaderboard, #rfLeaderboard {
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-subtle) transparent;
         }
 
         .leaderboard-table {
-            width: 100%;
+            width: max-content;
+            min-width: 100%;
         }
 
         .leaderboard-header {
@@ -388,16 +405,31 @@
 
         .leaderboard-header-rank {
             width: 50px;
-            text-align: center;
             flex-shrink: 0;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: var(--bg-card);
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .leaderboard-header-name {
-            width: 140px;
+            width: 190px;
             padding-left: 5px;
             flex-shrink: 0;
+            position: sticky;
+            left: 50px;
+            z-index: 2;
+            background: var(--bg-card);
+            box-shadow: 6px 0 6px -4px rgba(0,0,0,0.4);
+            align-self: stretch;
+            display: flex;
+            align-items: center;
         }
         .leaderboard-header-event {
-            width: 45px;
+            width: 42px;
             text-align: center;
             flex-shrink: 0;
             display: flex;
@@ -412,16 +444,23 @@
             font-size: 0.5rem;
             color: var(--text-muted);
             opacity: 0.7;
-            max-width: 45px;
+            max-width: 42px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .leaderboard-header-pts {
             width: 55px;
-            text-align: center;
             flex-shrink: 0;
-            margin-left: auto;
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: var(--bg-card);
+            box-shadow: -6px 0 6px -4px rgba(0,0,0,0.4);
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .leaderboard-item {
@@ -448,15 +487,29 @@
             color: var(--text-muted);
             line-height: 1;
             flex-shrink: 0;
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background: var(--bg-card);
         }
 
 
         .leaderboard-player {
-            width: 140px;
+            width: 190px;
             display: flex;
             align-items: center;
             gap: 10px;
             flex-shrink: 0;
+            position: sticky;
+            left: 50px;
+            z-index: 2;
+            background: var(--bg-card);
+            box-shadow: 6px 0 6px -4px rgba(0,0,0,0.4);
+        }
+
+        .leaderboard-name-group {
+            min-width: 0;
+            overflow: hidden;
         }
 
         .leaderboard-avatar {
@@ -489,13 +542,23 @@
             letter-spacing: 0.5px;
         }
 
+        .leaderboard-substat {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
         .leaderboard-events {
             display: flex;
             align-items: center;
         }
 
         .leaderboard-event-score {
-            width: 45px;
+            width: 42px;
             text-align: center;
             font-family: 'Space Mono', monospace;
             font-size: 0.8rem;
@@ -535,6 +598,11 @@
             line-height: 1;
             flex-shrink: 0;
             margin-left: auto;
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: var(--bg-card);
+            box-shadow: -6px 0 6px -4px rgba(0,0,0,0.4);
         }
 
         /* Leader row highlight */
@@ -547,6 +615,14 @@
             color: var(--accent-yellow);
         }
 
+        /* Keep the leader's gold tint on the frozen (sticky) cells while staying opaque */
+        .leaderboard-item.leader .leaderboard-rank,
+        .leaderboard-item.leader .leaderboard-player,
+        .leaderboard-item.leader .leaderboard-total {
+            background-color: var(--bg-card);
+            background-image: linear-gradient(90deg, rgba(240, 225, 48, 0.12) 0%, rgba(240, 225, 48, 0.06) 100%);
+        }
+
         /* Championship footer */
         .championship-subtitle {
             font-family: 'Bebas Neue', sans-serif;
@@ -555,6 +631,24 @@
             margin-top: 15px;
             letter-spacing: 2px;
             text-align: center;
+        }
+
+        .championship-explainer {
+            font-size: 0.72rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 8px auto 0;
+            text-align: center;
+        }
+
+        .championship-explainer strong {
+            color: var(--text-light);
+        }
+
+        .championship-explainer .explainer-strike {
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         /* Mobile event breakdown - hidden on desktop */
@@ -4010,7 +4104,8 @@
             }
 
             /* Leaderboard - clean layout on mobile */
-            #leaderboard {
+            #leaderboard,
+            #rfLeaderboard {
                 overflow-x: visible;
             }
 
@@ -4146,10 +4241,6 @@
             .app-container {
                 max-width: 700px;
             }
-
-            #leaderboard {
-                overflow-x: visible;
-            }
         }
     </style>
 </head>
@@ -4278,6 +4369,8 @@
                     <div id="rfLeaderboard">
                         <div class="loading"><div class="spinner"></div></div>
                     </div>
+                    <div id="rfChampionshipFooter"></div>
+                    <div id="rfMobileBreakdown" class="mobile-event-breakdown"></div>
                 </div>
 
                 <div id="rf-history" class="sub-section">
@@ -4309,8 +4402,9 @@
                         <div class="rf-rule-block">
                             <h3>📐 The Court</h3>
                             <ul>
-                                <li>The solo player gets the <em>full singles court</em> to aim at.</li>
-                                <li>The pair defend the <em>doubles court</em>, each covering their half.</li>
+                                <li>The solo player defends only the <em>singles court</em> — the alleys are out for the pair's shots.</li>
+                                <li>In attack, the solo can aim at the <em>full doubles court</em> — the whole pair's side is fair game.</li>
+                                <li>The pair defend the <em>doubles court</em>, each covering their half, but must land shots inside the <em>singles court</em>.</li>
                                 <li><span class="rf-house">House rule — adjust the boundaries to taste.</span></li>
                             </ul>
                         </div>
@@ -4351,6 +4445,7 @@
                             <ul>
                                 <li>Play as many matches as you like all season.</li>
                                 <li>Only your <strong>best 10 results</strong> count toward the year-end leaderboard.</li>
+                                <li>Once you've banked 10, a new result only helps if it beats your weakest counting one — so a win can be worth <strong>less than 3</strong> points.</li>
                                 <li>Ties are broken by number of <strong>1st-place finishes</strong>.</li>
                             </ul>
                         </div>
@@ -5637,10 +5732,23 @@
                 const totalPoints = sortedByPoints.slice(0, 10).reduce((sum, r) => sum + r.points, 0);
                 const wins = sortedByPoints.slice(0, 10).filter(r => r.position === 1).length;
 
+                // Marginal value of the next result: once the 10 slots are full, a new
+                // result only helps if it beats the weakest counting result, and only by
+                // the difference (e.g. a win is worth +2 if a 1-pointer is being dropped).
+                const played = playedResults.length;
+                const slotsFull = played >= 10;
+                const worstCounting = slotsFull ? sortedByPoints[9].points : null;
+                const marginal = v => slotsFull ? Math.max(0, v - worstCounting) : v;
+                const nextWin = marginal(3);    // finishing 1st
+                const nextSecond = marginal(1); // finishing 2nd (3rd is always +0)
+
                 return {
                     name,
                     points: totalPoints,
                     events: playedResults.length,
+                    played,
+                    nextWin,
+                    nextSecond,
                     wins,
                     best10Indices,
                     eventResults: allResults
@@ -5690,7 +5798,10 @@
                         <div class="leaderboard-rank">${rank}</div>
                         <div class="leaderboard-player">
                             <div class="leaderboard-avatar">${avatarContent}</div>
-                            <div class="leaderboard-name">${player.name}</div>
+                            <div class="leaderboard-name-group">
+                                <div class="leaderboard-name">${player.name}</div>
+                                <div class="leaderboard-substat">${Math.min(player.played, 10)} of ${player.played} · 🥇+${player.nextWin} 🥈+${player.nextSecond}</div>
+                            </div>
                         </div>
                         <div class="leaderboard-events">${eventScores}</div>
                         <div class="leaderboard-total">${player.points}</div>
@@ -5732,6 +5843,9 @@
 
             const mobileBreakdown = mobileHeader + mobileRows;
 
+            // Drop the initial loading state (its 40px padding would offset the scroll container)
+            container.classList.remove('loading');
+
             container.innerHTML = `
                 <div class="leaderboard-table">
                     <div class="leaderboard-header">
@@ -5745,7 +5859,19 @@
             `;
 
             // Render subtitle and mobile breakdown into separate containers (outside #leaderboard)
-            document.getElementById('championship-footer').innerHTML = `<div class="championship-subtitle">${currentYear} SEASON • BEST 10 RESULTS COUNT</div>`;
+            const maxPlayed = Math.max(...standings.map(p => p.played));
+            const capActive = maxPlayed > 10;
+            const subtitleText = capActive
+                ? `${currentYear} SEASON • BEST 10 RESULTS COUNT`
+                : `${currentYear} SEASON • ALL RESULTS COUNT SO FAR — BEST 10 ONCE YOU PASS 10`;
+            document.getElementById('championship-footer').innerHTML = `
+                <div class="championship-subtitle">${subtitleText}</div>
+                <div class="championship-explainer">
+                    Only your <strong>10 best results</strong> count. Until you've played 10, every game adds its full value.
+                    After that, a new result only helps if it beats your weakest counting one — so a win can be worth
+                    <strong>less than 3</strong>. (If your 10 best already include a 2nd-place 1-pointer, a fresh win nets <strong>+2</strong>, not +3.)
+                    The <span class="explainer-strike">struck-through</span> scores are the ones being dropped.
+                </div>`;
             document.getElementById('mobile-breakdown').innerHTML = mobileBreakdown;
         }
 
@@ -5887,9 +6013,14 @@
             const homeMobileBreakdown = document.getElementById('mobile-breakdown');
 
             if (homeLeaderboard) {
+                // Only the table goes in the scroll container; footer + breakdown are
+                // separate siblings (mirrors Home) so they don't scroll sideways or
+                // show the mobile breakdown on desktop.
                 container.innerHTML = homeLeaderboard.innerHTML;
-                if (homeFooter) container.innerHTML += homeFooter.innerHTML;
-                if (homeMobileBreakdown) container.innerHTML += homeMobileBreakdown.innerHTML;
+                const f = document.getElementById('rfChampionshipFooter');
+                const mb = document.getElementById('rfMobileBreakdown');
+                if (f && homeFooter) f.innerHTML = homeFooter.innerHTML;
+                if (mb && homeMobileBreakdown) mb.innerHTML = homeMobileBreakdown.innerHTML;
             }
         }
 

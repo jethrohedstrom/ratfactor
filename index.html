@@ -5216,6 +5216,11 @@
             return Array.isArray(sets) && sets.some(s => s && s.ret);
         }
 
+        // Styled "(ret.)" suffix for HTML match-score displays ('' if not a retirement)
+        function retirementMarkerHTML(sets) {
+            return setsHaveRetirement(sets) ? ' <span class="match-ret">(ret.)</span>' : '';
+        }
+
         function checkSinglesTiebreak(input) {
             const row = input.closest('.set-row');
             const p1Score = parseInt(row.querySelector('.set-score-input[data-player="1"]').value) || 0;
@@ -5347,8 +5352,6 @@
             // Retirement: match didn't finish — winner is awarded, not derived from sets
             const retirementEl = document.getElementById('singlesRetirement');
             const isRetirement = retirementEl && retirementEl.checked;
-            const retireeSlot = isRetirement ? document.getElementById('singlesRetiree').value : null;
-            const retireeName = retireeSlot === '1' ? p1 : p2;
 
             // Collect set scores
             const setRows = document.querySelectorAll('#singlesSetsContainer .set-row');
@@ -5403,8 +5406,9 @@
             let winner;
             if (isRetirement) {
                 // Awarded to the player who did NOT retire; tag the abandoned (last) set
-                winner = retireeName === p1 ? p2 : p1;
-                if (sets.length > 0) sets[sets.length - 1].ret = retireeName;
+                const retiree = document.getElementById('singlesRetiree').value === '1' ? p1 : p2;
+                winner = retiree === p1 ? p2 : p1;
+                if (sets.length > 0) sets[sets.length - 1].ret = retiree;
             } else {
                 if (p1SetsWon === p2SetsWon) {
                     showToast('Match cannot be tied - add another set', true);
@@ -5958,7 +5962,7 @@
                             }
                             return scoreStr;
                         }).join(' ');
-                        if (setsHaveRetirement(sets)) setsDisplay += ' <span class="match-ret">(ret.)</span>';
+                        setsDisplay += retirementMarkerHTML(sets);
                     } catch (e) { setsDisplay = ''; }
                 }
 
@@ -6295,7 +6299,7 @@
                                 }
                                 return scoreStr;
                             }).join(' ');
-                            if (setsHaveRetirement(sets)) setsDisplay += ' <span class="match-ret">(ret.)</span>';
+                            setsDisplay += retirementMarkerHTML(sets);
                         } catch (e) {
                             setsDisplay = '';
                         }
@@ -7570,7 +7574,7 @@
                             }
                             return scoreStr;
                         }).join(' ');
-                        if (setsHaveRetirement(sets)) setsDisplay += ' <span class="match-ret">(ret.)</span>';
+                        setsDisplay += retirementMarkerHTML(sets);
                     } catch (e) { setsDisplay = ''; }
                 }
 

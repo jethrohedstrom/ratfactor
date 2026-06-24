@@ -2181,6 +2181,24 @@
             color: var(--accent-green);
         }
 
+        .btn-add-set + .btn-add-set {
+            margin-left: 8px;
+        }
+
+        /* Standalone deciding tiebreak row */
+        .tiebreak-row {
+            border-left: 3px solid var(--accent-pink);
+        }
+
+        /* "TB" badge shown on tiebreak set scores in history */
+        .tb-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.55rem;
+            color: var(--accent-pink);
+            vertical-align: top;
+            margin-right: 2px;
+        }
+
         /* Tiebreak input */
         .tiebreak-group {
             display: none;
@@ -5021,6 +5039,7 @@
                             </div>
                         </div>
                         <button class="btn-add-set" onclick="addSet()">+ Add Set</button>
+                        <button class="btn-add-set" onclick="addTiebreakRow()">+ Tiebreak</button>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Location (optional)</label>
@@ -5255,12 +5274,12 @@
         function addSet() {
             const container = document.getElementById('setsContainer');
             const setRows = container.querySelectorAll('.set-row');
-            const newSetNum = setRows.length + 1;
-
-            if (newSetNum > 5) {
+            if (setRows.length >= 5) {
                 showToast('Maximum 5 sets allowed', true);
                 return;
             }
+            // Number only counts non-tiebreak set rows
+            const newSetNum = container.querySelectorAll('.set-row:not(.tiebreak-row)').length + 1;
 
             const newRow = document.createElement('div');
             newRow.className = 'set-row';
@@ -5283,16 +5302,41 @@
             updateSetRemoveButtons();
         }
 
+        function addTiebreakRow() {
+            const container = document.getElementById('setsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            if (setRows.length >= 5) {
+                showToast('Maximum 5 sets allowed', true);
+                return;
+            }
+
+            const newRow = document.createElement('div');
+            newRow.className = 'set-row tiebreak-row';
+            newRow.dataset.tiebreak = '1';
+            newRow.innerHTML = `
+                <span class="set-label">TB</span>
+                <input type="number" class="set-score-input" data-team="1" min="0" placeholder="0">
+                <span class="set-separator">-</span>
+                <input type="number" class="set-score-input" data-team="2" min="0" placeholder="0">
+                <button class="set-remove-btn" onclick="removeSet(this)">×</button>
+            `;
+            container.appendChild(newRow);
+            updateSetRemoveButtons();
+        }
+
         function removeSet(btn) {
             const row = btn.closest('.set-row');
             row.remove();
 
-            // Renumber remaining sets
+            // Renumber remaining sets (tiebreak rows keep their "TB" label)
             const container = document.getElementById('setsContainer');
             const setRows = container.querySelectorAll('.set-row');
-            setRows.forEach((row, index) => {
-                row.dataset.set = index + 1;
-                row.querySelector('.set-label').textContent = `Set ${index + 1}`;
+            let setNum = 0;
+            setRows.forEach((row) => {
+                if (row.classList.contains('tiebreak-row')) return;
+                setNum++;
+                row.dataset.set = setNum;
+                row.querySelector('.set-label').textContent = `Set ${setNum}`;
             });
             updateSetRemoveButtons();
         }
@@ -5458,6 +5502,19 @@
                 }
 
                 const setData = { team1: team1Score, team2: team2Score };
+
+                // Standalone deciding tiebreak row (any score, e.g. 10-7)
+                if (row.classList.contains('tiebreak-row')) {
+                    if (team1Score === team2Score) {
+                        showToast('Tiebreak scores cannot be equal', true);
+                        return;
+                    }
+                    setData.type = 'tiebreak';
+                    sets.push(setData);
+                    if (setData.team1 > setData.team2) team1SetsWon++;
+                    else team2SetsWon++;
+                    continue;
+                }
 
                 // Check for tiebreak
                 if (team1Score === team2Score && team1Score >= 1) {
@@ -6333,8 +6390,12 @@
                     }
 
                     // Render set score cell for a team
-                    function renderSetCell(teamScore, oppScore, teamTB, hasTB) {
+                    function renderSetCell(teamScore, oppScore, teamTB, hasTB, isTiebreak) {
                         const won = teamScore > oppScore;
+                        // Standalone deciding tiebreak: show a "TB" tag with the raw score
+                        if (isTiebreak) {
+                            return `<span class="doubles-set-score ${won ? 'set-won' : ''}"><span class="tb-tag">TB</span>${teamScore}</span>`;
+                        }
                         // Show tiebreak as superscript on the losing side's score
                         let tbDisplay = '';
                         if (hasTB && teamScore < oppScore) {
@@ -6344,10 +6405,10 @@
                     }
 
                     const team1Sets = setsArr.length > 0
-                        ? setsArr.map(s => renderSetCell(s.team1, s.team2, s.tb1, s.tb1 !== undefined && s.tb2 !== undefined)).join('')
+                        ? setsArr.map(s => renderSetCell(s.team1, s.team2, s.tb1, s.tb1 !== undefined && s.tb2 !== undefined, s.type === 'tiebreak')).join('')
                         : (team1Won ? '<span class="doubles-set-score set-won">W</span>' : '');
                     const team2Sets = setsArr.length > 0
-                        ? setsArr.map(s => renderSetCell(s.team2, s.team1, s.tb2, s.tb1 !== undefined && s.tb2 !== undefined)).join('')
+                        ? setsArr.map(s => renderSetCell(s.team2, s.team1, s.tb2, s.tb1 !== undefined && s.tb2 !== undefined, s.type === 'tiebreak')).join('')
                         : (!team1Won ? '<span class="doubles-set-score set-won">W</span>' : '');
 
                     const doublesLocationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
@@ -7651,6 +7712,10 @@
                 return sets.map(s => {
                     const winnerScore = team1Won ? s.team1 : s.team2;
                     const loserScore = team1Won ? s.team2 : s.team1;
+                    // Standalone deciding tiebreak: tag it as TB
+                    if (s.type === 'tiebreak') {
+                        return `<span class="tb-tag">TB</span>${winnerScore}-${loserScore}`;
+                    }
                     let scoreStr = `${winnerScore}-${loserScore}`;
                     if (s.tb1 !== undefined && s.tb2 !== undefined) {
                         const winnerTB = team1Won ? s.tb1 : s.tb2;

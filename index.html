@@ -396,7 +396,7 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 2px solid var(--accent-yellow);
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -441,7 +441,7 @@
             font-size: 0.7rem;
         }
         .leaderboard-header-event .event-location {
-            font-size: 0.5rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
             opacity: 0.7;
             max-width: 42px;
@@ -544,7 +544,7 @@
 
         .leaderboard-substat {
             font-family: 'Space Mono', monospace;
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             line-height: 1.3;
             letter-spacing: 0.2px;
@@ -634,7 +634,7 @@
         }
 
         .championship-explainer {
-            font-size: 0.72rem;
+            font-size: 0.8rem;
             line-height: 1.5;
             color: var(--text-muted);
             max-width: 520px;
@@ -649,11 +649,6 @@
         .championship-explainer .explainer-strike {
             text-decoration: line-through;
             opacity: 0.7;
-        }
-
-        /* Mobile event breakdown - hidden on desktop */
-        .mobile-event-breakdown {
-            display: none;
         }
 
         /* Points gap from leader */
@@ -928,6 +923,8 @@
             border: 1px solid var(--border-subtle);
             border-radius: 12px;
             padding: 20px 16px;
+            max-width: 560px;
+            margin: 0 auto;
         }
         .dmac-score-side {
             text-align: center;
@@ -968,6 +965,9 @@
             justify-content: space-between;
             margin-top: 14px;
             padding: 0 4px;
+            max-width: 560px;
+            margin-left: auto;
+            margin-right: auto;
         }
         .dmac-form-label {
             font-family: 'Bebas Neue', sans-serif;
@@ -1278,7 +1278,7 @@
         .h2h-opponent-record.tied { color: var(--accent-yellow); }
 
         .h2h-no-matches {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             opacity: 0.5;
             font-style: italic;
@@ -1354,7 +1354,7 @@
 
         .standings-table th {
             font-family: 'Space Mono', monospace;
-            font-size: 0.6rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -1686,6 +1686,9 @@
         }
 
         @media (max-width: 600px) {
+            .h2h-grid {
+                grid-template-columns: 1fr;
+            }
             .standings-table th,
             .standings-table td {
                 padding: 8px 4px;
@@ -4130,131 +4133,50 @@
                 font-size: 3rem;
             }
 
-            /* Leaderboard - clean layout on mobile */
-            #leaderboard,
-            #rfLeaderboard {
-                overflow-x: visible;
+            /* Leaderboard - same scrolling table as desktop, tighter frozen columns */
+            .leaderboard-rank,
+            .leaderboard-header-rank {
+                width: 36px;
             }
 
-            .leaderboard-table {
-                min-width: auto;
+            .leaderboard-rank {
+                font-size: 1.3rem;
+            }
+
+            .leaderboard-player,
+            .leaderboard-header-name {
+                width: 140px;
+                left: 36px;
+            }
+
+            .leaderboard-avatar {
+                width: 30px;
+                height: 30px;
             }
 
             .leaderboard-header-event,
-            .leaderboard-events {
-                display: none;
+            .leaderboard-event-score {
+                width: 38px;
             }
 
-            .leaderboard-player {
-                flex: 1;
-                width: auto;
-                gap: 10px;
-            }
-
-            .leaderboard-header-name {
-                flex: 1;
-                width: auto;
+            .leaderboard-total,
+            .leaderboard-header-pts {
+                width: 48px;
             }
 
             .leaderboard-total {
                 font-size: 1.4rem;
-                margin-left: 0;
             }
 
-            .leaderboard-header-pts {
-                width: 55px;
-                margin-left: 0;
+            .leaderboard-substat {
+                letter-spacing: 0;
+                white-space: normal; /* wrap instead of truncating the medal hints */
             }
 
-            /* Mobile event breakdown */
-            .mobile-event-breakdown {
-                display: block;
-                margin-top: 20px;
-            }
-
-            .mobile-breakdown-header,
-            .mobile-breakdown-row {
-                display: flex;
-                align-items: center;
-                padding: 6px 0;
-            }
-
-            .mobile-breakdown-header {
-                border-bottom: 2px solid var(--accent-yellow);
-                margin-bottom: 4px;
-            }
-
-            .mobile-breakdown-row {
-                border-bottom: 1px solid var(--border-subtle);
-            }
-
-            .mobile-breakdown-row:last-child {
-                border-bottom: none;
-            }
-
-            .mobile-breakdown-name-col {
-                width: 70px;
-                flex-shrink: 0;
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 0.95rem;
-                letter-spacing: 0.5px;
-                color: var(--text-light);
-            }
-
-            .mobile-breakdown-header .mobile-breakdown-name-col {
-                color: transparent;
-            }
-
-            .mobile-breakdown-scores {
-                display: flex;
-                flex: 1;
-            }
-
-            .mobile-breakdown-cell {
-                flex: 1;
-                text-align: center;
-                font-family: 'Bebas Neue', sans-serif;
-                font-size: 1.1rem;
-                padding: 4px 0;
-            }
-
-            .mobile-breakdown-header-cell {
-                flex: 1;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 1px;
-            }
-
-            .mobile-breakdown-header-cell .event-icon {
-                font-size: 0.65rem;
-            }
-
-            .mobile-breakdown-header-cell .event-num {
-                font-size: 0.6rem;
-                color: var(--text-muted);
-                font-weight: 700;
-                letter-spacing: 1px;
-            }
-
-            .mobile-breakdown-header-cell .event-loc {
-                font-size: 0.5rem;
-                color: var(--text-muted);
-                opacity: 0.7;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .mobile-breakdown-cell.first-place { color: #ffd700; font-weight: 700; }
-            .mobile-breakdown-cell.second-place { color: #c0c0c0; }
-            .mobile-breakdown-cell.third-place { color: var(--text-muted); }
-            .mobile-breakdown-cell.no-play { color: var(--text-muted); opacity: 0.3; }
-            .mobile-breakdown-cell.not-counting { text-decoration: line-through; color: var(--text-muted); opacity: 0.5; }
-
-            /* H2H grid */
-            .h2h-grid {
-                grid-template-columns: 1fr;
+            /* Doubles standings: hide "P" (played = W + L) */
+            .standings-table th:nth-child(3),
+            .standings-table td:nth-child(3) {
+                display: none;
             }
 
             /* Insights */
@@ -4266,7 +4188,51 @@
 
         @media (min-width: 768px) {
             .app-container {
-                max-width: 700px;
+                max-width: 720px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .app-container {
+                max-width: 940px;
+            }
+
+            /* Championship leaderboard: roomier event columns */
+            .leaderboard-header-event,
+            .leaderboard-event-score {
+                width: 46px;
+            }
+
+            .leaderboard-header-event .event-location {
+                max-width: 46px;
+            }
+
+            /* Doubles standings: breathing room */
+            .standings-table td {
+                padding: 12px 10px;
+            }
+
+            .standings-avatar {
+                width: 30px;
+                height: 30px;
+            }
+
+            .standings-team-name {
+                font-size: 1.05rem;
+            }
+
+            /* DMAC: bigger score numerals */
+            .dmac-score-num {
+                font-size: 4.5rem;
+            }
+
+            /* H2H: roomier cards */
+            .h2h-player-card {
+                padding: 20px;
+            }
+
+            .h2h-grid {
+                gap: 20px;
             }
         }
     </style>
@@ -4296,7 +4262,6 @@
                     <div class="spinner"></div>
                 </div>
                 <div id="championship-footer"></div>
-                <div id="mobile-breakdown" class="mobile-event-breakdown"></div>
             </div>
 
             <div class="card" id="quarterlyDoublesCard" style="display:none">
@@ -4397,7 +4362,6 @@
                         <div class="loading"><div class="spinner"></div></div>
                     </div>
                     <div id="rfChampionshipFooter"></div>
-                    <div id="rfMobileBreakdown" class="mobile-event-breakdown"></div>
                 </div>
 
                 <div id="rf-history" class="sub-section">
@@ -4892,8 +4856,16 @@
                     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                     tab.classList.add('active');
                     document.getElementById(tab.dataset.section).classList.add('active');
+                    if (tab.dataset.section === 'ratfactor') scrollRFLeaderboardToLatest();
                 });
             });
+        }
+
+        // The RF leaderboard is cloned while its tab is hidden, so scrollLeft
+        // clamps to 0 there — re-apply it once the tab is actually visible.
+        function scrollRFLeaderboardToLatest() {
+            const rf = document.getElementById('rfLeaderboard');
+            if (rf) rf.scrollLeft = rf.scrollWidth;
         }
 
         // Sub-tab switching within composite sections
@@ -4925,6 +4897,8 @@
             const subTab = section.querySelector(`.sub-tab[data-subtab="${subtabId}"]`);
             if (subTab) subTab.classList.add('active');
             document.getElementById(subtabId).classList.add('active');
+
+            if (sectionId === 'ratfactor') scrollRFLeaderboardToLatest();
 
             window.scrollTo(0, 0);
         }
@@ -5914,40 +5888,6 @@
                 `;
             }).join('');
 
-            // Build mobile event breakdown (leaderboard-style rows)
-            const mobileHeader = `<div class="mobile-breakdown-header">
-                <div class="mobile-breakdown-name-col"></div>
-                <div class="mobile-breakdown-scores">
-                    ${canadianMatches.map((match, i) => `
-                        <div class="mobile-breakdown-header-cell">
-                            <span class="event-icon">🐀</span>
-                            <span class="event-num">${i + 1}</span>
-                            ${match.location ? `<span class="event-loc">${match.location}</span>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-
-            const mobileRows = standings.map(player => {
-                const cells = player.eventResults.map((result, eventIndex) => {
-                    if (result.points === null) {
-                        return `<div class="mobile-breakdown-cell no-play">-</div>`;
-                    }
-                    const isCounting = player.best10Indices.has(eventIndex);
-                    const positionClass = result.position === 1 ? 'first-place' :
-                                         result.position === 2 ? 'second-place' : 'third-place';
-                    const countingClass = isCounting ? '' : 'not-counting';
-                    return `<div class="mobile-breakdown-cell ${positionClass} ${countingClass}">${result.points}</div>`;
-                }).join('');
-
-                return `<div class="mobile-breakdown-row">
-                    <div class="mobile-breakdown-name-col">${player.name}</div>
-                    <div class="mobile-breakdown-scores">${cells}</div>
-                </div>`;
-            }).join('');
-
-            const mobileBreakdown = mobileHeader + mobileRows;
-
             // Drop the initial loading state (its 40px padding would offset the scroll container)
             container.classList.remove('loading');
 
@@ -5963,7 +5903,10 @@
                 </div>
             `;
 
-            // Render subtitle and mobile breakdown into separate containers (outside #leaderboard)
+            // Open the table at the most recent events (Pts stays pinned right)
+            container.scrollLeft = container.scrollWidth;
+
+            // Render subtitle into a separate container (outside #leaderboard)
             const maxPlayed = Math.max(...standings.map(p => p.played));
             const capActive = maxPlayed > 10;
             const subtitleText = capActive
@@ -5977,7 +5920,6 @@
                     <strong>less than 3</strong>. (If your 10 best already include a 2nd-place 1-pointer, a fresh win nets <strong>+2</strong>, not +3.)
                     The <span class="explainer-strike">struck-through</span> scores are the ones being dropped.
                 </div>`;
-            document.getElementById('mobile-breakdown').innerHTML = mobileBreakdown;
         }
 
         // Render history
@@ -6116,17 +6058,13 @@
             // Clone the leaderboard from Home into RF tab
             const homeLeaderboard = document.getElementById('leaderboard');
             const homeFooter = document.getElementById('championship-footer');
-            const homeMobileBreakdown = document.getElementById('mobile-breakdown');
 
             if (homeLeaderboard) {
-                // Only the table goes in the scroll container; footer + breakdown are
-                // separate siblings (mirrors Home) so they don't scroll sideways or
-                // show the mobile breakdown on desktop.
+                // Only the table goes in the scroll container; the footer is a
+                // separate sibling (mirrors Home) so it doesn't scroll sideways.
                 container.innerHTML = homeLeaderboard.innerHTML;
                 const f = document.getElementById('rfChampionshipFooter');
-                const mb = document.getElementById('rfMobileBreakdown');
                 if (f && homeFooter) f.innerHTML = homeFooter.innerHTML;
-                if (mb && homeMobileBreakdown) mb.innerHTML = homeMobileBreakdown.innerHTML;
             }
         }
 

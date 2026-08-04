@@ -589,6 +589,10 @@
             opacity: 0.3;
         }
 
+        .leaderboard-event-score.tied-place {
+            font-style: italic;
+        }
+
         .leaderboard-total {
             width: 55px;
             text-align: center;
@@ -1147,6 +1151,11 @@
 
         .ratfactor-player.first .ratfactor-rank {
             color: var(--accent-yellow);
+        }
+
+        .ratfactor-player.tied .ratfactor-rank {
+            width: 40px;
+            font-size: 0.85rem;
         }
 
         .ratfactor-name {
@@ -4423,6 +4432,7 @@
                             <ul>
                                 <li>If two players finish level, play a short tiebreak to settle the spot.</li>
                                 <li>When logging, tick the <strong>Tiebreak</strong> box — the two tied players are auto-selected so you can record the result.</li>
+                                <li>No tiebreak played? The tied players <strong>share the spot</strong> — shown as T-1st or T-2nd — and split the points evenly.</li>
                             </ul>
                         </div>
 
@@ -4437,6 +4447,7 @@
                                 <li>Play as many matches as you like all season.</li>
                                 <li>Only your <strong>best 10 results</strong> count toward the year-end leaderboard.</li>
                                 <li>Once you've banked 10, a new result only helps if it beats your weakest counting one — so a win can be worth <strong>less than 3</strong> points.</li>
+                                <li>Unbroken ties split the points: T-1st = <strong>2 each</strong>, T-2nd = <strong>0.5 each</strong>, three-way = <strong>1.33 each</strong>.</li>
                                 <li>Ties are broken by number of <strong>1st-place finishes</strong>.</li>
                             </ul>
                         </div>
@@ -5068,47 +5079,14 @@
                     btn.addEventListener('click', handleCanadianPlayerToggle);
                 });
 
-                // Tiebreak checkbox toggle
-                document.getElementById('canadianTiebreak').addEventListener('change', function() {
-                    const tbContainer = document.getElementById('canadianTiebreakScores');
-                    const tbInputs = document.getElementById('canadianTBInputs');
-                    if (this.checked) {
-                        // Find the two players with the highest tied scores
-                        const selected = Array.from(document.querySelectorAll('.canadian-toggle.selected')).map(b => b.dataset.player);
-                        const playerScores = selected.map(p => ({
-                            name: p,
-                            score: parseInt(document.getElementById(`score_${p}`)?.value) || 0
-                        })).sort((a, b) => b.score - a.score);
-
-                        // Pick the two tied players (top 2 with equal scores), or just top 2 if no tie
-                        let tbPlayers;
-                        if (playerScores.length >= 2 && playerScores[0].score === playerScores[1].score) {
-                            tbPlayers = [playerScores[0].name, playerScores[1].name];
-                        } else if (playerScores.length >= 3 && playerScores[1].score === playerScores[2].score) {
-                            tbPlayers = [playerScores[1].name, playerScores[2].name];
-                        } else {
-                            tbPlayers = playerScores.slice(0, 2).map(p => p.name);
-                        }
-
-                        tbInputs.innerHTML = `
-                            <div class="canadian-player-row" style="justify-content: center; gap: 10px;">
-                                <span class="canadian-player-name" style="text-align: right;">${tbPlayers[0]}</span>
-                                <div class="canadian-player-score">
-                                    <input type="number" data-player="${tbPlayers[0]}" min="0" placeholder="0">
-                                </div>
-                                <span style="color: var(--text-muted); font-size: 0.9rem;">-</span>
-                                <div class="canadian-player-score">
-                                    <input type="number" data-player="${tbPlayers[1]}" min="0" placeholder="0">
-                                </div>
-                                <span class="canadian-player-name">${tbPlayers[1]}</span>
-                            </div>
-                        `;
-                        tbContainer.style.display = 'block';
-                    } else {
-                        tbContainer.style.display = 'none';
-                        tbInputs.innerHTML = '';
-                    }
-                });
+                // Tiebreak pair follows the entered scores
+                setupCanadianTiebreak({
+                    checkbox: 'canadianTiebreak',
+                    container: 'canadianTiebreakScores',
+                    inputs: 'canadianTBInputs',
+                    scoresList: 'canadianPlayerScores',
+                    scorePrefix: 'score_'
+                }, () => Array.from(document.querySelectorAll('.canadian-toggle.selected')).map(b => b.dataset.player));
             }
         }
 
@@ -5584,6 +5562,11 @@
                         score2: parseInt(tbInputs[1].value) || 0
                     };
                 }
+                const tbError = validateTiebreak(tiebreakData, scores);
+                if (tbError) {
+                    showToast(tbError, true);
+                    return;
+                }
             }
 
             const canadianNotes = document.getElementById('canadianNotes').value.trim() || null;
@@ -5654,6 +5637,18 @@
             }
         }
 
+        // Winner of a logged Rat Factor tiebreak, or null if none recorded
+        function parseTiebreakWinner(match) {
+            if (!match.sets) return null;
+            try {
+                const tb = JSON.parse(match.sets);
+                if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
+                    return tb.score1 > tb.score2 ? tb.player1 : tb.player2;
+                }
+            } catch (e) {}
+            return null;
+        }
+
         // Sort Rat Factor players by score, using tiebreak data to break ties
         function sortCanadianPlayers(match) {
             const players = [
@@ -5662,15 +5657,7 @@
                 { name: match.player3, score: match.score_player3 || 0 }
             ].filter(p => p.name);
 
-            let tbWinner = null;
-            if (match.sets) {
-                try {
-                    const tb = JSON.parse(match.sets);
-                    if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
-                        tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
-                    }
-                } catch (e) {}
-            }
+            const tbWinner = parseTiebreakWinner(match);
 
             players.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
@@ -5682,6 +5669,157 @@
             });
 
             return players;
+        }
+
+        // Placements with shared positions: unbroken ties share a spot and split
+        // the points pool evenly (1st=3, 2nd=1, 3rd=0). A logged tiebreak winner
+        // still takes the higher spot outright.
+        const CANADIAN_POINTS = [3, 1, 0];
+        function getCanadianPlacements(match) {
+            const sorted = sortCanadianPlayers(match);
+            const tbWinner = parseTiebreakWinner(match);
+
+            const placements = [];
+            let i = 0;
+            while (i < sorted.length) {
+                // Group consecutive equal scores; a tiebreak winner stands alone
+                let n = 1;
+                if (sorted[i].name !== tbWinner) {
+                    while (i + n < sorted.length &&
+                           sorted[i + n].score === sorted[i].score &&
+                           sorted[i + n].name !== tbWinner) {
+                        n++;
+                    }
+                }
+                const pool = CANADIAN_POINTS.slice(i, i + n).reduce((s, v) => s + v, 0);
+                for (let j = 0; j < n; j++) {
+                    placements.push({
+                        name: sorted[i + j].name,
+                        score: sorted[i + j].score,
+                        position: i + 1,
+                        tied: n > 1,
+                        points: pool / n
+                    });
+                }
+                i += n;
+            }
+            return placements;
+        }
+
+        const PLACE_LABELS = { 1: '1st', 2: '2nd', 3: '3rd' };
+        function placementLabel(p) {
+            return (p.tied ? 'T-' : '') + (PLACE_LABELS[p.position] || p.position + 'th');
+        }
+
+        // Points for display: integers as-is, fractions to 2 decimals (0.5, 1.33)
+        function fmtPts(v) {
+            return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
+        }
+
+        // Shared score rows + tiebreak line for Rat Factor history cards
+        function renderCanadianScoreRows(match) {
+            const placements = getCanadianPlacements(match);
+            const positionClasses = { 1: 'first', 2: 'second', 3: 'third' };
+
+            const rows = placements.map(p => `
+                                <div class="ratfactor-player ${positionClasses[p.position]}${p.tied ? ' tied' : ''}">
+                                    <span class="ratfactor-rank">${placementLabel(p)}</span>
+                                    <span class="ratfactor-name">${p.name}</span>
+                                    <span class="ratfactor-score">${p.score}</span>
+                                </div>`).join('');
+
+            let tbDisplay = '';
+            if (match.sets) {
+                try {
+                    const tb = JSON.parse(match.sets);
+                    if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
+                        const tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
+                        const tbLoser = tb.score1 > tb.score2 ? tb.player2 : tb.player1;
+                        tbDisplay = `<div class="ratfactor-tiebreak">TB: ${tbWinner} ${Math.max(tb.score1, tb.score2)} - ${tbLoser} ${Math.min(tb.score1, tb.score2)}</div>`;
+                    }
+                } catch (e) {}
+            }
+
+            return `<div class="ratfactor-scores">${rows}
+                            </div>
+                            ${tbDisplay}`;
+        }
+
+        // Two players who should contest a Rat Factor tiebreak, given entered scores
+        function pickTiebreakPair(playerScores) {
+            const sorted = [...playerScores].sort((a, b) => b.score - a.score);
+            if (sorted.length >= 2 && sorted[0].score === sorted[1].score) {
+                return [sorted[0].name, sorted[1].name];
+            }
+            if (sorted.length >= 3 && sorted[1].score === sorted[2].score) {
+                return [sorted[1].name, sorted[2].name];
+            }
+            return sorted.slice(0, 2).map(p => p.name);
+        }
+
+        function renderTiebreakInputs(tbInputs, tbPlayers) {
+            // Keep typed TB scores when the pair hasn't changed
+            const existing = tbInputs.querySelectorAll('input[type="number"]');
+            if (existing.length === 2 &&
+                existing[0].dataset.player === tbPlayers[0] &&
+                existing[1].dataset.player === tbPlayers[1]) {
+                return;
+            }
+            tbInputs.innerHTML = `
+                <div class="canadian-player-row" style="justify-content: center; gap: 10px;">
+                    <span class="canadian-player-name" style="text-align: right;">${tbPlayers[0]}</span>
+                    <div class="canadian-player-score">
+                        <input type="number" data-player="${tbPlayers[0]}" min="0" placeholder="0">
+                    </div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">-</span>
+                    <div class="canadian-player-score">
+                        <input type="number" data-player="${tbPlayers[1]}" min="0" placeholder="0">
+                    </div>
+                    <span class="canadian-player-name">${tbPlayers[1]}</span>
+                </div>
+            `;
+        }
+
+        // Wire a canadian form's tiebreak UI: the pair follows the entered scores
+        // instead of being frozen at the moment the checkbox is ticked
+        function setupCanadianTiebreak(ids, getSelected) {
+            const checkbox = document.getElementById(ids.checkbox);
+            const scoresList = document.getElementById(ids.scoresList);
+            if (!checkbox || !scoresList) return;
+
+            const refresh = () => {
+                const tbContainer = document.getElementById(ids.container);
+                const tbInputs = document.getElementById(ids.inputs);
+                if (checkbox.checked) {
+                    const playerScores = getSelected().map(p => ({
+                        name: p,
+                        score: parseInt(document.getElementById(`${ids.scorePrefix}${p}`)?.value) || 0
+                    }));
+                    renderTiebreakInputs(tbInputs, pickTiebreakPair(playerScores));
+                    tbContainer.style.display = 'block';
+                } else {
+                    tbContainer.style.display = 'none';
+                    tbInputs.innerHTML = '';
+                }
+            };
+
+            checkbox.addEventListener('change', refresh);
+            scoresList.addEventListener('input', e => {
+                if (e.target.matches('input[type="number"]') && checkbox.checked) refresh();
+            });
+        }
+
+        // Submit-time check that a logged tiebreak matches the tied final scores.
+        // Returns an error message, or null if valid.
+        function validateTiebreak(tiebreakData, scores) {
+            if (!tiebreakData) return 'Enter the tiebreak scores';
+            if (scores[tiebreakData.player1] !== scores[tiebreakData.player2]) {
+                return "Tiebreak players don't match the tied scores";
+            }
+            if (tiebreakData.score1 === tiebreakData.score2) {
+                return "Tiebreak can't end level";
+            }
+            return null;
         }
 
         function renderQuarterlyDoubles() {
@@ -5777,21 +5915,19 @@
             PLAYERS.forEach(p => playerEventResults[p] = []);
 
             canadianMatches.forEach((match, eventIndex) => {
-                const players = sortCanadianPlayers(match);
-
-                // Award points: 1st = 3, 2nd = 1, 3rd = 0
-                const pointsMap = { 0: 3, 1: 1, 2: 0 };
+                const placements = getCanadianPlacements(match);
 
                 // Initialize all players as not playing this event
                 PLAYERS.forEach(p => {
-                    playerEventResults[p][eventIndex] = { points: null, position: null };
+                    playerEventResults[p][eventIndex] = { points: null, position: null, tied: false };
                 });
 
-                players.forEach((player, position) => {
-                    if (player.name && playerEventResults[player.name]) {
-                        playerEventResults[player.name][eventIndex] = {
-                            points: pointsMap[position],
-                            position: position + 1
+                placements.forEach(p => {
+                    if (p.name && playerEventResults[p.name]) {
+                        playerEventResults[p.name][eventIndex] = {
+                            points: p.points,
+                            position: p.position,
+                            tied: p.tied
                         };
                     }
                 });
@@ -5868,8 +6004,10 @@
                     const positionClass = result.position === 1 ? 'first-place' :
                                          result.position === 2 ? 'second-place' : 'third-place';
                     const countingClass = isCounting ? '' : 'not-counting';
+                    const tiedClass = result.tied ? ' tied-place' : '';
+                    const tiedTitle = result.tied ? ` title="T-${PLACE_LABELS[result.position]}"` : '';
 
-                    return `<div class="leaderboard-event-score ${positionClass} ${countingClass}">${result.points}</div>`;
+                    return `<div class="leaderboard-event-score ${positionClass} ${countingClass}${tiedClass}"${tiedTitle}>${fmtPts(result.points)}</div>`;
                 }).join('');
 
                 return `
@@ -5879,11 +6017,11 @@
                             <div class="leaderboard-avatar">${avatarContent}</div>
                             <div class="leaderboard-name-group">
                                 <div class="leaderboard-name">${player.name}</div>
-                                <div class="leaderboard-substat">${Math.min(player.played, 10)} of ${player.played} · 🥇+${player.nextWin} 🥈+${player.nextSecond}</div>
+                                <div class="leaderboard-substat">${Math.min(player.played, 10)} of ${player.played} · 🥇+${fmtPts(player.nextWin)} 🥈+${fmtPts(player.nextSecond)}</div>
                             </div>
                         </div>
                         <div class="leaderboard-events">${eventScores}</div>
-                        <div class="leaderboard-total">${player.points}</div>
+                        <div class="leaderboard-total">${fmtPts(player.points)}</div>
                     </div>
                 `;
             }).join('');
@@ -6000,22 +6138,7 @@
             container.innerHTML = rfMatches.slice(0, 20).map(match => {
                 const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
                 const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
-                const players = sortCanadianPlayers(match);
                 const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
-
-                let tbDisplay = '';
-                if (match.sets) {
-                    try {
-                        const tb = JSON.parse(match.sets);
-                        if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
-                            const tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
-                            const tbLoser = tb.score1 > tb.score2 ? tb.player2 : tb.player1;
-                            const tbWinScore = Math.max(tb.score1, tb.score2);
-                            const tbLoseScore = Math.min(tb.score1, tb.score2);
-                            tbDisplay = `<div class="ratfactor-tiebreak">TB: ${tbWinner} ${tbWinScore} - ${tbLoser} ${tbLoseScore}</div>`;
-                        }
-                    } catch (e) {}
-                }
 
                 return `
                     <div class="match-item match-item-ratfactor">
@@ -6027,24 +6150,7 @@
                             ${editBtn}
                         </div>
                         ${locationDisplay}
-                        <div class="ratfactor-scores">
-                            <div class="ratfactor-player first">
-                                <span class="ratfactor-rank">1st</span>
-                                <span class="ratfactor-name">${players[0].name}</span>
-                                <span class="ratfactor-score">${players[0].score}</span>
-                            </div>
-                            <div class="ratfactor-player second">
-                                <span class="ratfactor-rank">2nd</span>
-                                <span class="ratfactor-name">${players[1].name}</span>
-                                <span class="ratfactor-score">${players[1].score}</span>
-                            </div>
-                            <div class="ratfactor-player third">
-                                <span class="ratfactor-rank">3rd</span>
-                                <span class="ratfactor-name">${players[2].name}</span>
-                                <span class="ratfactor-score">${players[2].score}</span>
-                            </div>
-                        </div>
-                        ${tbDisplay}
+                        ${renderCanadianScoreRows(match)}
                     </div>
                 `;
             }).join('');
@@ -6134,48 +6240,14 @@
                 });
             });
 
-            // Tiebreak checkbox
-            const tbCheckbox = document.getElementById('rfCanadianTiebreak');
-            if (tbCheckbox) {
-                tbCheckbox.addEventListener('change', function() {
-                    const tbContainer = document.getElementById('rfCanadianTiebreakScores');
-                    const tbInputs = document.getElementById('rfCanadianTBInputs');
-                    if (this.checked) {
-                        const selected = Array.from(container.querySelectorAll('.rf-toggle.selected')).map(b => b.dataset.player);
-                        const playerScores = selected.map(p => ({
-                            name: p,
-                            score: parseInt(document.getElementById(`rf_score_${p}`)?.value) || 0
-                        })).sort((a, b) => b.score - a.score);
-
-                        let tbPlayers;
-                        if (playerScores.length >= 2 && playerScores[0].score === playerScores[1].score) {
-                            tbPlayers = [playerScores[0].name, playerScores[1].name];
-                        } else if (playerScores.length >= 3 && playerScores[1].score === playerScores[2].score) {
-                            tbPlayers = [playerScores[1].name, playerScores[2].name];
-                        } else {
-                            tbPlayers = playerScores.slice(0, 2).map(p => p.name);
-                        }
-
-                        tbInputs.innerHTML = `
-                            <div class="canadian-player-row" style="justify-content: center; gap: 10px;">
-                                <span class="canadian-player-name" style="text-align: right;">${tbPlayers[0]}</span>
-                                <div class="canadian-player-score">
-                                    <input type="number" data-player="${tbPlayers[0]}" min="0" placeholder="0">
-                                </div>
-                                <span style="color: var(--text-muted); font-size: 0.9rem;">-</span>
-                                <div class="canadian-player-score">
-                                    <input type="number" data-player="${tbPlayers[1]}" min="0" placeholder="0">
-                                </div>
-                                <span class="canadian-player-name">${tbPlayers[1]}</span>
-                            </div>
-                        `;
-                        tbContainer.style.display = 'block';
-                    } else {
-                        tbContainer.style.display = 'none';
-                        tbInputs.innerHTML = '';
-                    }
-                });
-            }
+            // Tiebreak pair follows the entered scores
+            setupCanadianTiebreak({
+                checkbox: 'rfCanadianTiebreak',
+                container: 'rfCanadianTiebreakScores',
+                inputs: 'rfCanadianTBInputs',
+                scoresList: 'rfCanadianPlayerScores',
+                scorePrefix: 'rf_score_'
+            }, () => Array.from(container.querySelectorAll('.rf-toggle.selected')).map(b => b.dataset.player));
         }
 
         // Submit RF canadian match (from the Rat Factor tab form)
@@ -6219,6 +6291,11 @@
                         player2: tbInputs[1].dataset.player,
                         score2: parseInt(tbInputs[1].value) || 0
                     };
+                }
+                const tbError = validateTiebreak(tiebreakData, scores);
+                if (tbError) {
+                    showToast(tbError, true);
+                    return;
                 }
             }
 
@@ -6383,25 +6460,7 @@
                         </div>
                     `;
                 } else if (match.match_type === 'canadian') {
-                    // Sort players by score (with tiebreak awareness)
-                    const players = sortCanadianPlayers(match);
-
                     const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
-
-                    // Parse tiebreak display
-                    let tbDisplay = '';
-                    if (match.sets) {
-                        try {
-                            const tb = JSON.parse(match.sets);
-                            if (tb.player1 && tb.player2 && tb.score1 !== undefined && tb.score2 !== undefined) {
-                                const tbWinner = tb.score1 > tb.score2 ? tb.player1 : tb.player2;
-                                const tbLoser = tb.score1 > tb.score2 ? tb.player2 : tb.player1;
-                                const tbWinScore = Math.max(tb.score1, tb.score2);
-                                const tbLoseScore = Math.min(tb.score1, tb.score2);
-                                tbDisplay = `<div class="ratfactor-tiebreak">TB: ${tbWinner} ${tbWinScore} - ${tbLoser} ${tbLoseScore}</div>`;
-                            }
-                        } catch (e) {}
-                    }
 
                     return `
                         <div class="match-item match-item-ratfactor">
@@ -6413,24 +6472,7 @@
                                 ${editBtn}
                             </div>
                             ${locationDisplay}
-                            <div class="ratfactor-scores">
-                                <div class="ratfactor-player first">
-                                    <span class="ratfactor-rank">1st</span>
-                                    <span class="ratfactor-name">${players[0].name}</span>
-                                    <span class="ratfactor-score">${players[0].score}</span>
-                                </div>
-                                <div class="ratfactor-player second">
-                                    <span class="ratfactor-rank">2nd</span>
-                                    <span class="ratfactor-name">${players[1].name}</span>
-                                    <span class="ratfactor-score">${players[1].score}</span>
-                                </div>
-                                <div class="ratfactor-player third">
-                                    <span class="ratfactor-rank">3rd</span>
-                                    <span class="ratfactor-name">${players[2].name}</span>
-                                    <span class="ratfactor-score">${players[2].score}</span>
-                                </div>
-                            </div>
-                            ${tbDisplay}
+                            ${renderCanadianScoreRows(match)}
                         </div>
                     `;
                 }
@@ -6869,8 +6911,9 @@
                 PLAYERS.forEach(p => ratFactorWins[p] = 0);
 
                 canadianMatches.forEach(match => {
-                    const players = sortCanadianPlayers(match);
-                    if (players[0].name) ratFactorWins[players[0].name]++;
+                    getCanadianPlacements(match).forEach(p => {
+                        if (p.position === 1 && p.name) ratFactorWins[p.name]++;
+                    });
                 });
 
                 const ratKing = Object.entries(ratFactorWins).sort((a, b) => b[1] - a[1])[0];
@@ -6887,12 +6930,11 @@
                 PLAYERS.forEach(p => ratFactorLasts[p] = 0);
 
                 canadianMatches.forEach(match => {
-                    const players = [
-                        { name: match.player1, score: match.score_player1 },
-                        { name: match.player2, score: match.score_player2 },
-                        { name: match.player3, score: match.score_player3 }
-                    ].sort((a, b) => a.score - b.score);
-                    if (players[0].name) ratFactorLasts[players[0].name]++;
+                    const placements = getCanadianPlacements(match);
+                    const lastPosition = Math.max(...placements.map(p => p.position));
+                    placements.forEach(p => {
+                        if (p.position === lastPosition && p.name) ratFactorLasts[p.name]++;
+                    });
                 });
 
                 const ratLoser = Object.entries(ratFactorLasts).sort((a, b) => b[1] - a[1])[0];
@@ -6940,10 +6982,12 @@
                 PLAYERS.forEach(p => clutchWins[p] = 0);
 
                 canadianMatches.forEach(match => {
-                    const players = sortCanadianPlayers(match);
-                    const margin = players[0].score - players[1].score;
-                    if (margin <= 2 && players[0].name) {
-                        clutchWins[players[0].name]++;
+                    const placements = getCanadianPlacements(match);
+                    // No single clutch winner when 1st is shared
+                    if (placements[0].tied) return;
+                    const margin = placements[0].score - placements[1].score;
+                    if (margin <= 2 && placements[0].name) {
+                        clutchWins[placements[0].name]++;
                     }
                 });
 
@@ -6968,12 +7012,10 @@
                 PLAYERS.forEach(player => {
                     const quarterPts = [[], [], [], []];
                     canadianThisYear.forEach(match => {
-                        const players = sortCanadianPlayers(match);
-                        const position = players.findIndex(p => p.name === player);
-                        if (position !== -1) {
+                        const rec = getCanadianPlacements(match).find(p => p.name === player);
+                        if (rec) {
                             const q = getQuarter(match.created_at);
-                            const pointsMap = { 0: 3, 1: 1, 2: 0 };
-                            quarterPts[q].push(pointsMap[position]);
+                            quarterPts[q].push(rec.points);
                         }
                     });
                     const quarters = quarterPts.map((pts, i) => ({ q: i, pts, avg: pts.length ? pts.reduce((a, b) => a + b, 0) / pts.length : 0 }))
@@ -8202,17 +8244,12 @@
 
             // Calculate RF championship scores (best 10 results)
             const rfScores = {};
-            const pointsMap = { 0: 3, 1: 1, 2: 0 };
 
             PLAYERS.forEach(player => {
                 const playerResults = [];
                 canadianMatches.forEach(match => {
-                    const players = sortCanadianPlayers(match);
-
-                    const position = players.findIndex(p => p.name === player);
-                    if (position !== -1) {
-                        playerResults.push(pointsMap[position]);
-                    }
+                    const rec = getCanadianPlacements(match).find(p => p.name === player);
+                    if (rec) playerResults.push(rec.points);
                 });
 
                 // Sort descending and take best 10
@@ -8233,7 +8270,7 @@
 
                 if (winsEl) winsEl.textContent = wins;
                 if (lossesEl) lossesEl.textContent = losses;
-                if (rfEl) rfEl.textContent = rfScores[player];
+                if (rfEl) rfEl.textContent = fmtPts(rfScores[player]);
             });
         }
 
@@ -8374,19 +8411,16 @@
                 new Date(m.created_at).getFullYear() === currentYear
             );
 
-            const pointsMap = { 0: 3, 1: 1, 2: 0 };
             let rfWins = 0;
             let rfPlayed = 0;
             const rfResults = [];
 
             canadianMatches.forEach(match => {
-                const players = sortCanadianPlayers(match);
-
-                const position = players.findIndex(p => p.name === player);
-                if (position !== -1) {
+                const rec = getCanadianPlacements(match).find(p => p.name === player);
+                if (rec) {
                     rfPlayed++;
-                    if (position === 0) rfWins++;
-                    rfResults.push(pointsMap[position]);
+                    if (rec.position === 1) rfWins++;
+                    rfResults.push(rec.points);
                 }
             });
 
@@ -8394,7 +8428,7 @@
                 // Calculate best 10 score
                 rfResults.sort((a, b) => b - a);
                 const rfScore = rfResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
-                stats.push(`RF Score: ${rfScore} pts (${rfPlayed} played, ${rfWins} wins)`);
+                stats.push(`RF Score: ${fmtPts(rfScore)} pts (${rfPlayed} played, ${rfWins} wins)`);
             }
 
             // Best opponent (who they beat most)
@@ -8480,7 +8514,6 @@
                 m.match_type === 'canadian' &&
                 new Date(m.created_at).getFullYear() === currentYear
             );
-            const pointsMap = { 0: 3, 1: 1, 2: 0 };
 
             roster.innerHTML = PLAYERS.map(player => {
                 const data = fighterData[player];
@@ -8502,9 +8535,8 @@
 
                 const rfResults = [];
                 canadianMatches.forEach(match => {
-                    const players = sortCanadianPlayers(match);
-                    const position = players.findIndex(p => p.name === player);
-                    if (position !== -1) rfResults.push(pointsMap[position]);
+                    const rec = getCanadianPlacements(match).find(p => p.name === player);
+                    if (rec) rfResults.push(rec.points);
                 });
                 rfResults.sort((a, b) => b - a);
                 const rfScore = rfResults.slice(0, 10).reduce((sum, pts) => sum + pts, 0);
@@ -8546,7 +8578,7 @@
                                 <div class="fp-stat-row">
                                     <span class="fp-stat-name">RF Pts</span>
                                     <div class="fp-stat-bar-track"><div class="fp-stat-bar-fill" style="width: ${Math.round((rfScore / maxRF) * 100)}%"></div></div>
-                                    <span class="fp-stat-val">${rfScore}</span>
+                                    <span class="fp-stat-val">${fmtPts(rfScore)}</span>
                                 </div>
                             </div>
                         </div>
@@ -8583,16 +8615,14 @@
                 m.match_type === 'canadian' &&
                 new Date(m.created_at).getFullYear() === currentYear
             );
-            const pointsMap = { 0: 3, 1: 1, 2: 0 };
             let rfWins = 0, rfPlayed = 0;
             const rfResults = [];
             canadianMatches.forEach(match => {
-                const players = sortCanadianPlayers(match);
-                const position = players.findIndex(p => p.name === player);
-                if (position !== -1) {
+                const rec = getCanadianPlacements(match).find(p => p.name === player);
+                if (rec) {
                     rfPlayed++;
-                    if (position === 0) rfWins++;
-                    rfResults.push(pointsMap[position]);
+                    if (rec.position === 1) rfWins++;
+                    rfResults.push(rec.points);
                 }
             });
             rfResults.sort((a, b) => b - a);
@@ -8632,7 +8662,7 @@
                     </div>
                     <div class="fighter-detail-stat-card">
                         <div class="fighter-detail-stat-label">RF Score</div>
-                        <div class="fighter-detail-stat-value">${rfScore}</div>
+                        <div class="fighter-detail-stat-value">${fmtPts(rfScore)}</div>
                     </div>
                     <div class="fighter-detail-stat-card">
                         <div class="fighter-detail-stat-label">RF Played</div>

@@ -903,6 +903,31 @@
             vertical-align: middle;
         }
 
+        .match-item-unfinished {
+            opacity: 0.5;
+        }
+
+        .match-unfinished-chip {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+            border-radius: 3px;
+            padding: 2px 6px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .match-vs {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 0 6px;
+        }
+
         .match-date {
             font-size: 0.95rem;
             font-weight: 600;
@@ -4745,6 +4770,13 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="editUnfinished" style="width:auto;">
+                    ⏸️ Unfinished — didn't play it out, don't count it
+                </label>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Location</label>
                 <input type="text" id="editLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
             </div>
@@ -4794,8 +4826,12 @@
         }
 
         // State
+        // `matches`/`dmacMatches` hold finished matches only — every stat reads these.
+        // `allMatches`/`allDmacMatches` also include unfinished sessions, for history lists.
         let matches = [];
         let dmacMatches = [];
+        let allMatches = [];
+        let allDmacMatches = [];
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
@@ -4816,7 +4852,8 @@
                         location: editBtn.dataset.location || '',
                         player1: editBtn.dataset.player1,
                         player2: editBtn.dataset.player2,
-                        sets: editBtn.dataset.sets || ''
+                        sets: editBtn.dataset.sets || '',
+                        unfinished: editBtn.dataset.unfinished === '1'
                     };
                     openEditModal(matchData);
                 }
@@ -4981,6 +5018,7 @@
                             </select>
                         </div>
                     </div>
+                    ${unfinishedCheckboxHTML('singles')}
                     <div class="form-group">
                         <label class="form-label">Location (optional)</label>
                         <input type="text" id="singlesLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
@@ -5026,6 +5064,7 @@
                         <button class="btn-add-set" onclick="addSet()">+ Add Set</button>
                         <button class="btn-add-set" onclick="addTiebreakRow()">+ Tiebreak</button>
                     </div>
+                    ${unfinishedCheckboxHTML('doubles')}
                     <div class="form-group">
                         <label class="form-label">Location (optional)</label>
                         <input type="text" id="doublesLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
@@ -5063,6 +5102,7 @@
                                 <div class="canadian-players" id="canadianTBInputs"></div>
                             </div>
                         </div>
+                        ${unfinishedCheckboxHTML('canadian')}
                         <div class="form-group">
                             <label class="form-label">Location (optional)</label>
                             <input type="text" id="canadianLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
@@ -5180,6 +5220,35 @@
         function toggleSinglesRetirement(checkbox) {
             const group = document.getElementById('singlesRetireeGroup');
             if (group) group.style.display = checkbox.checked ? 'block' : 'none';
+        }
+
+        // Unfinished = no result at all. Mutually exclusive with retirement,
+        // which awards the win to the player who didn't retire.
+        function toggleUnfinished(checkbox) {
+            if (!checkbox.checked) return;
+            const ret = document.getElementById('singlesRetirement');
+            if (ret && ret.checked) {
+                ret.checked = false;
+                toggleSinglesRetirement(ret);
+            }
+        }
+
+        // Shared "didn't finish" checkbox markup for every match form
+        function unfinishedCheckboxHTML(prefix) {
+            return `
+                <div class="form-group">
+                    <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="${prefix}Unfinished" onchange="toggleUnfinished(this)" style="width:auto;">
+                        ⏸️ Unfinished — didn't play it out, don't count it
+                    </label>
+                </div>
+            `;
+        }
+
+        // Reads the unfinished checkbox for a given form prefix
+        function isUnfinishedChecked(prefix) {
+            const el = document.getElementById(`${prefix}Unfinished`);
+            return !!(el && el.checked);
         }
 
         // True if any set in a parsed sets array is tagged as a retirement
@@ -5347,7 +5416,8 @@
 
             // Retirement: match didn't finish — winner is awarded, not derived from sets
             const retirementEl = document.getElementById('singlesRetirement');
-            const isRetirement = retirementEl && retirementEl.checked;
+            const isUnfinished = isUnfinishedChecked('singles');
+            const isRetirement = !isUnfinished && retirementEl && retirementEl.checked;
 
             // Collect set scores
             const setRows = document.querySelectorAll('#singlesSetsContainer .set-row');
@@ -5360,6 +5430,8 @@
                 let p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
 
                 if (isNaN(p1Score) || isNaN(p2Score)) {
+                    // An unfinished session may have blank sets — just skip them
+                    if (isUnfinished) continue;
                     showToast('Please enter scores for all sets', true);
                     return;
                 }
@@ -5400,7 +5472,10 @@
             }
 
             let winner;
-            if (isRetirement) {
+            if (isUnfinished) {
+                // No result — nothing to award
+                winner = null;
+            } else if (isRetirement) {
                 // Awarded to the player who did NOT retire; tag the abandoned (last) set
                 const retiree = document.getElementById('singlesRetiree').value === '1' ? p1 : p2;
                 winner = retiree === p1 ? p2 : p1;
@@ -5423,7 +5498,8 @@
                 winner1: winner,
                 sets: JSON.stringify(sets),
                 location: singlesLocation,
-                notes: singlesNotes
+                notes: singlesNotes,
+                unfinished: isUnfinished
             };
 
             await saveMatch(match);
@@ -5439,6 +5515,8 @@
             }
 
             // Collect set scores
+            const isUnfinished = isUnfinishedChecked('doubles');
+
             const setRows = document.querySelectorAll('.set-row');
             const sets = [];
             let team1SetsWon = 0;
@@ -5449,6 +5527,8 @@
                 let team2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value);
 
                 if (isNaN(team1Score) || isNaN(team2Score)) {
+                    // An unfinished session may have blank sets — just skip them
+                    if (isUnfinished) continue;
                     showToast('Please enter scores for all sets', true);
                     return;
                 }
@@ -5497,12 +5577,13 @@
                 else if (setData.team2 > setData.team1) team2SetsWon++;
             }
 
-            if (team1SetsWon === team2SetsWon) {
+            if (!isUnfinished && team1SetsWon === team2SetsWon) {
                 showToast('Match cannot be tied - add another set', true);
                 return;
             }
 
-            const winners = team1SetsWon > team2SetsWon ? team1 : team2;
+            // No result on an unfinished session — nothing to award
+            const winners = isUnfinished ? [null, null] : (team1SetsWon > team2SetsWon ? team1 : team2);
 
             const doublesLocation = document.getElementById('doublesLocation').value.trim() || null;
             const doublesNotes = document.getElementById('doublesNotes').value.trim() || null;
@@ -5517,7 +5598,8 @@
                 winner2: winners[1],
                 sets: JSON.stringify(sets),
                 location: doublesLocation,
-                notes: doublesNotes
+                notes: doublesNotes,
+                unfinished: isUnfinished
             };
 
             await saveMatch(match);
@@ -5531,16 +5613,18 @@
                 return;
             }
 
+            const isUnfinished = isUnfinishedChecked('canadian');
+
             const scores = {};
             let hasScores = true;
             selected.forEach(player => {
                 const scoreInput = document.getElementById(`score_${player}`);
                 const score = parseInt(scoreInput.value);
                 if (isNaN(score)) hasScores = false;
-                scores[player] = score;
+                scores[player] = isNaN(score) ? null : score;
             });
 
-            if (!hasScores) {
+            if (!hasScores && !isUnfinished) {
                 showToast('Please enter all scores', true);
                 return;
             }
@@ -5551,7 +5635,7 @@
             let target = null;
             let tiebreakData = null;
 
-            if (tiebreak) {
+            if (tiebreak && !isUnfinished) {
                 target = 0;
                 const tbInputs = document.querySelectorAll('#canadianTBInputs input[type="number"]');
                 if (tbInputs.length === 2) {
@@ -5582,7 +5666,8 @@
                 target_score: target,
                 sets: tiebreakData ? JSON.stringify(tiebreakData) : null,
                 location: location,
-                notes: canadianNotes
+                notes: canadianNotes,
+                unfinished: isUnfinished
             };
 
             await saveMatch(match);
@@ -5618,8 +5703,11 @@
                 if (error) throw error;
 
                 const all = data || [];
-                dmacMatches = all.filter(isDMACMatch);
-                matches = all.filter(m => !isDMACMatch(m));
+                allDmacMatches = all.filter(isDMACMatch);
+                allMatches = all.filter(m => !isDMACMatch(m));
+                // Unfinished sessions are recorded but must not contribute to any stat
+                dmacMatches = allDmacMatches.filter(m => !m.unfinished);
+                matches = allMatches.filter(m => !m.unfinished);
                 renderLeaderboard();
                 renderQuarterlyDoubles();
                 renderInsights();
@@ -5718,8 +5806,24 @@
 
         // Shared score rows + tiebreak line for Rat Factor history cards
         function renderCanadianScoreRows(match) {
-            const placements = getCanadianPlacements(match);
             const positionClasses = { 1: 'first', 2: 'second', 3: 'third' };
+
+            // An unfinished session has no placements or points — just show whatever was played
+            if (match.unfinished) {
+                return `<div class="ratfactor-scores">${
+                    [[match.player1, match.score_player1], [match.player2, match.score_player2], [match.player3, match.score_player3]]
+                        .filter(([name]) => name)
+                        .map(([name, score]) => `
+                                <div class="ratfactor-player">
+                                    <span class="ratfactor-rank">–</span>
+                                    <span class="ratfactor-name">${name}</span>
+                                    <span class="ratfactor-score">${score === null || score === undefined ? '–' : score}</span>
+                                </div>`).join('')
+                }
+                            </div>`;
+            }
+
+            const placements = getCanadianPlacements(match);
 
             const rows = placements.map(p => `
                                 <div class="ratfactor-player ${positionClasses[p.position]}${p.tied ? ' tied' : ''}">
@@ -6065,7 +6169,8 @@
         function renderSinglesHistory() {
             const container = document.getElementById('singlesMatchHistory');
             if (!container) return;
-            const singlesMatches = matches.filter(m => m.match_type === 'singles');
+            // Sourced from allMatches so unfinished sessions still show (greyed out)
+            const singlesMatches = allMatches.filter(m => m.match_type === 'singles');
 
             if (singlesMatches.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No singles matches yet</div>';
@@ -6074,7 +6179,7 @@
 
             container.innerHTML = singlesMatches.slice(0, 20).map(match => {
                 const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
+                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}" data-unfinished="${match.unfinished ? '1' : ''}">✏️</button>`;
                 const winner = match.winner1;
                 const loser = match.winner1 === match.player1 ? match.player2 : match.player1;
                 const winnerIsP1 = match.winner1 === match.player1;
@@ -6085,12 +6190,13 @@
                     try {
                         const sets = JSON.parse(match.sets);
                         setsDisplay = sets.map(s => {
-                            const winnerScore = winnerIsP1 ? s.p1 : s.p2;
-                            const loserScore = winnerIsP1 ? s.p2 : s.p1;
+                            // No winner on an unfinished session — show scores as played, p1 first
+                            const winnerScore = match.unfinished || winnerIsP1 ? s.p1 : s.p2;
+                            const loserScore = match.unfinished || winnerIsP1 ? s.p2 : s.p1;
                             let scoreStr = `${winnerScore}-${loserScore}`;
                             if (s.tb1 !== undefined && s.tb2 !== undefined) {
-                                const winnerTB = winnerIsP1 ? s.tb1 : s.tb2;
-                                const loserTB = winnerIsP1 ? s.tb2 : s.tb1;
+                                const winnerTB = match.unfinished || winnerIsP1 ? s.tb1 : s.tb2;
+                                const loserTB = match.unfinished || winnerIsP1 ? s.tb2 : s.tb1;
                                 scoreStr += ` (${winnerTB}-${loserTB})`;
                             } else if (s.tiebreak !== undefined) {
                                 const loserTB = s.tiebreak;
@@ -6103,8 +6209,21 @@
                     } catch (e) { setsDisplay = ''; }
                 }
 
+                const resultDisplay = match.unfinished
+                    ? `<div class="match-result">
+                            <span class="match-loser">${match.player1}</span>
+                            <span class="match-vs">vs</span>
+                            <span class="match-loser">${match.player2}</span>
+                            <span class="match-unfinished-chip">⏸️ UNFINISHED</span>
+                        </div>`
+                    : `<div class="match-result">
+                            <span class="match-winner">${winner}</span>
+                            <span class="match-def">def.</span>
+                            <span class="match-loser">${loser}</span>
+                        </div>`;
+
                 return `
-                    <div class="match-item">
+                    <div class="match-item${match.unfinished ? ' match-item-unfinished' : ''}">
                         <div class="match-header">
                             <div class="match-header-left">
                                 <div class="match-type">Singles</div>
@@ -6113,11 +6232,7 @@
                             ${editBtn}
                         </div>
                         ${locationDisplay}
-                        <div class="match-result">
-                            <span class="match-winner">${winner}</span>
-                            <span class="match-def">def.</span>
-                            <span class="match-loser">${loser}</span>
-                        </div>
+                        ${resultDisplay}
                         ${setsDisplay ? `<div class="match-sets">${setsDisplay}</div>` : ''}
                     </div>
                 `;
@@ -6128,7 +6243,8 @@
         function renderRatFactorHistory() {
             const container = document.getElementById('ratfactorMatchHistory');
             if (!container) return;
-            const rfMatches = matches.filter(m => m.match_type === 'canadian');
+            // Sourced from allMatches so unfinished sessions still show (greyed out)
+            const rfMatches = allMatches.filter(m => m.match_type === 'canadian');
 
             if (rfMatches.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet</div>';
@@ -6137,15 +6253,15 @@
 
             container.innerHTML = rfMatches.slice(0, 20).map(match => {
                 const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}">✏️</button>`;
+                const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}" data-unfinished="${match.unfinished ? '1' : ''}">✏️</button>`;
                 const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
 
                 return `
-                    <div class="match-item match-item-ratfactor">
+                    <div class="match-item match-item-ratfactor${match.unfinished ? ' match-item-unfinished' : ''}">
                         <div class="match-header">
                             <div class="match-header-left">
                                 <div class="match-type">Rat Factor</div>
-                                <div class="match-date">${date}</div>
+                                <div class="match-date">${date}${match.unfinished ? '<span class="match-unfinished-chip">⏸️ UNFINISHED</span>' : ''}</div>
                             </div>
                             ${editBtn}
                         </div>
@@ -6200,6 +6316,7 @@
                             <div class="canadian-players" id="rfCanadianTBInputs"></div>
                         </div>
                     </div>
+                    ${unfinishedCheckboxHTML('rf')}
                     <div class="form-group">
                         <label class="form-label">Location (optional)</label>
                         <input type="text" id="rfCanadianLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
@@ -6260,16 +6377,18 @@
                 return;
             }
 
+            const isUnfinished = isUnfinishedChecked('rf');
+
             const scores = {};
             let hasScores = true;
             selected.forEach(player => {
                 const scoreInput = document.getElementById(`rf_score_${player}`);
                 const score = parseInt(scoreInput.value);
                 if (isNaN(score)) hasScores = false;
-                scores[player] = score;
+                scores[player] = isNaN(score) ? null : score;
             });
 
-            if (!hasScores) {
+            if (!hasScores && !isUnfinished) {
                 showToast('Please enter all scores', true);
                 return;
             }
@@ -6281,7 +6400,7 @@
             let target = null;
             let tiebreakData = null;
 
-            if (tiebreak) {
+            if (tiebreak && !isUnfinished) {
                 target = 0;
                 const tbInputs = document.querySelectorAll('#rfCanadianTBInputs input[type="number"]');
                 if (tbInputs.length === 2) {
@@ -6310,7 +6429,8 @@
                 target_score: target,
                 sets: tiebreakData ? JSON.stringify(tiebreakData) : null,
                 location: location,
-                notes: notes
+                notes: notes,
+                unfinished: isUnfinished
             };
 
             try {
@@ -8006,6 +8126,7 @@
             document.getElementById('editMatchId').value = matchData.id;
             document.getElementById('editMatchType').value = matchData.matchType;
             document.getElementById('editLocation').value = matchData.location || '';
+            document.getElementById('editUnfinished').checked = !!matchData.unfinished;
 
             const singlesSection = document.getElementById('editSinglesSection');
             const setsContainer = document.getElementById('editSinglesSetsContainer');
@@ -8140,7 +8261,8 @@
             // Convert to number if it's a numeric ID
             const idValue = isNaN(matchId) ? matchId : parseInt(matchId);
 
-            const updateData = { location: location };
+            const isUnfinished = document.getElementById('editUnfinished').checked;
+            const updateData = { location: location, unfinished: isUnfinished };
 
             // Handle singles sets
             if (matchType === 'singles') {
@@ -8154,6 +8276,8 @@
                     let p2Score = parseInt(row.querySelector('.set-score-input[data-player="2"]').value);
 
                     if (isNaN(p1Score) || isNaN(p2Score)) {
+                        // An unfinished session may have blank sets — just skip them
+                        if (isUnfinished) continue;
                         showToast('Please enter scores for all sets', true);
                         return;
                     }
@@ -8191,14 +8315,16 @@
                     else if (p2Score > p1Score) p2SetsWon++;
                 }
 
-                if (p1SetsWon === p2SetsWon) {
+                if (!isUnfinished && p1SetsWon === p2SetsWon) {
                     showToast('Match cannot be tied - add another set', true);
                     return;
                 }
 
-                const winner = p1SetsWon > p2SetsWon ? editMatchPlayers.player1 : editMatchPlayers.player2;
                 updateData.sets = JSON.stringify(sets);
-                updateData.winner1 = winner;
+                // No result on an unfinished session — clear any previously awarded winner
+                updateData.winner1 = isUnfinished
+                    ? null
+                    : (p1SetsWon > p2SetsWon ? editMatchPlayers.player1 : editMatchPlayers.player2);
             }
 
             try {

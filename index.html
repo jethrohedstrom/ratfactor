@@ -4769,6 +4769,16 @@
                 </div>
             </div>
 
+            <!-- Doubles Sets Section (shown only for doubles matches) -->
+            <div id="editDoublesSection" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Sets</label>
+                    <div id="editDoublesSetsContainer"></div>
+                    <button class="btn-add-set" onclick="addEditDoublesSet()">+ Add Set</button>
+                    <button class="btn-add-set" onclick="addEditDoublesTiebreakRow()">+ Tiebreak</button>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <input type="checkbox" id="editUnfinished" style="width:auto;">
@@ -4852,6 +4862,8 @@
                         location: editBtn.dataset.location || '',
                         player1: editBtn.dataset.player1,
                         player2: editBtn.dataset.player2,
+                        player3: editBtn.dataset.player3,
+                        player4: editBtn.dataset.player4,
                         sets: editBtn.dataset.sets || '',
                         unfinished: editBtn.dataset.unfinished === '1'
                     };
@@ -5517,7 +5529,7 @@
             // Collect set scores
             const isUnfinished = isUnfinishedChecked('doubles');
 
-            const setRows = document.querySelectorAll('.set-row');
+            const setRows = document.querySelectorAll('#setsContainer .set-row');
             const sets = [];
             let team1SetsWon = 0;
             let team2SetsWon = 0;
@@ -7832,8 +7844,10 @@
         function renderDoubles() {
             const container = document.getElementById('doublesStats');
             const doublesMatches = matches.filter(m => m.match_type === 'doubles');
+            // History shows every session incl. unfinished (greyed out); stats stay finished-only
+            const allDoublesMatches = allMatches.filter(m => m.match_type === 'doubles');
 
-            if (doublesMatches.length === 0) {
+            if (allDoublesMatches.length === 0) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎾</div>No doubles matches recorded yet</div>';
                 return;
             }
@@ -7919,7 +7933,7 @@
                 `;
             }).join('');
 
-            const standingsHTML = `
+            const standingsHTML = doublesMatches.length === 0 ? '' : `
                 <div class="doubles-standings">
                     <div class="doubles-section-title">Standings</div>
                     <table class="standings-table">
@@ -8042,38 +8056,48 @@
                 `;
             }).join('');
 
-            const rivalriesHTML = `
+            const rivalriesHTML = doublesMatches.length === 0 ? '' : `
                 <div class="doubles-section-title">Matchups</div>
                 <div class="doubles-rivalries">${rivalryCardsHTML}</div>
             `;
 
             // === SECTION 3: MATCH HISTORY (collapsible) ===
-            const historyHTML = doublesMatches
+            const historyHTML = allDoublesMatches
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                 .map(match => {
                     const team1 = `${match.player1} & ${match.player2}`;
                     const team2 = `${match.player3} & ${match.player4}`;
                     const team1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
-                    const winner = team1Won ? team1 : team2;
-                    const loser = team1Won ? team2 : team1;
-                    const scores = formatDoublesMatchScores(match, team1Won);
+                    // No winner on an unfinished session — show scores as played, team 1 first
+                    const scores = formatDoublesMatchScores(match, match.unfinished || team1Won);
                     const date = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
                     const locationDisplay = match.location ? `<div class="match-location">📍 ${match.location}</div>` : '';
+                    const editBtn = `<button class="match-edit-btn" data-match-id="${match.id}" data-match-type="${match.match_type}" data-location="${(match.location || '').replace(/"/g, '&quot;')}" data-player1="${match.player1}" data-player2="${match.player2}" data-player3="${match.player3}" data-player4="${match.player4}" data-sets="${(match.sets || '').replace(/"/g, '&quot;')}" data-unfinished="${match.unfinished ? '1' : ''}">✏️</button>`;
+
+                    const resultDisplay = match.unfinished
+                        ? `<div class="match-result">
+                                <span class="match-loser">${team1}</span>
+                                <span class="match-vs">vs</span>
+                                <span class="match-loser">${team2}</span>
+                                <span class="match-unfinished-chip">⏸️ UNFINISHED</span>
+                            </div>`
+                        : `<div class="match-result">
+                                <span class="match-winner">${team1Won ? team1 : team2}</span>
+                                <span class="match-def">def.</span>
+                                <span class="match-loser">${team1Won ? team2 : team1}</span>
+                            </div>`;
 
                     return `
-                        <div class="match-item">
+                        <div class="match-item${match.unfinished ? ' match-item-unfinished' : ''}">
                             <div class="match-header">
                                 <div class="match-header-left">
                                     <div class="match-type">Doubles</div>
                                     <div class="match-date">${date}</div>
                                 </div>
+                                ${editBtn}
                             </div>
                             ${locationDisplay}
-                            <div class="match-result">
-                                <span class="match-winner">${winner}</span>
-                                <span class="match-def">def.</span>
-                                <span class="match-loser">${loser}</span>
-                            </div>
+                            ${resultDisplay}
                             ${scores !== '-' ? `<div class="match-sets">${scores}</div>` : ''}
                         </div>
                     `;
@@ -8120,7 +8144,7 @@
         }
 
         // Edit Match Modal Functions
-        let editMatchPlayers = { player1: '', player2: '' };
+        let editMatchPlayers = { player1: '', player2: '', player3: '', player4: '' };
 
         function openEditModal(matchData) {
             document.getElementById('editMatchId').value = matchData.id;
@@ -8130,10 +8154,14 @@
 
             const singlesSection = document.getElementById('editSinglesSection');
             const setsContainer = document.getElementById('editSinglesSetsContainer');
+            const doublesSection = document.getElementById('editDoublesSection');
+            const doublesSetsContainer = document.getElementById('editDoublesSetsContainer');
 
             if (matchData.matchType === 'singles') {
                 singlesSection.style.display = 'block';
-                editMatchPlayers = { player1: matchData.player1, player2: matchData.player2 };
+                doublesSection.style.display = 'none';
+                doublesSetsContainer.innerHTML = '';
+                editMatchPlayers = { player1: matchData.player1, player2: matchData.player2, player3: '', player4: '' };
 
                 // Parse existing sets or create empty one
                 let sets = [];
@@ -8172,9 +8200,72 @@
                         </div>
                     `;
                 }).join('');
+            } else if (matchData.matchType === 'doubles') {
+                singlesSection.style.display = 'none';
+                setsContainer.innerHTML = '';
+                doublesSection.style.display = 'block';
+                editMatchPlayers = { player1: matchData.player1, player2: matchData.player2, player3: matchData.player3, player4: matchData.player4 };
+
+                // Parse existing sets or create empty one
+                let sets = [];
+                if (matchData.sets) {
+                    try {
+                        sets = JSON.parse(matchData.sets);
+                    } catch (e) {
+                        sets = [];
+                    }
+                }
+
+                // If no sets, add one empty set
+                if (sets.length === 0) {
+                    sets = [{ team1: '', team2: '' }];
+                }
+
+                // Render sets (numbering skips deciding-tiebreak rows)
+                let setNum = 0;
+                doublesSetsContainer.innerHTML = sets.map(set => {
+                    const removeBtnStyle = `visibility: ${sets.length === 1 ? 'hidden' : 'visible'};`;
+
+                    // Standalone deciding tiebreak row
+                    if (set.type === 'tiebreak') {
+                        return `
+                            <div class="set-row tiebreak-row" data-tiebreak="1">
+                                <span class="set-label">TB</span>
+                                <input type="number" class="set-score-input" data-team="1" min="0" value="${set.team1 ?? ''}" placeholder="0">
+                                <span class="set-separator">-</span>
+                                <input type="number" class="set-score-input" data-team="2" min="0" value="${set.team2 ?? ''}" placeholder="0">
+                                <button class="set-remove-btn" onclick="removeEditDoublesSet(this)" style="${removeBtnStyle}">×</button>
+                            </div>
+                        `;
+                    }
+
+                    setNum++;
+                    // Stored tiebreak sets have unequal games (winner auto-incremented) — tb1 presence must still show the TB inputs
+                    const showTiebreak = (set.team1 === set.team2 && set.team1 >= 1) || set.tb1 !== undefined;
+                    const tb1Val = set.tb1 !== undefined ? set.tb1 : '';
+                    const tb2Val = set.tb2 !== undefined ? set.tb2 : '';
+                    return `
+                        <div class="set-row" data-set="${setNum}">
+                            <span class="set-label">Set ${setNum}</span>
+                            <input type="number" class="set-score-input" data-team="1" min="0" max="7" value="${set.team1 ?? ''}" placeholder="0" onchange="checkEditDoublesTiebreak(this)">
+                            <span class="set-separator">-</span>
+                            <input type="number" class="set-score-input" data-team="2" min="0" max="7" value="${set.team2 ?? ''}" placeholder="0" onchange="checkEditDoublesTiebreak(this)">
+                            <div class="tiebreak-group ${showTiebreak ? 'visible' : ''}">
+                                <span class="tiebreak-label">(</span>
+                                <input type="number" class="tiebreak-input" data-tb="1" min="0" value="${tb1Val}" placeholder="0" style="width:35px;">
+                                <span class="tiebreak-label">-</span>
+                                <input type="number" class="tiebreak-input" data-tb="2" min="0" value="${tb2Val}" placeholder="0" style="width:35px;">
+                                <span class="tiebreak-label">)</span>
+                            </div>
+                            <button class="set-remove-btn" onclick="removeEditDoublesSet(this)" style="${removeBtnStyle}">×</button>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 singlesSection.style.display = 'none';
                 setsContainer.innerHTML = '';
+                doublesSection.style.display = 'none';
+                doublesSetsContainer.innerHTML = '';
             }
 
             document.getElementById('editModal').classList.add('show');
@@ -8245,6 +8336,100 @@
             } else {
                 tiebreakGroup.classList.remove('visible');
                 tiebreakGroup.querySelector('.tiebreak-input').value = '';
+            }
+        }
+
+        function addEditDoublesSet() {
+            const container = document.getElementById('editDoublesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            if (setRows.length >= 5) {
+                showToast('Maximum 5 sets allowed', true);
+                return;
+            }
+            // Number only counts non-tiebreak set rows
+            const newSetNum = container.querySelectorAll('.set-row:not(.tiebreak-row)').length + 1;
+
+            const newRow = document.createElement('div');
+            newRow.className = 'set-row';
+            newRow.dataset.set = newSetNum;
+            newRow.innerHTML = `
+                <span class="set-label">Set ${newSetNum}</span>
+                <input type="number" class="set-score-input" data-team="1" min="0" max="7" placeholder="0" onchange="checkEditDoublesTiebreak(this)">
+                <span class="set-separator">-</span>
+                <input type="number" class="set-score-input" data-team="2" min="0" max="7" placeholder="0" onchange="checkEditDoublesTiebreak(this)">
+                <div class="tiebreak-group">
+                    <span class="tiebreak-label">(</span>
+                    <input type="number" class="tiebreak-input" data-tb="1" min="0" placeholder="0" style="width:35px;">
+                    <span class="tiebreak-label">-</span>
+                    <input type="number" class="tiebreak-input" data-tb="2" min="0" placeholder="0" style="width:35px;">
+                    <span class="tiebreak-label">)</span>
+                </div>
+                <button class="set-remove-btn" onclick="removeEditDoublesSet(this)">×</button>
+            `;
+            container.appendChild(newRow);
+            updateEditDoublesSetRemoveButtons();
+        }
+
+        function addEditDoublesTiebreakRow() {
+            const container = document.getElementById('editDoublesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            if (setRows.length >= 5) {
+                showToast('Maximum 5 sets allowed', true);
+                return;
+            }
+
+            const newRow = document.createElement('div');
+            newRow.className = 'set-row tiebreak-row';
+            newRow.dataset.tiebreak = '1';
+            newRow.innerHTML = `
+                <span class="set-label">TB</span>
+                <input type="number" class="set-score-input" data-team="1" min="0" placeholder="0">
+                <span class="set-separator">-</span>
+                <input type="number" class="set-score-input" data-team="2" min="0" placeholder="0">
+                <button class="set-remove-btn" onclick="removeEditDoublesSet(this)">×</button>
+            `;
+            container.appendChild(newRow);
+            updateEditDoublesSetRemoveButtons();
+        }
+
+        function removeEditDoublesSet(btn) {
+            const row = btn.closest('.set-row');
+            row.remove();
+
+            // Renumber remaining sets (tiebreak rows keep their "TB" label)
+            const container = document.getElementById('editDoublesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            let setNum = 0;
+            setRows.forEach((row) => {
+                if (row.classList.contains('tiebreak-row')) return;
+                setNum++;
+                row.dataset.set = setNum;
+                row.querySelector('.set-label').textContent = `Set ${setNum}`;
+            });
+            updateEditDoublesSetRemoveButtons();
+        }
+
+        function updateEditDoublesSetRemoveButtons() {
+            const container = document.getElementById('editDoublesSetsContainer');
+            const setRows = container.querySelectorAll('.set-row');
+            setRows.forEach((row) => {
+                const removeBtn = row.querySelector('.set-remove-btn');
+                removeBtn.style.visibility = setRows.length === 1 ? 'hidden' : 'visible';
+            });
+        }
+
+        function checkEditDoublesTiebreak(input) {
+            const row = input.closest('.set-row');
+            const t1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value) || 0;
+            const t2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value) || 0;
+            const tiebreakGroup = row.querySelector('.tiebreak-group');
+
+            // Show tiebreak input when scores are tied (any equal score >= 1)
+            if (t1Score === t2Score && t1Score >= 1) {
+                tiebreakGroup.classList.add('visible');
+            } else {
+                tiebreakGroup.classList.remove('visible');
+                tiebreakGroup.querySelectorAll('.tiebreak-input').forEach(inp => inp.value = '');
             }
         }
 
@@ -8325,6 +8510,87 @@
                 updateData.winner1 = isUnfinished
                     ? null
                     : (p1SetsWon > p2SetsWon ? editMatchPlayers.player1 : editMatchPlayers.player2);
+            } else if (matchType === 'doubles') {
+                const setRows = document.querySelectorAll('#editDoublesSetsContainer .set-row');
+                const sets = [];
+                let team1SetsWon = 0;
+                let team2SetsWon = 0;
+
+                for (const row of setRows) {
+                    const team1Score = parseInt(row.querySelector('.set-score-input[data-team="1"]').value);
+                    const team2Score = parseInt(row.querySelector('.set-score-input[data-team="2"]').value);
+
+                    if (isNaN(team1Score) || isNaN(team2Score)) {
+                        // An unfinished session may have blank sets — just skip them
+                        if (isUnfinished) continue;
+                        showToast('Please enter scores for all sets', true);
+                        return;
+                    }
+
+                    const setData = { team1: team1Score, team2: team2Score };
+
+                    // Standalone deciding tiebreak row (any score, e.g. 10-7)
+                    if (row.classList.contains('tiebreak-row')) {
+                        if (team1Score === team2Score) {
+                            showToast('Tiebreak scores cannot be equal', true);
+                            return;
+                        }
+                        setData.type = 'tiebreak';
+                        sets.push(setData);
+                        if (setData.team1 > setData.team2) team1SetsWon++;
+                        else team2SetsWon++;
+                        continue;
+                    }
+
+                    // Read tiebreak whenever its inputs are showing — a previously saved
+                    // tiebreak set has unequal games (winner already incremented), so
+                    // only auto-increment when the games are still equal (fresh entry)
+                    const tiebreakGroup = row.querySelector('.tiebreak-group');
+                    if (tiebreakGroup.classList.contains('visible')) {
+                        const tb1Score = parseInt(row.querySelector('.tiebreak-input[data-tb="1"]').value);
+                        const tb2Score = parseInt(row.querySelector('.tiebreak-input[data-tb="2"]').value);
+
+                        if (!isNaN(tb1Score) && !isNaN(tb2Score) && (tb1Score > 0 || tb2Score > 0)) {
+                            if (tb1Score === tb2Score) {
+                                showToast('Tiebreak scores cannot be equal', true);
+                                return;
+                            }
+                            setData.tb1 = tb1Score;
+                            setData.tb2 = tb2Score;
+                            if (team1Score === team2Score) {
+                                // Auto-increment winner's game score
+                                if (tb1Score > tb2Score) {
+                                    setData.team1 = team1Score + 1;
+                                } else {
+                                    setData.team2 = team2Score + 1;
+                                }
+                            }
+                        }
+                    }
+
+                    sets.push(setData);
+
+                    if (setData.team1 > setData.team2) team1SetsWon++;
+                    else if (setData.team2 > setData.team1) team2SetsWon++;
+                }
+
+                if (!isUnfinished && team1SetsWon === team2SetsWon) {
+                    showToast('Match cannot be tied - add another set', true);
+                    return;
+                }
+
+                updateData.sets = JSON.stringify(sets);
+                // No result on an unfinished session — clear any previously awarded winners
+                if (isUnfinished) {
+                    updateData.winner1 = null;
+                    updateData.winner2 = null;
+                } else {
+                    const winningTeam = team1SetsWon > team2SetsWon
+                        ? [editMatchPlayers.player1, editMatchPlayers.player2]
+                        : [editMatchPlayers.player3, editMatchPlayers.player4];
+                    updateData.winner1 = winningTeam[0];
+                    updateData.winner2 = winningTeam[1];
+                }
             }
 
             try {

@@ -1641,6 +1641,10 @@
             border-bottom: none;
         }
 
+        .rivalry-match-row.unfinished {
+            opacity: 0.5;
+        }
+
         .rivalry-match-winner-name {
             color: var(--accent-green);
             font-weight: 600;
@@ -8052,6 +8056,24 @@
                 }
             }
 
+            // Unfinished sessions for a pairing (either orientation) — shown greyed in Recent
+            const unfinishedForPair = (t1Key, t2Key) => allDoublesMatches.filter(m => {
+                if (!m.unfinished) return false;
+                const a = pairKey(m.player1, m.player2);
+                const b = pairKey(m.player3, m.player4);
+                return (a === t1Key && b === t2Key) || (a === t2Key && b === t1Key);
+            });
+
+            // A pairing with only unfinished sessions still gets a card (0-0 H2H)
+            allDoublesMatches.filter(m => m.unfinished).forEach(m => {
+                const t1Key = pairKey(m.player1, m.player2);
+                const t2Key = pairKey(m.player3, m.player4);
+                const matchupKey = [t1Key, t2Key].sort().join(' vs ');
+                if (matchupsSeen.has(matchupKey)) return;
+                matchupsSeen.add(matchupKey);
+                matchups.push({ team1: t1Key, team2: t2Key, team1Wins: 0, team2Wins: 0, matches: [] });
+            });
+
             // Sort by most matches played
             matchups.sort((a, b) => (b.team1Wins + b.team2Wins) - (a.team1Wins + a.team2Wins));
 
@@ -8063,9 +8085,11 @@
                 const t1Leading = mu.team1Wins > mu.team2Wins ? 'leading' : '';
                 const t2Leading = mu.team2Wins > mu.team1Wins ? 'leading' : '';
 
-                // Recent matches sorted by date
-                const sortedMatches = mu.matches
-                    .sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at));
+                // Recent matches sorted by date, unfinished sessions included (greyed)
+                const sortedMatches = [
+                    ...mu.matches,
+                    ...unfinishedForPair(mu.team1, mu.team2).map(m => ({ match: m, unfinished: true }))
+                ].sort((a, b) => new Date(b.match.created_at) - new Date(a.match.created_at));
 
                 const INITIAL_SHOW = 3;
 
@@ -8073,11 +8097,26 @@
                     const match = m.match;
                     const t1 = `${match.player1} & ${match.player2}`;
                     const t2 = `${match.player3} & ${match.player4}`;
+                    const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    // No winner on an unfinished session — show scores as played, team 1 first
+                    if (m.unfinished) {
+                        const scores = formatDoublesMatchScores(match, true);
+                        return `
+                            <div class="rivalry-match-row unfinished">
+                                <span class="rivalry-match-loser-name">${t1}</span>
+                                <span class="rivalry-match-def">vs</span>
+                                <span class="rivalry-match-loser-name">${t2}</span>
+                                <span class="rivalry-match-score">${scores} ⏸️</span>
+                                <span class="rivalry-match-date">${matchDate}</span>
+                            </div>
+                        `;
+                    }
+
                     const matchT1Won = match.winner1 === match.player1 || match.winner1 === match.player2;
                     const winner = matchT1Won ? t1 : t2;
                     const loser = matchT1Won ? t2 : t1;
                     const scores = formatDoublesMatchScores(match, matchT1Won);
-                    const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
 
                     return `
                         <div class="rivalry-match-row">
@@ -8131,7 +8170,7 @@
                 `;
             }).join('');
 
-            const rivalriesHTML = doublesMatches.length === 0 ? '' : `
+            const rivalriesHTML = matchups.length === 0 ? '' : `
                 <div class="doubles-section-title">Matchups</div>
                 <div class="doubles-rivalries">${rivalryCardsHTML}</div>
             `;

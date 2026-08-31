@@ -2080,6 +2080,11 @@
             background: var(--accent-yellow);
             color: var(--bg-dark);
         }
+        .modal-btn-delete {
+            background: none;
+            border: 1px solid var(--accent-pink);
+            color: var(--accent-pink);
+        }
         .modal-btn:hover {
             transform: translateY(-2px);
         }
@@ -4807,6 +4812,7 @@
                 <input type="text" id="editLocation" class="form-input" placeholder="e.g. Tom's Court, The Park">
             </div>
             <div class="modal-buttons">
+                <button class="modal-btn modal-btn-delete" onclick="deleteMatch()">Delete</button>
                 <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
                 <button class="modal-btn modal-btn-save" onclick="saveMatchEdit()">Save</button>
             </div>
@@ -8550,6 +8556,29 @@
         function closeEditModal(event) {
             if (event && event.target !== event.currentTarget) return;
             document.getElementById('editModal').classList.remove('show');
+        }
+
+        async function deleteMatch() {
+            const matchId = document.getElementById('editMatchId').value;
+            const idValue = isNaN(matchId) ? matchId : parseInt(matchId);
+
+            if (!confirm('Delete this match for good? This cannot be undone.')) return;
+
+            try {
+                const { error } = await db
+                    .from('matches')
+                    .delete()
+                    .eq('id', idValue);
+
+                if (error) throw error;
+
+                showToast('Match deleted');
+                closeEditModal();
+                await loadMatches();
+            } catch (err) {
+                console.error('Error deleting match:', err);
+                showToast('Error deleting match', true);
+            }
         }
 
         async function saveMatchEdit() {

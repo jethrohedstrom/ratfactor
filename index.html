@@ -10,15 +10,15 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-dark: #1a1a2e;
             --bg-card: #16213e;
-            --accent-yellow: #f0e130;
-            --accent-green: #00ff88;
-            --accent-pink: #ff6b9d;
+            --accent-yellow: #e8d44d;
+            --accent-green: #34d581;
+            --accent-pink: #f2789e;
             --text-light: #eaeaea;
             --text-muted: #8892a0;
             --border-subtle: rgba(255,255,255,0.1);
@@ -64,35 +64,21 @@
         /* Header */
         .header {
             text-align: center;
-            padding: 30px 0 20px;
+            padding: 16px 0 10px;
             position: relative;
         }
 
         .header h1 {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 4rem;
-            letter-spacing: 4px;
+            font-size: 2.8rem;
+            letter-spacing: 2px;
             color: var(--accent-yellow);
-            text-shadow: 3px 3px 0 var(--accent-pink);
-            animation: titlePulse 3s ease-in-out infinite;
-        }
-
-        @keyframes titlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        .header .subtitle {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: 5px;
+            text-shadow: 2px 2px 0 var(--accent-pink);
         }
 
         .header .rat {
-            font-size: 2rem;
-            margin: 10px 0 0;
+            font-size: 1.3rem;
+            margin: 4px 0 0;
             display: inline-block;
             animation: ratScurry 2s ease-in-out;
             animation-fill-mode: forwards;
@@ -164,17 +150,17 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 25px;
+            margin-bottom: 16px;
         }
 
         .nav-tab {
-            padding: 12px 16px;
+            padding: 8px 12px;
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             border-radius: 8px;
             color: var(--text-muted);
             font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
@@ -363,27 +349,43 @@
             gap: 10px;
         }
 
-        /* Leaderboard - WSL Championship style */
-        #leaderboard,
+        /* Leaderboard - WSL Championship style (full grid lives on the RF tab) */
         #rfLeaderboard {
             display: block;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Thin, themed scrollbar for the leaderboard scrollers */
-        #leaderboard::-webkit-scrollbar,
+        /* Thin, themed scrollbar for the leaderboard scroller */
         #rfLeaderboard::-webkit-scrollbar {
             height: 6px;
         }
-        #leaderboard::-webkit-scrollbar-thumb,
         #rfLeaderboard::-webkit-scrollbar-thumb {
             background: var(--border-subtle);
             border-radius: 3px;
         }
-        #leaderboard, #rfLeaderboard {
+        #rfLeaderboard {
             scrollbar-width: thin;
             scrollbar-color: var(--border-subtle) transparent;
+        }
+
+        /* Compact Home leaderboard rows — no frozen columns, no scroll baggage */
+        .leaderboard-item-compact .leaderboard-rank,
+        .leaderboard-item-compact .leaderboard-player,
+        .leaderboard-item-compact .leaderboard-total {
+            position: static;
+            background: none;
+            box-shadow: none;
+        }
+        .leaderboard-item-compact .leaderboard-player {
+            width: auto;
+            flex: 1;
+            min-width: 0;
+        }
+        .leaderboard-item-compact.leader .leaderboard-rank,
+        .leaderboard-item-compact.leader .leaderboard-player,
+        .leaderboard-item-compact.leader .leaderboard-total {
+            background: none;
         }
 
         .leaderboard-table {
@@ -637,13 +639,30 @@
             text-align: center;
         }
 
+        .championship-explainer-toggle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
         .championship-explainer {
             font-size: 0.8rem;
             line-height: 1.5;
             color: var(--text-muted);
             max-width: 520px;
-            margin: 8px auto 0;
+            margin: 0 auto;
             text-align: center;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin-top 0.3s ease;
+        }
+
+        .championship-explainer.open {
+            max-height: 400px;
+            margin-top: 8px;
         }
 
         .championship-explainer strong {
@@ -890,7 +909,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.4rem;
             color: var(--accent-yellow);
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             margin-bottom: 8px;
         }
 
@@ -1222,12 +1241,6 @@
             text-align: center;
         }
 
-        .h2h-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
         .h2h-player-card {
             background: var(--bg-dark);
             border: 1px solid var(--border-subtle);
@@ -1238,22 +1251,30 @@
 
         .h2h-player-card:hover {
             border-color: var(--accent-yellow);
-            transform: translateY(-2px);
         }
 
-        .h2h-card-header {
+        .h2h-summary-strip {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
             margin-bottom: 12px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--border-subtle);
         }
 
-        .h2h-card-name {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
-            letter-spacing: 1px;
+        .h2h-summary-item {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .h2h-pair-leader {
+            color: var(--accent-green);
+        }
+
+        .h2h-opponent-label .h2h-opponent-record {
+            margin: 0 6px;
         }
 
         .h2h-card-overall {
@@ -1337,7 +1358,7 @@
         }
 
         .h2h-opponent-details.open {
-            max-height: 500px;
+            max-height: 2000px;
         }
 
         .h2h-match-detail {
@@ -1562,7 +1583,7 @@
         .rivalry-h2h-score {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.8rem;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             color: var(--text-light);
         }
 
@@ -1720,9 +1741,6 @@
         }
 
         @media (max-width: 600px) {
-            .h2h-grid {
-                grid-template-columns: 1fr;
-            }
             .standings-table th,
             .standings-table td {
                 padding: 8px 4px;
@@ -2308,14 +2326,14 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.2rem;
             color: var(--accent-yellow);
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             text-shadow: 0 0 20px rgba(240, 225, 48, 0.4), 3px 3px 0 var(--accent-pink);
         }
 
         .fighters-subtitle {
             font-size: 0.7rem;
             color: var(--text-muted);
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             margin-top: 8px;
         }
@@ -2392,7 +2410,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.8rem;
             color: var(--text-light);
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             line-height: 1;
         }
 
@@ -2554,7 +2572,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.5rem;
             color: var(--text-light);
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             line-height: 1;
         }
 
@@ -2562,7 +2580,7 @@
             font-family: 'Space Mono', monospace;
             font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             margin-top: 4px;
         }
 
@@ -2647,7 +2665,7 @@
             color: var(--accent-pink);
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.3rem;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -2741,7 +2759,7 @@
         }
 
         .fighter-select-title {
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 1.1rem;
             color: var(--accent-yellow);
             text-shadow:
@@ -2767,7 +2785,7 @@
             font-size: 0.7rem;
             color: var(--text-muted);
             margin-top: 15px;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
@@ -2974,7 +2992,7 @@
             font-size: 1.5rem;
             color: var(--text-light);
             text-align: center;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
             transition: all 0.3s ease;
         }
@@ -3031,7 +3049,7 @@
 
         /* VS text for when selecting */
         .fighter-vs {
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 0.8rem;
             color: var(--accent-pink);
             text-align: center;
@@ -3230,7 +3248,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.5rem;
             color: white;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             text-shadow: 0 0 20px rgba(255, 68, 170, 0.5);
         }
 
@@ -3565,7 +3583,7 @@
         .matchup-vs {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2rem;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             color: var(--text-primary);
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             animation: vsFlash 0.8s ease;
@@ -3809,7 +3827,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2rem;
             color: var(--text-primary);
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             text-align: center;
             margin: 0;
         }
@@ -3831,7 +3849,7 @@
             border-radius: 16px;
             font-family: 'Bebas Neue', sans-serif;
             font-size: 1.5rem;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -3975,7 +3993,7 @@
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.2rem;
             color: rgba(180, 150, 80, 0.25);
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             z-index: 2;
             pointer-events: none;
             text-shadow: 0 1px 2px rgba(0,0,0,0.2);
@@ -4100,7 +4118,7 @@
         .serve-result-label {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 3rem;
-            letter-spacing: 4px;
+            letter-spacing: 2px;
             font-weight: bold;
         }
 
@@ -4160,11 +4178,11 @@
 
             /* Header */
             .header {
-                padding: 20px 0 15px;
+                padding: 10px 0 6px;
             }
 
             .header h1 {
-                font-size: 3rem;
+                font-size: 2.2rem;
             }
 
             /* Leaderboard - same scrolling table as desktop, tighter frozen columns */
@@ -4264,10 +4282,6 @@
             .h2h-player-card {
                 padding: 20px;
             }
-
-            .h2h-grid {
-                gap: 20px;
-            }
         }
     </style>
 </head>
@@ -4275,7 +4289,6 @@
     <div class="app-container">
         <header class="header">
             <h1>RAT FACTOR</h1>
-            <p class="subtitle">Lets see it</p>
             <div class="rat">🐀</div>
         </header>
 
@@ -4295,7 +4308,6 @@
                 <div id="leaderboard" class="loading">
                     <div class="spinner"></div>
                 </div>
-                <div id="championship-footer"></div>
             </div>
 
             <div class="card" id="quarterlyDoublesCard" style="display:none">
@@ -4894,6 +4906,19 @@
                 }
             });
 
+            // Championship "How scoring works" expand/collapse
+            document.addEventListener('click', (e) => {
+                const row = e.target.closest('[data-explainer-toggle]');
+                if (row) {
+                    const details = row.nextElementSibling;
+                    if (details && details.classList.contains('championship-explainer')) {
+                        details.classList.toggle('open');
+                        const arrow = row.querySelector('.h2h-expand-arrow');
+                        if (arrow) arrow.classList.toggle('open');
+                    }
+                }
+            });
+
             // Doubles opponent row expand/collapse
             document.addEventListener('click', (e) => {
                 const row = e.target.closest('[data-doubles-toggle]');
@@ -4921,7 +4946,7 @@
             });
         }
 
-        // The RF leaderboard is cloned while its tab is hidden, so scrollLeft
+        // The RF leaderboard is rendered while its tab is hidden, so scrollLeft
         // clamps to 0 there — re-apply it once the tab is actually visible.
         function scrollRFLeaderboardToLatest() {
             const rf = document.getElementById('rfLeaderboard');
@@ -6009,8 +6034,7 @@
         }
 
         // Render leaderboard - WSL Championship style with event columns
-        function renderLeaderboard() {
-            const container = document.getElementById('leaderboard');
+        function computeChampionshipStandings() {
             const currentYear = new Date().getFullYear();
             const canadianMatches = matches.filter(m =>
                 m.match_type === 'canadian' &&
@@ -6018,12 +6042,8 @@
             ).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Sort chronologically
 
             if (canadianMatches.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet this year</div>';
-                return;
+                return { currentYear, canadianMatches, standings: [] };
             }
-
-            // Player photos
-            const playerPhotos = PLAYER_PHOTOS;
 
             // Calculate points per event for each player
             // Points: 1st = 3pts, 2nd = 1pt, 3rd = 0pts
@@ -6089,6 +6109,58 @@
                 return b.wins - a.wins;
             });
 
+            return { currentYear, canadianMatches, standings };
+        }
+
+        // Home: compact championship leaderboard — rank, name, next-result value, points.
+        // The full per-event grid lives on the Rat Factor tab (renderRFLeaderboard).
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard');
+            const { canadianMatches, standings } = computeChampionshipStandings();
+
+            if (canadianMatches.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet this year</div>';
+                return;
+            }
+
+            const playerRows = standings.map(player => {
+                const rank = standings.findIndex(p => p.points === player.points) + 1;
+                const photo = PLAYER_PHOTOS[player.name];
+                const avatarContent = photo
+                    ? `<img src="${photo}" alt="${player.name}">`
+                    : player.name.charAt(0);
+
+                return `
+                    <div class="leaderboard-item leaderboard-item-compact rank-${rank}${rank === 1 ? ' leader' : ''}">
+                        <div class="leaderboard-rank">${rank}</div>
+                        <div class="leaderboard-player">
+                            <div class="leaderboard-avatar">${avatarContent}</div>
+                            <div class="leaderboard-name-group">
+                                <div class="leaderboard-name">${player.name}</div>
+                                <div class="leaderboard-substat">🥇+${fmtPts(player.nextWin)} 🥈+${fmtPts(player.nextSecond)}</div>
+                            </div>
+                        </div>
+                        <div class="leaderboard-total">${fmtPts(player.points)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.classList.remove('loading');
+            container.innerHTML = playerRows;
+        }
+
+        // Rat Factor tab: the full per-event championship grid + scoring explainer
+        function renderRFLeaderboard() {
+            const container = document.getElementById('rfLeaderboard');
+            if (!container) return;
+
+            const { currentYear, canadianMatches, standings } = computeChampionshipStandings();
+
+            if (canadianMatches.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🐀</div>No Rat Factor matches yet this year</div>';
+                return;
+            }
+
             // Build header with event columns
             const eventHeaders = canadianMatches.map((match, i) => {
                 const location = match.location ? `<span class="event-location">${match.location}</span>` : '';
@@ -6106,7 +6178,7 @@
                 // Calculate rank - players with same points share the same rank
                 const rank = standings.findIndex(p => p.points === player.points) + 1;
 
-                const photo = playerPhotos[player.name];
+                const photo = PLAYER_PHOTOS[player.name];
                 const avatarContent = photo
                     ? `<img src="${photo}" alt="${player.name}">`
                     : player.name.charAt(0);
@@ -6160,14 +6232,18 @@
             // Open the table at the most recent events (Pts stays pinned right)
             container.scrollLeft = container.scrollWidth;
 
-            // Render subtitle into a separate container (outside #leaderboard)
+            // Render subtitle + collapsed explainer into a separate container (outside the scroll area)
             const maxPlayed = Math.max(...standings.map(p => p.played));
             const capActive = maxPlayed > 10;
             const subtitleText = capActive
                 ? `${currentYear} SEASON • BEST 10 RESULTS COUNT`
                 : `${currentYear} SEASON • ALL RESULTS COUNT SO FAR — BEST 10 ONCE YOU PASS 10`;
-            document.getElementById('championship-footer').innerHTML = `
+            const footer = document.getElementById('rfChampionshipFooter');
+            if (footer) footer.innerHTML = `
                 <div class="championship-subtitle">${subtitleText}</div>
+                <div class="championship-explainer-toggle" data-explainer-toggle>
+                    How scoring works <span class="h2h-expand-arrow">&#9654;</span>
+                </div>
                 <div class="championship-explainer">
                     Only your <strong>10 best results</strong> count. Until you've played 10, every game adds its full value.
                     After that, a new result only helps if it beats your weakest counting one — so a win can be worth
@@ -6285,23 +6361,6 @@
         }
 
         // Render RF leaderboard on the Rat Factor tab (reuses renderLeaderboard logic)
-        function renderRFLeaderboard() {
-            const container = document.getElementById('rfLeaderboard');
-            if (!container) return;
-
-            // Clone the leaderboard from Home into RF tab
-            const homeLeaderboard = document.getElementById('leaderboard');
-            const homeFooter = document.getElementById('championship-footer');
-
-            if (homeLeaderboard) {
-                // Only the table goes in the scroll container; the footer is a
-                // separate sibling (mirrors Home) so it doesn't scroll sideways.
-                container.innerHTML = homeLeaderboard.innerHTML;
-                const f = document.getElementById('rfChampionshipFooter');
-                if (f && homeFooter) f.innerHTML = homeFooter.innerHTML;
-            }
-        }
-
         // Render rat factor log form in the RF tab
         function renderRatFactorForm() {
             const container = document.getElementById('ratfactorForm');
@@ -7593,81 +7652,97 @@
             const yearSections = years.map(year => {
                 const yearMatches = matchesByYear[year];
 
-                const playerCardsHTML = PLAYERS.map(player => {
-                    const opponents = PLAYERS.filter(p => p !== player);
-                    let totalWins = 0;
-                    let totalLosses = 0;
+                // Per-player overall records for the summary strip
+                const overall = {};
+                PLAYERS.forEach(p => overall[p] = { w: 0, l: 0 });
 
-                    const opponentRowsHTML = opponents.map(opponent => {
-                        const h2hMatches = yearMatches.filter(m =>
-                            (m.player1 === player && m.player2 === opponent) ||
-                            (m.player1 === opponent && m.player2 === player)
+                // One entry per unique pair (each matchup listed once, leader first)
+                const pairData = [];
+                for (let i = 0; i < PLAYERS.length; i++) {
+                    for (let j = i + 1; j < PLAYERS.length; j++) {
+                        const p1 = PLAYERS[i], p2 = PLAYERS[j];
+                        const pairMatches = yearMatches.filter(m =>
+                            (m.player1 === p1 && m.player2 === p2) ||
+                            (m.player1 === p2 && m.player2 === p1)
                         );
+                        const p1Wins = pairMatches.filter(m => m.winner1 === p1).length;
+                        const p2Wins = pairMatches.length - p1Wins;
+                        overall[p1].w += p1Wins; overall[p1].l += p2Wins;
+                        overall[p2].w += p2Wins; overall[p2].l += p1Wins;
 
-                        const wins = h2hMatches.filter(m => m.winner1 === player).length;
-                        const losses = h2hMatches.length - wins;
-                        totalWins += wins;
-                        totalLosses += losses;
+                        const flip = p2Wins > p1Wins;
+                        pairData.push({
+                            leadName: flip ? p2 : p1, leadWins: flip ? p2Wins : p1Wins,
+                            trailName: flip ? p1 : p2, trailWins: flip ? p1Wins : p2Wins,
+                            matches: pairMatches
+                        });
+                    }
+                }
 
-                        if (h2hMatches.length === 0) {
+                const played = pairData.filter(p => p.matches.length > 0);
+                const unplayed = pairData.filter(p => p.matches.length === 0);
+
+                const pairRowsHTML = played.map(pair => {
+                    const tied = pair.leadWins === pair.trailWins;
+                    const recordClass = tied ? 'tied' : 'winning';
+
+                    const matchDetailsHTML = pair.matches
+                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                        .map(match => {
+                            const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
                             return `
-                                <div class="h2h-opponent-row no-matches">
-                                    <span class="h2h-opponent-label">vs <strong>${opponent}</strong></span>
-                                    <span class="h2h-no-matches">No matches</span>
+                                <div class="h2h-match-detail">
+                                    <span class="h2h-match-winner">${match.winner1}</span>
+                                    <span class="h2h-match-scores">${formatMatchScores(match)}</span>
+                                    <span class="h2h-match-date">${matchDate}</span>
                                 </div>
                             `;
-                        }
-
-                        const recordClass = wins > losses ? 'winning' : wins < losses ? 'losing' : 'tied';
-
-                        const matchDetailsHTML = h2hMatches
-                            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                            .map(match => {
-                                const matchDate = new Date(match.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
-                                return `
-                                    <div class="h2h-match-detail">
-                                        <span class="h2h-match-winner">${match.winner1}</span>
-                                        <span class="h2h-match-scores">${formatMatchScores(match)}</span>
-                                        <span class="h2h-match-date">${matchDate}</span>
-                                    </div>
-                                `;
-                            }).join('');
-
-                        return `
-                            <div class="h2h-opponent-row" data-h2h-toggle>
-                                <span class="h2h-opponent-label">vs <strong>${opponent}</strong></span>
-                                <span>
-                                    <span class="h2h-opponent-record ${recordClass}">${wins}-${losses}</span>
-                                    <span class="h2h-expand-arrow">&#9654;</span>
-                                </span>
-                            </div>
-                            <div class="h2h-opponent-details">${matchDetailsHTML}</div>
-                        `;
-                    }).join('');
-
-                    const overallClass = totalWins > totalLosses ? 'winning' :
-                                         totalWins < totalLosses ? 'losing' : 'tied';
+                        }).join('');
 
                     return `
-                        <div class="h2h-player-card">
-                            <div class="h2h-card-header">
-                                <span class="h2h-card-name">${player}</span>
-                                <span class="h2h-card-overall ${overallClass}">${totalWins}W - ${totalLosses}L</span>
-                            </div>
-                            ${opponentRowsHTML}
+                        <div class="h2h-opponent-row" data-h2h-toggle>
+                            <span class="h2h-opponent-label">
+                                <strong${tied ? '' : ' class="h2h-pair-leader"'}>${pair.leadName}</strong>
+                                <span class="h2h-opponent-record ${recordClass}">${pair.leadWins}&#8211;${pair.trailWins}</span>
+                                <strong>${pair.trailName}</strong>
+                            </span>
+                            <span><span class="h2h-expand-arrow">&#9654;</span></span>
                         </div>
+                        <div class="h2h-opponent-details">${matchDetailsHTML}</div>
                     `;
                 }).join('');
+
+                const unplayedRowsHTML = unplayed.map(pair => `
+                    <div class="h2h-opponent-row no-matches">
+                        <span class="h2h-opponent-label"><strong>${pair.leadName}</strong> vs <strong>${pair.trailName}</strong></span>
+                        <span class="h2h-no-matches">No matches</span>
+                    </div>
+                `).join('');
+
+                const summaryHTML = buildH2HSummary(overall);
 
                 return `
                     <div class="h2h-year-section">
                         <div class="h2h-year-title">${year}</div>
-                        <div class="h2h-grid">${playerCardsHTML}</div>
+                        <div class="h2h-player-card h2h-matchups-card">
+                            <div class="h2h-summary-strip">${summaryHTML}</div>
+                            ${pairRowsHTML}
+                            ${unplayedRowsHTML}
+                        </div>
                     </div>
                 `;
             }).join('');
 
             container.innerHTML = yearSections;
+        }
+
+        // Per-player yearly W-L chips for the H2H summary strip
+        function buildH2HSummary(overall) {
+            return PLAYERS.map(p => {
+                const { w, l } = overall[p];
+                const cls = w > l ? 'winning' : w < l ? 'losing' : 'tied';
+                return `<span class="h2h-summary-item">${p} <span class="h2h-card-overall ${cls}">${w}-${l}</span></span>`;
+            }).join('');
         }
 
         function renderDMAC() {

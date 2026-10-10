@@ -1,10 +1,10 @@
 # Supabase pauses free projects after 7 days of inactivity.
-# Read one row every 3 days so the database stays awake.
+# Its docs say a few requests a day are needed, so read one row every 4 hours.
 name: Supabase keep-alive
 
 on:
   schedule:
-    - cron: '17 3 */3 * *'
+    - cron: '17 */4 * * *'
   workflow_dispatch:
 
 jobs:
